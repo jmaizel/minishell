@@ -60,10 +60,49 @@ Assurez-vous d'avoir les outils suivants installés sur votre machine :
    ```bash
    make
 
-3.	Lancez le shell :
+3. Lancez le shell :
    ```bash
    ./minishell
 
 ---
 
 ## 📂 Structure du projet
+
+Voici un aperçu de l’organisation des fichiers :
+
+```plaintext
+minishell/
+├── srcs/                # Code source principal
+├── includes/            # Fichiers d'en-tête
+├── libft/                # Librairies externes (le cas échéant)
+├── Makefile            # Fichier de compilation
+└── README.md           # Ce fichier
+```
+
+---
+
+## 🛠️ Fonctionnalités à implémenter
+
+- **Commandes intégrées** :
+  - `cd`
+  - `echo`
+  - `exit`
+  - `env`
+  - `export`
+  - `unset`
+- **Signaux** :
+  - Gestion de `Ctrl+C`, `Ctrl+D`, et `Ctrl+Z`.
+- **Gestion des erreurs** :
+  - Gestion des erreurs dans l’exécution des commandes, le parsing, etc.
+ 
+## 📜 Licence
+
+Ce projet est réalisé dans le cadre du cursus 42 et est soumis à sa politique de collaboration. Veuillez respecter les règles d’intégrité académique lors de l’utilisation ou de la modification de ce code.
+
+---
+
+## 💬 Auteurs
+
+- **jmaizel**
+- **cdedessu**
+  
