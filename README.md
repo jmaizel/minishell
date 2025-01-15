@@ -52,11 +52,13 @@ Assurez-vous d'avoir les outils suivants installés sur votre machine :
 ### Étapes d'installation
 
 1. Clonez ce dépôt :
+   
    ```bash
    git clone https://github.com/jmaizel/minishell.git
    cd minishell
 
 2. Compilez le projet :
+   
    ```bash
    make
 
