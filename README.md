@@ -53,7 +53,7 @@ Assurez-vous d'avoir les outils suivants installés sur votre machine :
 
 1. Clonez ce dépôt :
    ```bash
-   git clone https://github.com/votre-utilisateur/minishell.git
+   git clone https://github.com/jmaizel/minishell.git
    cd minishell
 
 2. Compilez le projet :
@@ -74,9 +74,9 @@ Voici un aperçu de l’organisation des fichiers :
 minishell/
 ├── srcs/                # Code source principal
 ├── includes/            # Fichiers d'en-tête
-├── libft/                # Librairies externes (le cas échéant)
-├── Makefile            # Fichier de compilation
-└── README.md           # Ce fichier
+├── libft/               # Librairies externes (le cas échéant)
+├── Makefile             # Fichier de compilation
+└── README.md            # Ce fichier
 ```
 
 ---
@@ -103,6 +103,6 @@ Ce projet est réalisé dans le cadre du cursus 42 et est soumis à sa politique
 
 ## 💬 Auteurs
 
-- **jmaizel**
-- **cdedessu**
+- **jmaizel** : https://github.com/jmaizel
+- **cdedessu** : https://github.com/ClementDedessus
   
