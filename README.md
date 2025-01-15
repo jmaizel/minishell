@@ -40,20 +40,13 @@ Assurez-vous d’avoir les outils suivants installés sur votre machine :
 
 Étapes d’installation
 
-	1.	Clonez ce dépôt :
-
-git clone https://github.com/votre-utilisateur/minishell.git
-cd minishell
+	1.	Clonez ce dépôt : git clone https://github.com/votre-utilisateur/minishell.git cd minishell
 
 
-	2.	Compilez le projet :
-
-make
+	2.	Compilez le projet : make
 
 
-	3.	Lancez le shell :
-
-./minishell
+	3.	Lancez le shell : ./minishell
 
 📂 Structure du projet
 
