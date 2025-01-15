@@ -39,6 +39,7 @@ Assurez-vous d’avoir les outils suivants installés sur votre machine :
 	•	Un système Unix/Linux.
 
 Étapes d’installation
+
 	1.	Clonez ce dépôt :
 
 git clone https://github.com/votre-utilisateur/minishell.git
