@@ -1,5 +1,3 @@
-Voici un exemple de fichier README.md structuré et clair pour votre projet Minishell de 42 :
-
 Minishell - Projet 42
 
 Bienvenue dans le projet Minishell, développé par jmaizel et cdedessu dans le cadre du cursus 42.
