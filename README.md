@@ -45,7 +45,7 @@ Ces projets peuvent servir d'exemples pour explorer différentes approches d'imp
 
 Assurez-vous d'avoir les outils suivants installés sur votre machine :
 
-- Un compilateur C conforme (GCC ou Clang).
+- Un compilateur C conforme.
 - Make.
 - Un système Unix/Linux.
 
