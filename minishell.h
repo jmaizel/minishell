@@ -8,4 +8,6 @@
 #include "ft_printf.h"
 #include "libft.h"
 
+int	is_quote_closed(char *str);
+
 #endif
