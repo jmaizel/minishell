@@ -55,7 +55,6 @@ Assurez-vous d'avoir les outils suivants installés sur votre machine :
    ```bash
    git clone https://github.com/votre-utilisateur/minishell.git
    cd minishell
-   ```bash
 
 2. Compilez le projet :
    ```bash
