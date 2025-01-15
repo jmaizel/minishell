@@ -4,3 +4,6 @@ selem clement avec ton gros front , je mets les liens qui pourraient etre utiles
 2) un article en anglais ta grand mere : https://github.com/Hqndler/42-minishell
 3) LE PLUS IMPORTANT POUR TA PARTIE !!!!! : 
 https://www.youtube.com/watch?v=J-41NkbTel8
+
+
+Déjà, premièrement, surveille ton langage. Deuxièmement, je sens que tu vas casser ce Git 12000x
