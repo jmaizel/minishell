@@ -3,24 +3,28 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 12:20:12 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/15 12:33:13 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/01/16 12:12:43 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-int main(void)
+int	main(int argc, char **argv, char **env)
 {
-	char *test1 = "echo \"Hello 'world'\""; // Toutes les quotes sont fermées
-	char *test2 = "echo 'Hello world";      // Single quote non fermée
-	char *test3 = "echo \"Hello world";     // Double quote non fermée
+	(void)argc;
+	(void)argv;
+	t_tools	tools;
+	char	**current_env;
 
-	printf("Test 1: %d\n", is_quote_closed(test1)); // 1
-	printf("Test 2: %d\n", is_quote_closed(test2)); // 0
-	printf("Test 3: %d\n", is_quote_closed(test3)); // 0
-
+	tools.env = env;
+	current_env = tools.env;
+	while (current_env)
+	{
+		ft_printf("%s\n", *current_env);
+		current_env++;
+	}
 	return (0);
 }
