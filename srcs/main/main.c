@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 12:20:12 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/17 14:24:34 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/17 14:41:15 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@ int	main(int argc, char **argv, char **envp)
 	(void)argv;
 	tools.env = envp;
 	tools.exit_code = 0;
-
 	while (1)
 	{
 		line = readline("minishell> ");
@@ -32,15 +31,12 @@ int	main(int argc, char **argv, char **envp)
 			break ;
 		}
 		add_history(line);
-	
 		cmd.str = (char *[]){line, NULL};
 		cmd.redirections = NULL;
 		cmd.next = NULL;
 		cmd.prev = NULL;
-
-		apply_redirections(&cmd); 
+		apply_redirections(&cmd);
 		execute_simple_command(&cmd, &tools);
-
 		free(line);
 	}
 	return (tools.exit_code);
