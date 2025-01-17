@@ -18,7 +18,7 @@ TOOLS_DIR = ./srcs/tools
 
 # Fichiers source par dossier
 PARSING_FILES = parsing1.c
-EXEC_FILES = 
+EXEC_FILES = execution.c redirection.c execution_utils.c 
 MAIN_FILES = main.c
 BUILTINS_FILES = 
 ENV_FILES = 
