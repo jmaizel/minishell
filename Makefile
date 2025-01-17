@@ -1,12 +1,15 @@
 NAME = minishell
 
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror $(READLINE_INC)
 
 LIBFT_DIR = ./libft
 LIBFT_INCLUDES = $(LIBFT_DIR)/includes
 
-
+# Chemins pour readline
+READLINE_INC = -I/opt/homebrew/opt/readline/include
+READLINE_LIB = -L/opt/homebrew/opt/readline/lib
+LIBS = $(READLINE_LIB) -lreadline -L$(LIBFT_DIR) -lft
 
 # Dossiers des fichiers source
 PARSING_DIR = ./srcs/parsing
@@ -18,7 +21,7 @@ TOOLS_DIR = ./srcs/tools
 
 # Fichiers source par dossier
 PARSING_FILES = parsing1.c
-EXEC_FILES = execution.c redirection.c execution_utils.c 
+EXEC_FILES = execution.c redirection.c execution_utils.c builtins.c
 MAIN_FILES = main.c
 BUILTINS_FILES = 
 ENV_FILES = 
@@ -44,7 +47,7 @@ all: $(NAME)
 	@echo "OBJ = $(OBJ)"
 
 $(NAME): $(OBJ) $(LIBFT)
-	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) $(LIBS) -o $(NAME)
 
 # Compilation des objets (règle générique)
 %.o: %.c

@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:31:48 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/17 11:41:30 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/17 13:46:17 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,5 +34,11 @@ void	handle_append_redirection(t_lexer *redir);
 void	handle_heredoc(t_lexer *redir);
 
 char	*find_executable(char *command, char **env);
+int		ft_strcmp(const char *s1, const char *s2);
+
+int		builtin_echo(t_simple_cmds *cmd);
+int		builtin_cd(t_simple_cmds *cmd, t_tools *tools);
+int		builtin_exit(t_simple_cmds *cmd);
+int		builtin_env(t_tools *tools);
 
 #endif
