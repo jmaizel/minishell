@@ -16,6 +16,13 @@
 #include "ft_printf.h"
 #include "libft.h"
 
+typedef	struct			s_sep
+{
+	char				*cmd_sep;
+	struct s_sep		*prev;
+	struct s_sep		*next;
+	struct s_pip		*pipcell;
+}						t_sep;
 // Déclaration préalable (forward declaration)
 struct s_simple_cmds;
 
@@ -75,6 +82,8 @@ typedef struct s_simple_cmds
 //builtins
 
 //env
+char	**get_env_paths(char **env,char *var_name);
+void	print_env_vars(t_tools *tools);
 
 //exec
 

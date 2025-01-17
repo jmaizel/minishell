@@ -1,37 +1,43 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   env.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/15 12:20:12 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/16 13:40:03 by jacobmaizel      ###   ########.fr       */
+/*   Created: 2025/01/16 13:06:11 by jacobmaizel       #+#    #+#             */
+/*   Updated: 2025/01/16 13:44:20 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-int	main(int argc, char **argv, char **env)
+void	print_env_vars(t_tools *tools)
 {
-	t_tools	tools;
-	char	**paths;
-	int		i;
+	char	**current_env;
 
-	(void)argc;
-	(void)argv;
-	tools.env = env;
-	print_env_vars(&tools);
-	paths = get_env_paths(tools.env, "PATH");
-	 if (paths)
+	current_env = tools->env;
+	while (*current_env)
 	{
-		ft_printf("Paths dans la variable PATH :\n");
-		i = 0;
-		while (paths[i])
-		{
-			ft_printf("%s\n", paths[i]);
-			i++;
-		}
+		ft_printf("%s\n", *current_env);
+		current_env++; 
 	}
-	return (0);
+}
+
+char	**get_env_paths(char **env, char *var_name)
+{
+	int i = 0;
+
+	while (env[i])
+	{
+		if (ft_strncmp(env[i], var_name, ft_strlen(var_name)) == 0)
+
+		{
+			char *value = env[i] + ft_strlen(var_name) + 1;
+			char **paths = ft_split(value, ':');
+			return (paths);
+		}
+		i++;
+	}
+	return (NULL);
 }

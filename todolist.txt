@@ -1,11 +1,15 @@
 - Avant le parsing
 Récupérer les variables d'environnement :
 
+(FAIT)
 Écrire une fonction pour stocker toutes les variables d'environnement (char **env) dans une structure dédiée dans t_tools.
 Exemple : t_tools.env = env;
+
+(FAIT)
 Écrire une fonction pour récupérer une variable spécifique (exemple : PATH) dans un tableau de chemins avec ft_split.
 À faire :
 
+(FAIT)
 Récupérer la valeur de PATH depuis env.
 Splitter le contenu de PATH par : pour obtenir les chemins dans un char **.
 Fonction utile :

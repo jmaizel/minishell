@@ -17,7 +17,7 @@ BUILTINS_DIR = ./srcs/builtins
 TOOLS_DIR = ./srcs/tools
 
 # Fichiers source par dossier
-PARSING_FILES = parsing1.c
+PARSING_FILES = parsing1.c env.c
 EXEC_FILES = 
 MAIN_FILES = main.c
 BUILTINS_FILES = 
