@@ -6,17 +6,42 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 12:20:12 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/17 14:41:15 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/18 15:59:24 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
 
+/* Affiche le prompt et lit l'entrée utilisateur */
+static char	*get_input(void)
+{
+	char	*line;
+
+	line = readline("minishell> ");
+	if (!line)
+		ft_putendl_fd("exit", STDOUT_FILENO);
+	else if (*line)
+		add_history(line);
+	return (line);
+}
+
+/* Gère une ligne de commande simple */
+static void	execute_command_line(char *line, t_tools *tools)
+{
+	t_simple_cmds	cmd;
+
+	cmd.str = (char *[]){line, NULL};
+	cmd.redirections = NULL;
+	cmd.next = NULL;
+	cmd.prev = NULL;
+	apply_redirections(&cmd);
+	execute_simple_command(&cmd, tools);
+}
+
 int	main(int argc, char **argv, char **envp)
 {
-	char			*line;
-	t_tools			tools;
-	t_simple_cmds	cmd;
+	char	*line;
+	t_tools	tools;
 
 	(void)argc;
 	(void)argv;
@@ -24,19 +49,10 @@ int	main(int argc, char **argv, char **envp)
 	tools.exit_code = 0;
 	while (1)
 	{
-		line = readline("minishell> ");
+		line = get_input();
 		if (!line)
-		{
-			ft_putendl_fd("exit", STDOUT_FILENO);
 			break ;
-		}
-		add_history(line);
-		cmd.str = (char *[]){line, NULL};
-		cmd.redirections = NULL;
-		cmd.next = NULL;
-		cmd.prev = NULL;
-		apply_redirections(&cmd);
-		execute_simple_command(&cmd, &tools);
+		execute_command_line(line, &tools);
 		free(line);
 	}
 	return (tools.exit_code);

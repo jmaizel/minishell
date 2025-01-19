@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:31:48 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/17 14:36:45 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/17 17:42:41 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 # include <readline/readline.h>
 # include <readline/history.h>
 # include <stddef.h>
+# include <signal.h>
 
 void	execute_simple_command(t_simple_cmds *cmd, t_tools *tools);
 
