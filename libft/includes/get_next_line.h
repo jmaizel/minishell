@@ -1,29 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   get_next_line.h                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/15 12:20:12 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/20 13:37:28 by jacobmaizel      ###   ########.fr       */
+/*   Created: 2024/10/29 10:57:25 by jmaizel           #+#    #+#             */
+/*   Updated: 2025/01/20 13:53:55 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#ifndef GET_NEXT_LINE_H
+# define GET_NEXT_LINE_H
 
-int main(void)
-{
-    t_sep *list = NULL;
+# ifndef BUFFER_SIZE
+#  define BUFFER_SIZE 64
+# endif
 
-    // Ajout de commandes dans la liste chaînée
-    list = add_cell(list, "ls -l", 0); // Ajout en début
-    list = add_cell(list, "grep error", 1); // Ajout en position 1
-    list = add_cell(list, "wc -l", 2); // Ajout en position 2
+# include <limits.h>
+# include <stdlib.h>
+# include <unistd.h>
+# include "libft.h"
 
-    // Affichage de la liste pour vérification
-    print_list(list);
+char	*get_next_line(int fd);
 
-    return (0);
-}
-
+#endif

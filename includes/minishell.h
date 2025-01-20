@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include "ft_printf.h"
 #include "libft.h"
+#include "get_next_line.h"
 
 typedef	struct			s_sep
 {
@@ -85,11 +86,21 @@ typedef struct s_simple_cmds
 char	**get_env_paths(char **env,char *var_name);
 void	print_env_vars(t_tools *tools);
 
+//propmpt
+char	*get_user_input(void);
+void	loop_prompt(t_tools *tools, char **env);
+void	parsing_line(char *user_input, t_tools *tools);
+t_sep	*create_cell(char *cmd_sep);
+t_sep	*add_cell(t_sep *list, char *cmd_sep, int pos);
+void	print_list(t_sep *list);
+
 //exec
 
 //tools
 
 //parsing
-int	is_quote_closed(char *str);
+
+//utils
+void	free_str_array(char **array);
 
 #endif

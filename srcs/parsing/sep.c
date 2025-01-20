@@ -6,7 +6,7 @@
 /*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 15:17:10 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/01/16 15:28:35 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/01/20 13:40:36 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,3 +80,68 @@ void	print_list(t_sep *list)
 		i++;
 	}
 }
+
+void	parsing_line(char *user_input, t_tools *tools)
+{
+	t_sep	*list;
+	char	**cmds;
+	int		i;
+
+	list = NULL;
+	// etape 1 : decouper les commandes avec ft_split
+	cmds = ft_split(user_input, ';');
+	if (!cmds)
+	{
+		printf("Erreur : ft_split a echoue./n");
+		return ;
+	}
+	// etape 2 : ajouter les commandes dans la liste chainee
+	i = 0;
+	while (cmds[i])
+	{
+		list = add_cell(list, cmds[i], i);
+		i++;
+	}
+	// etape 3 : stocker la liste dans tools pour usage ult2rieur
+	tools->cmds = (struct s_simple_cmds *)list;
+	// etape 4 : afficher la liste pour deboguer
+	print_list(list);
+	free_str_array(cmds);
+}
+
+// fonction traiter_commande aura pour role d executer les commandes
+// stockes dans la liste chainee apres leur parsing.
+
+/* void	tratier_commande(t_tools *tools)
+{
+	t_sep	*cur;
+
+	// etape 1 ; parcour la list cmds
+	cur = (t_sep *)tools->cmds;
+	while (cur)
+	{
+		// etape 2 : verifier si la commande contient des pipes
+		if (ft_strchr(cur->cmd_sep, '|'))
+		{
+			parse_pipes(cur);
+			execute_piped_commands(cur->pipcell);
+		}
+		else
+			// etape 3 : executer la commande simple
+			execute_command(cur->cmd_sep, tools);
+		cur = cur->next;
+	}
+} */
+
+// FONCTION A CREER :
+
+// parse_pipe : decoupe cmd_sep avec ft_split '|' et rempli la sous_liste pipecell
+
+// Execute_piped_commands : parcour la sous-liste pipcell et utilise pipe/fork/dup2
+// pour connecter les commandes entre elles ,
+//	donc en gros je vais refaire un pipex level up
+
+// execute_command : but est de converir cmd_sep en untableau argv et executer la commande
+// avec execve ,
+//	cad le plan de la fonction va etre de verifier si la commande est un builtin,
+// si ce n est pas le cas , chercher son chemin avec get_env_paths

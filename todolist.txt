@@ -14,6 +14,7 @@ Récupérer la valeur de PATH depuis env.
 Splitter le contenu de PATH par : pour obtenir les chemins dans un char **.
 Fonction utile :
 
+(FAIT)
 c
 Copier
 Modifier

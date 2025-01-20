@@ -6,41 +6,58 @@
 /*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 13:58:10 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/01/16 14:00:25 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/01/20 13:38:07 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-void	loop_prompt(t_tools *tools)
+// but de cette fonction :
+// 1. afficher le prompt ~$
+// 2. lire  l'entree en utilisatateur avec get_next_line
+// 3. retourner la commande entree par l utilisateur
+char	*get_user_input(void)
 {
-	char	*ligne;
+	char	*input;
 
-	ligne = NULL;
+	write(1, "~$ ", 3);
+	input = get_next_line(0);
+	if (!input)
+		return (NULL);
+	return (input);
+}
+
+// but de cette fonction :
+// 1. recuperer les chemins a partir de PATH au demarrage
+// 2. lire les commandes utilisateur en boucle
+// 3. passer les commandes au psring pour les executer
+void	loop_prompt(t_tools *tools, char **env)
+{
+	char	*user_input;
+	char	**paths;
+
+	paths = get_env_paths(env, "PATH");
+	if (!paths)
+	{
+		ft_printf("Erreur : PATH non trouvé.\n");
+		return ;
+	}
 	while (1)
 	{
-		ft_printf("~$ ");
-		// Lire la ligne de commande
-		if (get_next_line(0, &ligne) <= 0) // Si EOF ou erreur
+		user_input = get_user_input();
+		if (!user_input)
 		{
-			free(ligne);
-			break ; // Sortie de la boucle si EOF ou erreur
-		}
-		// Vérifier si la ligne est vide
-		if (ligne[0] == '\0')
-		{
-			free(ligne);
-			continue ; // Si la ligne est vide, on demande une nouvelle entrée
-		}
-		// Appel du parsing de la ligne
-		parsing_ligne(ligne, tools);
-		// Traitement de la commande après parsing
-		traiter_commande(tools);
-		// Libérer la mémoire de la ligne
-		free(ligne);
-		ligne = NULL;
-		// Si la commande est "exit", on quitte la boucle
-		if (ligne && ft_strcmp(ligne, "exit") == 0)
+			ft_printf("\nExit\n");
 			break ;
+		}
+		if (user_input[0] == '\0')
+		{
+			free(user_input);
+			continue ;
+		}
+		parsing_line(user_input, tools);
+		//traiter_commande(tools, paths);
+		free(user_input);
 	}
+	free_str_array(paths);
 }
