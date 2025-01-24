@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_printf.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.s19.be>           +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 08:47:18 by cdedessu          #+#    #+#             */
-/*   Updated: 2024/11/19 11:52:34 by jmaizel          ###   ########.fr       */
+/*   Updated: 2024/11/05 21:29:05 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ int	ft_printf(const char *format, ...)
 /*
 #include <stdio.h>
 
-int	main(void)
+int main(void)
 {
 	ft_printf("ft_printf : %%c : %c\n", 'a');
 	printf("printf : %%c : %c\n", 'a');
