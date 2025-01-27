@@ -6,19 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 11:41:52 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 16:43:12 by cdedessu         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   execution_utils.c                                  :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/17 11:41:52 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 14:47:48 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/27 20:10:52 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,9 +53,14 @@ char	*find_executable(char *command, char **env)
 	char	*full_path;
 	int		i;
 
-	path = get_env_var("PATH", env);
-	if (!path)
+	if (!command || !env)
 		return (NULL);
+	path = get_env_var("PATH", env);
+	if (!path || !*path)
+	{
+		ft_putstr_fd("Error: PATH not found in environment.\n", STDERR_FILENO);
+		return (NULL);
+	}
 	paths = ft_split(path, ':');
 	if (!paths)
 		return (NULL);

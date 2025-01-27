@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 11:43:19 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 16:41:36 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/27 20:11:58 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ int	add_env_var(char *var, char ***env)
 	char	**new_env;
 
 	if (!var || !env || !*env)
-		return (GENERAL_ERROR);
+		return (ERR_INVALID_CMD);
 	i = 0;
 	while ((*env)[i])
 	{
@@ -45,20 +45,20 @@ int	add_env_var(char *var, char ***env)
 			free((*env)[i]);
 			(*env)[i] = ft_strdup(var);
 			if (!(*env)[i])
-				return (GENERAL_ERROR);
+				return (ERR_MALLOC_FAILURE);
 			return (SUCCESS);
 		}
 		i++;
 	}
 	new_env = malloc(sizeof(char *) * (i + 2));
 	if (!new_env)
-		return (GENERAL_ERROR);
+		return (ERR_MALLOC_FAILURE);
 	ft_memcpy(new_env, *env, sizeof(char *) * i);
 	new_env[i] = ft_strdup(var);
 	if (!new_env[i])
 	{
 		free(new_env);
-		return (GENERAL_ERROR);
+		return (ERR_MALLOC_FAILURE);
 	}
 	new_env[i + 1] = NULL;
 	free(*env);

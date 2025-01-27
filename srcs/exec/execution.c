@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:17:29 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 16:44:40 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/27 20:11:18 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,12 +53,18 @@ void	execute_external_command(t_simple_cmds *cmd, t_tools *tools)
 	pid_t	pid;
 	int		status;
 
+	if (!cmd || !cmd->str || !cmd->str[0] || !tools)
+	{
+		ft_putstr_fd("Error: invalid command structure.\n", STDERR_FILENO);
+		tools->exit_code = ERR_INVALID_CMD;
+		return ;
+	}
 	path = find_executable(cmd->str[0], tools->env);
 	if (!path)
 	{
 		ft_putstr_fd("Command not found: ", STDERR_FILENO);
 		ft_putendl_fd(cmd->str[0], STDERR_FILENO);
-		tools->exit_code = 127;
+		tools->exit_code = CMD_NOT_FOUND;
 		return ;
 	}
 	pid = fork();
@@ -68,27 +74,23 @@ void	execute_external_command(t_simple_cmds *cmd, t_tools *tools)
 		if (execve(path, cmd->str, tools->env) == -1)
 		{
 			perror("execve failed");
-			exit(1);
+			exit(ERR_EXEC_FAILURE);
 		}
 	}
 	else if (pid > 0)
-	{
 		waitpid(pid, &status, 0);
-		if (WIFEXITED(status))
-			tools->exit_code = WEXITSTATUS(status);
-	}
 	else
-	{
 		perror("fork failed");
-		tools->exit_code = 1;
-	}
 	free(path);
 }
 
 void	execute_simple_command(t_simple_cmds *cmd, t_tools *tools)
 {
-	if (!cmd || !cmd->str || !cmd->str[0])
+	if (!cmd || !cmd->str || !cmd->str[0] || !tools)
+	{
+		ft_putstr_fd("Error: invalid command structure.\n", STDERR_FILENO);
 		return ;
+	}
 	if (is_builtin(cmd->str[0]))
 	{
 		execute_builtin(cmd, tools);
