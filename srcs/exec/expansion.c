@@ -6,94 +6,98 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:44:03 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 15:42:25 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/27 16:46:42 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
 
-static char *get_variable_name(char *str)
+static char	*get_variable_name(char *str)
 {
-    int     i;
-    char    *name;
+	int		i;
+	char	*name;
 
-    i = 0;
-    while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
-        i++;
-    name = ft_substr(str, 0, i);
-    if (!name)
-        return (NULL);
-    return (name);
+	i = 0;
+	while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
+		i++;
+	name = ft_substr(str, 0, i);
+	if (!name)
+		return (NULL);
+	return (name);
 }
 
-static char *expand_exit_status(t_tools *tools)
+static char	*expand_exit_status(t_tools *tools)
 {
-    return (ft_itoa(tools->exit_code));
+	return (ft_itoa(tools->exit_code));
 }
 
-static char *handle_variable_expansion(char *str, t_tools *tools)
+static char	*handle_variable_expansion(char *str, t_tools *tools)
 {
-    char *var_name;
-    char *value;
-    
-    if (str[0] == '?')
-        return (expand_exit_status(tools));
-    
-    var_name = get_variable_name(str);
-    if (!var_name)
-        return (ft_strdup(""));
-    
-    value = get_env_var(var_name, tools->env);
-    free(var_name);
-    
-    return (value ? ft_strdup(value) : ft_strdup(""));
+	char	*var_name;
+	char	*value;
+
+	if (str[0] == '?')
+		return (expand_exit_status(tools));
+	var_name = get_variable_name(str);
+	if (!var_name)
+		return (ft_strdup(""));
+	value = get_env_var(var_name, tools->env);
+	free(var_name);
+	if (value)
+		return (ft_strdup(value));
+	return (ft_strdup(""));
 }
 
-char *expand_variables(char *str, t_tools *tools)
+static char	*append_variable(char *result, char *str, int *i, t_tools *tools)
 {
-    char    *result;
-    char    *temp;
-    char    *var_value;
-    bool    in_single_quotes;
-    bool    in_double_quotes;
-    int     i;
+	char	*var_value;
+	char	*temp;
 
-    if (!str)
-        return (NULL);
+	(*i)++;
+	var_value = handle_variable_expansion(str + *i, tools);
+	temp = ft_strjoin(result, var_value);
+	free(var_value);
+	free(result);
+	while (str[*i] && (ft_isalnum(str[*i]) || str[*i] == '_'))
+		(*i)++;
+	return (temp);
+}
 
-    result = ft_strdup("");
-    if (!result)
-        return (NULL);
+static char	*append_character(char *result, char c)
+{
+	char	*temp;
 
-    i = 0;
-    in_single_quotes = false;
-    in_double_quotes = false;
+	temp = ft_charjoin(result, c);
+	free(result);
+	return (temp);
+}
 
-    while (str[i])
-    {
-        if (str[i] == '\'' && !in_double_quotes)
-            in_single_quotes = !in_single_quotes;
-        else if (str[i] == '"' && !in_single_quotes)
-            in_double_quotes = !in_double_quotes;
-        else if (str[i] == '$' && !in_single_quotes && str[i + 1])
-        {
-            i++;
-            var_value = handle_variable_expansion(str + i, tools);
-            temp = ft_strjoin(result, var_value);
-            free(var_value);
-            free(result);
-            result = temp;
-            while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
-                i++;
-            continue;
-        }
-        else
-        {
-            temp = ft_charjoin(result, str[i]);
-            free(result);
-            result = temp;
-        }
-        i++;
-    }
-    return (result);
+char	*expand_variables(char *str, t_tools *tools)
+{
+	char	*result;
+	bool	in_single_quotes;
+	bool	in_double_quotes;
+	int		i;
+
+	if (!str)
+		return (NULL);
+	result = ft_strdup("");
+	if (!result)
+		return (NULL);
+	in_single_quotes = false;
+	in_double_quotes = false;
+	i = 0;
+	while (str[i])
+	{
+		if (str[i] == '\'' && !in_double_quotes)
+			in_single_quotes = !in_single_quotes;
+		else if (str[i] == '"' && !in_single_quotes)
+			in_double_quotes = !in_double_quotes;
+		else if (str[i] == '$' && !in_single_quotes && str[i + 1])
+			result = append_variable(result, str, &i, tools);
+		else
+			result = append_character(result, str[i]);
+		i++;
+	}
+	return (result);
 }
