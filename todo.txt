@@ -1,0 +1,86 @@
+To-Do List pour la Partie Exécution
+
+Voici une liste détaillée des tâches à réaliser pour votre partie, organisée par priorité et complexité.
+
+Étape 1 : Préparatifs et Structure
+	1.	Créer un répertoire dédié à l’exécution (executor/) dans votre projet.
+	•	Fichiers suggérés :
+	•	executor.c : Point d’entrée principal pour l’exécution.
+	•	executor_utils.c : Fonctions utilitaires pour l’exécution.
+	•	redirection.c : Gestion des redirections.
+	•	pipes.c : Gestion des pipes.
+	2.	Ajouter les prototypes des fonctions dans executor.h.
+	3.	Configurer l’intégration avec le parsing :
+	•	Vérifiez que les structures fournies (t_simple_cmds, t_tools) contiennent toutes les informations nécessaires.
+	•	Demandez à votre collègue de simuler des données de parsing si elles ne sont pas encore prêtes.
+
+Étape 2 : Exécution de Commandes Simples
+	1.	Implémenter la recherche d’exécutable dans le PATH :
+	•	Créer une fonction char *find_executable(char *cmd, char **env);.
+	•	Rechercher l’exécutable dans chaque chemin de PATH.
+	2.	Écrire la fonction d’exécution d’une commande simple :
+	•	Créer une fonction void execute_simple_command(t_simple_cmds *cmd, t_tools *tools);.
+	•	Utiliser fork et execve pour exécuter la commande.
+	3.	Gérer les erreurs courantes :
+	•	Commande introuvable.
+	•	Absence de permissions d’exécution.
+
+Étape 3 : Gestion des Redirections
+	1.	Implémenter la redirection d’entrée (<) :
+	•	Fonction : void handle_input_redirection(t_simple_cmds *cmd);.
+	2.	Implémenter la redirection de sortie (>) :
+	•	Fonction : void handle_output_redirection(t_simple_cmds *cmd);.
+	3.	Implémenter la redirection de sortie en mode append (>>) :
+	•	Fonction : void handle_append_redirection(t_simple_cmds *cmd);.
+	4.	Implémenter le heredoc (<<) :
+	•	Fonction : void handle_heredoc(t_simple_cmds *cmd);.
+	5.	Écrire une fonction principale pour appliquer toutes les redirections :
+	•	void apply_redirections(t_simple_cmds *cmd);.
+
+Étape 4 : Gestion des Pipes
+	1.	Écrire une fonction pour exécuter une chaîne de commandes avec pipes :
+	•	void execute_with_pipes(t_simple_cmds *cmd, t_tools *tools);.
+	•	Créez les pipes avec pipe().
+	•	Gérez les descripteurs avec dup2.
+	2.	Fermez les descripteurs inutiles dans chaque processus enfant.
+	3.	Attendez la fin de chaque processus avec waitpid.
+
+Étape 5 : Implémentation des Built-ins
+	1.	Créer des fonctions pour chaque builtin :
+	•	int builtin_echo(t_tools *tools, t_simple_cmds *cmd);.
+	•	int builtin_cd(t_tools *tools, t_simple_cmds *cmd);.
+	•	int builtin_pwd(t_tools *tools, t_simple_cmds *cmd);.
+	•	int builtin_env(t_tools *tools, t_simple_cmds *cmd);.
+	•	int builtin_exit(t_tools *tools, t_simple_cmds *cmd);.
+	2.	Créer une fonction pour détecter et exécuter un builtin :
+	•	int execute_builtin(t_simple_cmds *cmd, t_tools *tools);.
+
+Étape 6 : Gestion des Signaux
+	1.	Configurer la gestion des signaux (Ctrl+C, Ctrl+D, Ctrl+\).
+	•	Utiliser signal ou sigaction pour :
+	•	Afficher un nouveau prompt avec Ctrl+C.
+	•	Quitter le shell avec Ctrl+D.
+	•	Ignorer Ctrl+\.
+
+Étape 7 : Tests et Débogage
+	1.	Créer un fichier de tests unitaires pour valider chaque étape :
+	•	Tests pour commandes simples.
+	•	Tests pour redirections.
+	•	Tests pour pipes.
+	•	Tests pour built-ins.
+	2.	Tester avec des cas complexes :
+	•	Combinaisons de pipes et redirections.
+	•	Commandes longues avec quotes et variables d’environnement.
+
+Étape 8 : Intégration Finale
+	1.	Connecter votre exécution avec le parsing :
+	•	Récupérez la liste chaînée des commandes après parsing.
+	•	Parcourez chaque commande pour exécuter.
+	2.	Gérer les erreurs globales :
+	•	Assurez-vous qu’aucun segfault ou double free ne survient.
+	•	Gérez les erreurs utilisateur proprement.
+
+Suivi
+
+a. Voulez-vous un exemple de gestion complète d’une commande avec redirection et pipe ?
+b. Souhaitez-vous des scripts de tests unitaires pour valider chaque étape ?
