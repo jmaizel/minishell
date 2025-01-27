@@ -5,3 +5,10 @@ todo.txt
 input.txt
 main.txt
 output.txt
+
+srcs/builtins/cd.c
+srcs/builtins/env.c
+srcs/builtins/exit.c
+srcs/builitns/export.c
+srcs/builitns/pwd.c
+srcs/builtins/unset.c

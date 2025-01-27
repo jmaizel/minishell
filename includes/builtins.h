@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:42:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 13:00:58 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/27 20:27:50 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,6 @@
 
 # include "../includes/minishell.h"
 # include "../includes/execution.h"
-
-# define PATH_MAX 4096
 
 int	builtin_echo(t_simple_cmds *cmd);
 int	builtin_cd(t_simple_cmds *cmd, t_tools *tools);

@@ -6,11 +6,27 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:43:16 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 11:43:17 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/27 20:46:37 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../includes/builtins.h"
+#include "../includes/execution.h"
+
+static int	is_option_n(char *arg)
+{
+	int	i;
+
+	if (!arg || arg[0] != '-')
+		return (0);
+	i = 1;
+	while (arg[i])
+	{
+		if (arg[i] != 'n')
+			return (0);
+		i++;
+	}
+	return (1);
+}
 
 int	builtin_echo(t_simple_cmds *cmd)
 {
@@ -19,7 +35,7 @@ int	builtin_echo(t_simple_cmds *cmd)
 
 	i = 1;
 	newline = 1;
-	if (cmd->str[1] && ft_strcmp(cmd->str[1], "-n") == 0)
+	while (cmd->str[i] && is_option_n(cmd->str[i]))
 	{
 		newline = 0;
 		i++;

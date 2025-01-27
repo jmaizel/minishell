@@ -29,7 +29,7 @@ EXEC_FILES = cleanup.c env_utils.c error_handling.c \
 	exit_status.c utils.c
 MAIN_FILES = main.c
 ENV_FILES =
-BUILTINS_FILES = cd.c echo.c env.c exit.c pwd.c export.c unset.c
+BUILTINS_FILES = echo.c 
 TOOLS_FILES =
 
 # Create full source paths
