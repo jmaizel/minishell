@@ -20,10 +20,10 @@ LIBS = $(READLINE_LIB) -lreadline -L$(LIBFT_DIR) -lft
 LIBFT = $(LIBFT_DIR)/libft.a
 
 PARSING_FILES = parsing1.c
-EXEC_FILES = execution.c redirection.c execution_utils.c builtins.c
+EXEC_FILES = cleanup.c env_utils.c error_handling.c execution.c execution_utils.c expansion.c pipes.c redirection.c signals.c
 MAIN_FILES = main.c
 ENV_FILES =
-BUILTINS_FILES =
+BUILTINS_FILES = cd.c echo.c env.c exit.c pwd.c export.c unset.c
 TOOLS_FILES =
 
 SRC_FILES = $(addprefix $(MAIN_DIR)/, $(MAIN_FILES)) \

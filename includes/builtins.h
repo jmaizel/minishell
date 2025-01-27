@@ -1,0 +1,29 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   builtins.h                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/27 11:42:12 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/01/27 13:00:58 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef BUILTINS_H
+# define BUILTINS_H
+
+# include "../includes/minishell.h"
+# include "../includes/execution.h"
+
+# define PATH_MAX 4096
+
+int	builtin_echo(t_simple_cmds *cmd);
+int	builtin_cd(t_simple_cmds *cmd, t_tools *tools);
+int	builtin_pwd(void);
+int	builtin_export(t_simple_cmds *cmd, t_tools *tools);
+int	builtin_unset(t_simple_cmds *cmd, t_tools *tools);
+int	builtin_env(t_tools *tools);
+int	builtin_exit(t_simple_cmds *cmd);
+
+#endif
