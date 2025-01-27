@@ -69,7 +69,9 @@ SRC_LIBFT = \
     $(LIBFT_DIR)/ft_lstdelone.c \
     $(LIBFT_DIR)/ft_lstclear.c \
     $(LIBFT_DIR)/ft_lstiter.c \
-    $(LIBFT_DIR)/ft_lstmap.c
+    $(LIBFT_DIR)/ft_lstmap.c \
+    $(LIBFT_DIR)/ft_split_pipes.c \
+
 
 # Fichiers sources de ft_printf
 SRC_PRINTF = \

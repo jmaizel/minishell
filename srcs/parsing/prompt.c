@@ -3,29 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   prompt.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 13:58:10 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/01/20 13:38:07 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/01/27 12:00:11 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-
-// but de cette fonction :
-// 1. afficher le prompt ~$
-// 2. lire  l'entree en utilisatateur avec get_next_line
-// 3. retourner la commande entree par l utilisateur
-char	*get_user_input(void)
-{
-	char	*input;
-
-	write(1, "~$ ", 3);
-	input = get_next_line(0);
-	if (!input)
-		return (NULL);
-	return (input);
-}
 
 // but de cette fonction :
 // 1. recuperer les chemins a partir de PATH au demarrage
@@ -36,28 +21,38 @@ void	loop_prompt(t_tools *tools, char **env)
 	char	*user_input;
 	char	**paths;
 
+	// Récupérer les chemins PATH
 	paths = get_env_paths(env, "PATH");
 	if (!paths)
 	{
 		ft_printf("Erreur : PATH non trouvé.\n");
 		return ;
 	}
+	// Configuration de readline
+	rl_catch_signals = 0; // Nous gérons nous-mêmes les signaux
+	// Configurer les signaux
+	setup_signals();
 	while (1)
 	{
 		user_input = get_user_input();
+		// Gestion de Ctrl-D (fin de fichier)
 		if (!user_input)
 		{
 			ft_printf("\nExit\n");
 			break ;
 		}
+		// Ignorer les lignes vides
 		if (user_input[0] == '\0')
 		{
 			free(user_input);
 			continue ;
 		}
+		// Traitement de la commande
 		parsing_line(user_input, tools);
-		//traiter_commande(tools, paths);
+		// Libérer la mémoire
 		free(user_input);
 	}
+	// Nettoyer l'historique à la fin
+	rl_clear_history();
 	free_str_array(paths);
 }

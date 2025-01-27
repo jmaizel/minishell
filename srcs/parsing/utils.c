@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/20 11:25:48 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/01/20 11:26:13 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/01/27 16:16:00 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,4 +25,11 @@ void	free_str_array(char **array)
 		i++;
 	}
 	free(array);
+}
+
+int	ft_isspace(int c)
+{
+	if (c == 32)
+		return (1);
+	return (0);
 }

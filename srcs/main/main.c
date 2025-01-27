@@ -3,27 +3,26 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 12:20:12 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/20 13:37:28 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/01/27 15:48:50 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
+#include <stdio.h>
+
 int main(void)
 {
-    t_sep *list = NULL;
+    char *command = "echo '| outfile' | cat infile";
+    char **pipes = ft_split_pipes(command, '|');
 
-    // Ajout de commandes dans la liste chaînée
-    list = add_cell(list, "ls -l", 0); // Ajout en début
-    list = add_cell(list, "grep error", 1); // Ajout en position 1
-    list = add_cell(list, "wc -l", 2); // Ajout en position 2
-
-    // Affichage de la liste pour vérification
-    print_list(list);
-
+    for (int i = 0; pipes[i]; i++)
+    {
+        printf("Segment %d: %s\n", i, pipes[i]);
+    }
+    free_str_array(pipes);
     return (0);
 }
-

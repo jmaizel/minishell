@@ -1,7 +1,6 @@
 #ifndef MINISHELL_H
 # define MINISHELL_H
 
-# include "libft.h"
 # include <stdlib.h>
 # include <unistd.h>
 # include <stdio.h>
@@ -13,9 +12,10 @@
 # include <errno.h>
 # include <signal.h>
 #include <stdbool.h>
-#include "ft_printf.h"
-#include "libft.h"
-#include "get_next_line.h"
+#include "../libft/includes/libft.h"
+#include "../libft/includes/ft_printf.h"
+#include <readline/readline.h>
+#include <readline/history.h>
 
 typedef	struct			s_sep
 {
@@ -79,6 +79,24 @@ typedef struct s_simple_cmds
     struct s_simple_cmds *prev;          // Pointeur vers la commande précédente
 } t_simple_cmds;
 
+// Ajout d'une structure de redirection
+typedef struct s_redirection {
+    char *input_file;
+    char *output_file;
+    char *append_file;
+    char *heredoc;
+    int type;
+} t_redirection;
+
+// Modification de la structure s_pip pour inclure les redirections
+typedef struct s_pip 
+{
+    char *cmd_pipe;         // Commande dans le pipe
+    t_redirection *redirection;  // Redirection pour cette commande
+    struct s_pip *next;
+    struct s_pip *prev;
+} t_pip;
+
 
 //builtins
 
@@ -87,20 +105,26 @@ char	**get_env_paths(char **env,char *var_name);
 void	print_env_vars(t_tools *tools);
 
 //propmpt
-char	*get_user_input(void);
 void	loop_prompt(t_tools *tools, char **env);
 void	parsing_line(char *user_input, t_tools *tools);
 t_sep	*create_cell(char *cmd_sep);
 t_sep	*add_cell(t_sep *list, char *cmd_sep, int pos);
 void	print_list(t_sep *list);
+char	*get_user_input(void);
+void	handle_signal(int sig);
+void	setup_signals(void);
 
 //exec
 
 //tools
 
 //parsing
+t_redirection	*parse_redirections(char *cmd);
+void	parse_pipes(t_sep *cell);
+
 
 //utils
 void	free_str_array(char **array);
+int	ft_isspace(int c);
 
 #endif

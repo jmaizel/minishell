@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/08 15:30:29 by cdedessu          #+#    #+#             */
-/*   Updated: 2024/12/24 15:36:47 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/01/27 16:15:51 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ void				ft_putchar_fd(char c, int fd);
 void				ft_putstr_fd(char *s, int fd);
 void				ft_putendl_fd(char *s, int fd);
 void				ft_putnbr_fd(int n, int fd);
+char				**ft_split_pipes(const char *s, char delimiter);
 
 typedef struct s_list
 {
