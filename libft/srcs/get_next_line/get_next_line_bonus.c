@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/29 11:16:19 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/22 16:50:30 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/27 10:12:32 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ static char	*save_leftover(char *buffer)
 		free(buffer);
 		return (NULL);
 	}
-	leftover = malloc(sizeof(char) * (ft_strlen_v2(buffer) - i));
+	leftover = malloc(sizeof(char) * (gnl_strlen(buffer) - i));
 	if (!leftover)
 	{
 		free(buffer);
@@ -75,11 +75,11 @@ static int	fill_buffer(int fd, char **static_buffer)
 	{
 		buffer[bytes_read] = '\0';
 		temp = *static_buffer;
-		*static_buffer = ft_strjoin_v2(temp, buffer);
+		*static_buffer = gnl_strjoin(temp, buffer);
 		free(temp);
 		if (!*static_buffer)
 			return (-1);
-		if (ft_strchr_v2(*static_buffer, '\n'))
+		if (gnl_strchr(*static_buffer, '\n'))
 			break ;
 		bytes_read = read(fd, buffer, BUFFER_SIZE);
 	}
@@ -109,7 +109,7 @@ char	*get_next_line(int fd)
 		free_buffer(&static_buffer[fd]);
 		return (NULL);
 	}
-	if (ft_strlen_v2(static_buffer[fd]) == 0)
+	if (gnl_strlen(static_buffer[fd]) == 0)
 	{
 		free_buffer(&static_buffer[fd]);
 		return (NULL);

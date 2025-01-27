@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/29 11:16:56 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/22 16:50:30 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/27 10:10:21 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,11 +25,11 @@
 #  define FD_MAX 1024
 # endif
 
-size_t	ft_strlen_v2(const char *s);
-size_t	ft_strlcpy_v2(char *dst, const char *src, size_t size);
-char	*ft_strchr_v2(const char *s, int c);
-char	*ft_strjoin_v2(char const *s1, char const *s2);
-char	*ft_strdup(const char *src);
+size_t	gnl_strlen(const char *s);
+size_t	gnl_strlcpy(char *dst, const char *src, size_t size);
+char	*gnl_strchr(const char *s, int c);
+char	*gnl_strjoin(char const *s1, char const *s2);
+char	*gnl_strdup(const char *src);
 char	*get_next_line(int fd);
 
 #endif
