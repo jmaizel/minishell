@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:31:48 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 20:13:04 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/27 21:06:34 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,8 +62,9 @@ char	*expand_variables(char *str, t_tools *tools);
 char	*find_executable(char *command, char **env);
 int		ft_strcmp(const char *s1, const char *s2);
 void	handle_error(const char *msg);
-int		cleanup_pipes(int prev_pipe, int pipe_fds[2], bool has_next);
 void	cleanup_command(t_simple_cmds *cmd);
+
+char	*ft_strjoin_free(char *s1, char *s2, int free_s1, int free_s2);
 char	*ft_charjoin(char *str, char c);
 
 /* Gestion des signaux */

@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:17:29 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 20:50:16 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/27 21:06:58 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,8 @@ static int	is_builtin(char *cmd)
 {
 	//ft_putstr_fd("Checking if builtin: ", STDOUT_FILENO);
 	//ft_putendl_fd(cmd, STDOUT_FILENO);
-	return (ft_strcmp(cmd, "echo") == 0);
+	return (ft_strcmp(cmd, "echo") == 0
+		|| ft_strcmp(cmd, "cd") == 0);
 }
 
 static int	execute_builtin(t_simple_cmds *cmd, t_tools *tools)
@@ -24,11 +25,11 @@ static int	execute_builtin(t_simple_cmds *cmd, t_tools *tools)
 	int	ret;
 
 	//ft_putstr_fd("Executing builtin: ", STDOUT_FILENO);
-    //ft_putendl_fd(cmd->str[0], STDOUT_FILENO);
+	//ft_putendl_fd(cmd->str[0], STDOUT_FILENO);
 	if (ft_strcmp(cmd->str[0], "echo") == 0)
 		ret = builtin_echo(cmd);
-	//else if (ft_strcmp(cmd->str[0], "cd") == 0)
-		//ret = builtin_cd(cmd, tools);
+	else if (ft_strcmp(cmd->str[0], "cd") == 0)
+		ret = builtin_cd(cmd, tools);
 	else
 		return (0);
 	tools->exit_code = ret;
