@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:42:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 20:27:50 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/27 21:14:33 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,5 @@
 
 int	builtin_echo(t_simple_cmds *cmd);
 int	builtin_cd(t_simple_cmds *cmd, t_tools *tools);
-int	builtin_pwd(void);
-int	builtin_export(t_simple_cmds *cmd, t_tools *tools);
-int	builtin_unset(t_simple_cmds *cmd, t_tools *tools);
-int	builtin_env(t_tools *tools);
-int	builtin_exit(t_simple_cmds *cmd);
 
 #endif
