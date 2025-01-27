@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 17:43:19 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 12:50:26 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/27 15:38:53 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,38 +37,40 @@ char    *get_env_var(char *key, char **env)
 
 int     add_env_var(char *var, char ***env)
 {
-    int     i;
-    char    **new_env;
+        if (!var || !env || !*env)
+                return (GENERAL_ERROR);
 
-    i = 0;
-    while ((*env)[i])
-    {
-        if (ft_strncmp((*env)[i], var, ft_strchr(var, '=') - var) == 0)
+        int     i;
+        char    **new_env;
+
+        i = 0;
+        while ((*env)[i])
         {
-            free((*env)[i]);
-            (*env)[i] = ft_strdup(var);
-            return (0);
+                if (ft_strncmp((*env)[i], var, ft_strchr(var, '=') - var) == 0)
+                {
+                        free((*env)[i]);
+                        if (!((*env)[i] = ft_strdup(var)))
+                                return (GENERAL_ERROR);
+                        return (SUCCESS);
+                }
+                i++;
         }
-        i++;
-    }
 
-    // Allocation d'un nouvel environnement
-    new_env = malloc(sizeof(char *) * (i + 2));
-    if (!new_env)
-        return (1);
+        if (!(new_env = malloc(sizeof(char *) * (i + 2))))
+                return (GENERAL_ERROR);
 
-    // Copier l'ancien environnement
-    ft_memcpy(new_env, *env, sizeof(char *) * i);
-    
-    // Ajouter la nouvelle variable
-    new_env[i] = ft_strdup(var);
-    new_env[i + 1] = NULL;
+        ft_memcpy(new_env, *env, sizeof(char *) * i);
+        if (!(new_env[i] = ft_strdup(var)))
+        {
+                free(new_env);
+                return (GENERAL_ERROR);
+        }
+        new_env[i + 1] = NULL;
 
-    // Libérer l'ancien environnement
-    free(*env);
-    *env = new_env;
+        free(*env);
+        *env = new_env;
 
-    return (0);
+        return (SUCCESS);
 }
 
 int	remove_env_var(char *key, char ***env)

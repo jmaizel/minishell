@@ -6,70 +6,127 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 17:41:59 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 12:58:25 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/27 15:43:40 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
 
-static void	close_unused_pipes(int prev_pipe, int pipe_fds[2])
+static void cleanup_pipe_array(int **pipes, int count)
 {
-	if (prev_pipe != -1)
-		close(prev_pipe);
-	close(pipe_fds[1]);
+    int i;
+
+    if (!pipes || !*pipes)
+        return;
+    i = 0;
+    while (i < count)
+    {
+        close((*pipes)[i * 2]);
+        close((*pipes)[i * 2 + 1]);
+        i++;
+    }
+    free(*pipes);
+    *pipes = NULL;
 }
 
-static void     handle_child_process(t_simple_cmds *cmd, int prev_pipe,
-        int pipe_fds[2], t_tools *tools)
+static int *create_pipes(int count)
 {
-        if (prev_pipe != -1 && dup2(prev_pipe, STDIN_FILENO) == -1)
+    int *pipes;
+    int i;
+
+    pipes = malloc(sizeof(int) * 2 * count);
+    if (!pipes)
+        return (NULL);
+
+    i = 0;
+    while (i < count)
+    {
+        if (pipe(pipes + (i * 2)) == -1)
         {
-                perror("dup2 failed");
-                exit(EXIT_FAILURE);
+            cleanup_pipe_array(&pipes, i);
+            return (NULL);
         }
-        if (cmd->next && dup2(pipe_fds[1], STDOUT_FILENO) == -1)
-        {
-                perror("dup2 failed");
-                exit(EXIT_FAILURE);
-        }
-        close_unused_pipes(prev_pipe, pipe_fds);
-        apply_redirections(cmd);
-        setup_signals();  // Remplacez cette ligne
-        execute_simple_command(cmd, tools);
-        exit(tools->exit_code);
+        i++;
+    }
+    return (pipes);
+}
+
+static void setup_pipe_fds(int *pipes, int i, int pipe_count)
+{
+    if (i > 0)  // Not first command
+    {
+        if (dup2(pipes[(i - 1) * 2], STDIN_FILENO) == -1)
+            handle_error("dup2 failed");
+    }
+    if (i < pipe_count)  // Not last command
+    {
+        if (dup2(pipes[i * 2 + 1], STDOUT_FILENO) == -1)
+            handle_error("dup2 failed");
+    }
+
+    // Close all pipe fds in child
+    for (int j = 0; j < pipe_count * 2; j++)
+        close(pipes[j]);
 }
 
 void execute_pipeline(t_simple_cmds *cmd, t_tools *tools)
 {
-    int pipe_fds[2];
-    int prev_pipe;
-    pid_t last_pid;
-    int status;
+    int     pipe_count;
+    int     *pipes;
+    int     i;
+    pid_t   *pids;
+    int     status;
 
-    prev_pipe = -1;
-    while (cmd)
+    // Count commands and create pipes
+    pipe_count = 0;
+    t_simple_cmds *tmp = cmd;
+    while (tmp->next)
     {
-        if (cmd->next && pipe(pipe_fds) == -1)
-            handle_error("pipe");
-
-        pid_t pid = fork();
-        if (pid == -1)
-            handle_error("fork");
-        else if (pid == 0)
-        {
-            setup_child_signals();  // Remplacez setup_signal_handlers()
-            handle_child_process(cmd, prev_pipe, pipe_fds, tools);
-        }
-        else
-        {
-            cleanup_pipes(prev_pipe, pipe_fds, cmd->next != NULL);
-            last_pid = pid;
-        }
-        cmd = cmd->next;
+        pipe_count++;
+        tmp = tmp->next;
     }
-    waitpid(last_pid, &status, 0);
-    while (wait(NULL) > 0)
-        ;
-    if (WIFEXITED(status))
-        tools->exit_code = WEXITSTATUS(status);
+
+    pipes = create_pipes(pipe_count);
+    if (!pipes)
+        handle_error("pipe creation failed");
+
+    pids = malloc(sizeof(pid_t) * (pipe_count + 1));
+    if (!pids)
+    {
+        cleanup_pipe_array(&pipes, pipe_count);
+        handle_error("malloc failed");
+    }
+
+    // Execute commands
+    i = 0;
+    tmp = cmd;
+    while (tmp)
+    {
+        pids[i] = fork();
+        if (pids[i] == -1)
+            handle_error("fork failed");
+        
+        if (pids[i] == 0)
+        {
+            setup_child_signals();
+            setup_pipe_fds(pipes, i, pipe_count);
+            execute_simple_command(tmp, tools);
+            exit(tools->exit_code);
+        }
+        tmp = tmp->next;
+        i++;
+    }
+
+    // Parent process
+    cleanup_pipe_array(&pipes, pipe_count);
+
+    // Wait for all children
+    for (i = 0; i < pipe_count + 1; i++)
+    {
+        waitpid(pids[i], &status, 0);
+        if (i == pipe_count)  // Last command
+            update_exit_status(tools, status);
+    }
+
+    free(pids);
 }

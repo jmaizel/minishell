@@ -2,10 +2,10 @@ NAME = minishell
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -I$(INCLUDES_DIR) -I$(LIBFT_DIR) $(READLINE_INC)
 
+# Directory structure
 LIBFT_DIR = ./libft
 INCLUDES_DIR = includes
 OBJ_DIR = objs
-
 PARSING_DIR = ./srcs/parsing
 EXEC_DIR = ./srcs/exec
 MAIN_DIR = ./srcs/main
@@ -13,28 +13,36 @@ ENV_DIR = ./srcs/env
 BUILTINS_DIR = ./srcs/builtins
 TOOLS_DIR = ./srcs/tools
 
+# Readline paths
 READLINE_INC = -I/opt/homebrew/opt/readline/include
 READLINE_LIB = -L/opt/homebrew/opt/readline/lib
 LIBS = $(READLINE_LIB) -lreadline -L$(LIBFT_DIR) -lft
 
+# Library
 LIBFT = $(LIBFT_DIR)/libft.a
 
+# Source files by directory
 PARSING_FILES = parsing1.c
-EXEC_FILES = cleanup.c env_utils.c error_handling.c execution.c execution_utils.c expansion.c pipes.c redirection.c signals.c
+EXEC_FILES = cleanup.c env_utils.c error_handling.c \
+	execution.c execution_utils.c expansion.c \
+	pipes.c redirection.c signals.c heredoc.c \
+	exit_status.c utils.c
 MAIN_FILES = main.c
 ENV_FILES =
 BUILTINS_FILES = cd.c echo.c env.c exit.c pwd.c export.c unset.c
 TOOLS_FILES =
 
+# Create full source paths
 SRC_FILES = $(addprefix $(MAIN_DIR)/, $(MAIN_FILES)) \
-      $(addprefix $(PARSING_DIR)/, $(PARSING_FILES)) \
-      $(addprefix $(EXEC_DIR)/, $(EXEC_FILES)) \
-      $(addprefix $(ENV_DIR)/, $(ENV_FILES)) \
-      $(addprefix $(BUILTINS_DIR)/, $(BUILTINS_FILES)) \
-      $(addprefix $(TOOLS_DIR)/, $(TOOLS_FILES))
+	$(addprefix $(PARSING_DIR)/, $(PARSING_FILES)) \
+	$(addprefix $(EXEC_DIR)/, $(EXEC_FILES)) \
+	$(addprefix $(ENV_DIR)/, $(ENV_FILES)) \
+	$(addprefix $(BUILTINS_DIR)/, $(BUILTINS_FILES)) \
+	$(addprefix $(TOOLS_DIR)/, $(TOOLS_FILES))
 
 OBJS = $(SRC_FILES:./srcs/%.c=$(OBJ_DIR)/%.o)
 
+# Progress bar variables
 TOTAL_FILES := $(words $(SRC_FILES))
 COMPILED_FILES := 0
 
@@ -45,6 +53,7 @@ define progress_bar
 	printf "\rCompiling [%-20s] %d%%" "$$BAR" "$$PROGRESS"
 endef
 
+# Rules
 all: $(NAME)
 
 $(NAME): $(OBJS) $(LIBFT)

@@ -5,73 +5,95 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/17 17:44:03 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/17 17:46:24 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/01/17 10:44:03 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/01/27 15:42:25 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
 
-static char	*expand_var(char *str, t_tools *tools)
+static char *get_variable_name(char *str)
 {
-	char	*key;
-	char	*value;
-	char	*result;
+    int     i;
+    char    *name;
 
-	key = str;
-	while (*str && (ft_isalnum(*str) || *str == '_'))
-		str++;
-	*str = '\0';
-	value = get_env_var(key, tools->env);
-	if (value != NULL)
-		result = ft_strdup(value);
-	else
-		result = ft_strdup("");
-	return (result);
+    i = 0;
+    while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
+        i++;
+    name = ft_substr(str, 0, i);
+    if (!name)
+        return (NULL);
+    return (name);
 }
 
-static char	*append_char_to_str(char *str, char c)
+static char *expand_exit_status(t_tools *tools)
 {
-	char	*new_str;
-	size_t	len;
-
-	len = ft_strlen(str);
-	new_str = malloc(len + 2);
-	if (!new_str)
-		return (NULL);
-	ft_memcpy(new_str, str, len);
-	new_str[len] = c;
-	new_str[len + 1] = '\0';
-	return (new_str);
+    return (ft_itoa(tools->exit_code));
 }
 
-char	*expand_variables(char *str, t_tools *tools)
+static char *handle_variable_expansion(char *str, t_tools *tools)
 {
-	char	*expanded;
-	char	*temp;
-	char	*var;
+    char *var_name;
+    char *value;
+    
+    if (str[0] == '?')
+        return (expand_exit_status(tools));
+    
+    var_name = get_variable_name(str);
+    if (!var_name)
+        return (ft_strdup(""));
+    
+    value = get_env_var(var_name, tools->env);
+    free(var_name);
+    
+    return (value ? ft_strdup(value) : ft_strdup(""));
+}
 
-	expanded = ft_strdup("");
-	while (*str)
-	{
-		if (*str == '$' && ft_isalpha(*(str + 1)))
-		{
-			str++;
-			temp = expanded;
-			var = expand_var(str, tools);
-			expanded = ft_strjoin(expanded, var);
-			free(temp);
-			free(var);
-			while (ft_isalnum(*str) || *str == '_')
-				str++;
-		}
-		else
-		{
-			temp = expanded;
-			expanded = append_char_to_str(expanded, *str);
-			free(temp);
-			str++;
-		}
-	}
-	return (expanded);
+char *expand_variables(char *str, t_tools *tools)
+{
+    char    *result;
+    char    *temp;
+    char    *var_value;
+    bool    in_single_quotes;
+    bool    in_double_quotes;
+    int     i;
+
+    if (!str)
+        return (NULL);
+
+    result = ft_strdup("");
+    if (!result)
+        return (NULL);
+
+    i = 0;
+    in_single_quotes = false;
+    in_double_quotes = false;
+
+    while (str[i])
+    {
+        if (str[i] == '\'' && !in_double_quotes)
+            in_single_quotes = !in_single_quotes;
+        else if (str[i] == '"' && !in_single_quotes)
+            in_double_quotes = !in_double_quotes;
+        else if (str[i] == '$' && !in_single_quotes && str[i + 1])
+        {
+            i++;
+            var_value = handle_variable_expansion(str + i, tools);
+            temp = ft_strjoin(result, var_value);
+            free(var_value);
+            free(result);
+            result = temp;
+            while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
+                i++;
+            continue;
+        }
+        else
+        {
+            temp = ft_charjoin(result, str[i]);
+            free(result);
+            result = temp;
+        }
+        i++;
+    }
+    return (result);
 }
