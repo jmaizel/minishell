@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:17:29 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/28 11:03:22 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/28 13:51:20 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,8 +57,10 @@ void	execute_external_command(t_simple_cmds *cmd, t_tools *tools)
 	{
 		apply_redirections(cmd);
 		if (execve(path, cmd->str, tools->env) == -1)
-			perror("execve failed"),
-		exit(ERR_EXEC_FAILURE);
+		{
+			perror("execve failed");
+			exit(ERR_EXEC_FAILURE);
+		}
 	}
 	else if (pid > 0)
 		waitpid(pid, &status, 0);
