@@ -28,7 +28,7 @@ PARSING_FILES = parsing1.c
 EXEC_FILES = cleanup.c env_utils.c error_handling.c execution.c execution_utils.c expansion.c pipes.c redirection.c signals.c heredoc.c exit_status.c utils.c
 MAIN_FILES = main.c
 ENV_FILES =
-BUILTINS_FILES = echo.c cd.c pwd.c
+BUILTINS_FILES = echo.c cd.c pwd.c env.c
 TOOLS_FILES =
 TEST_FILES = tests.c
 
