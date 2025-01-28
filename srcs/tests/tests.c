@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:42:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/28 10:53:13 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/28 11:51:16 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-// Variables globales pour le mock
 static char     g_current_dir[1024] = "/home/user";
 static int      g_chdir_should_fail = 0;
 
@@ -29,7 +28,6 @@ int     chdir(const char *path)
         return (0);
 }
 
-// Mock de getcwd pour les tests
 char    *getcwd(char *buf, size_t size)
 {
         (void)size;
@@ -161,7 +159,7 @@ static void     test_cd_to_invalid_directory(void)
         };
 
         printf("Running test_cd_to_invalid_directory...\n");
-        g_chdir_should_fail = 1;  // Force chdir to fail
+        g_chdir_should_fail = 1;
         setup_test_environment(&cmd, &tools, args, mock_env);
 
         int ret = builtin_cd(&cmd, &tools);
@@ -169,7 +167,7 @@ static void     test_cd_to_invalid_directory(void)
 
         free_env(tools.env);
         printf("Test Passed: cd to nonexistent directory\n");
-        g_chdir_should_fail = 0;  // Reset for next tests
+        g_chdir_should_fail = 0;
 }
 
 static void     test_cd_without_env(void)
