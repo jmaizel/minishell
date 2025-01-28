@@ -6,11 +6,11 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:43:16 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/28 10:55:20 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/28 18:17:14 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/execution.h"
+#include "../includes/builtins.h"
 
 static int	is_option_n(char *arg)
 {
