@@ -6,55 +6,120 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:43:34 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 21:10:39 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/28 10:47:05 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
 
-static int	update_env_var(char *key, char *value, char ***env)
+static char     *get_home_directory(t_tools *tools)
 {
-	char	*var;
-	int		ret;
+        char    *home;
 
-	var = ft_strjoin(key, "=");
-	if (!var)
-		return (ERR_MALLOC_FAILURE);
-	var = ft_strjoin_free(var, value, 1, 0);
-	if (!var)
-		return (ERR_MALLOC_FAILURE);
-	ret = add_env_var(var, env);
-	free(var);
-	return (ret);
+        if (!tools || !tools->env)
+                return (NULL);
+        home = get_env_var("HOME", tools->env);
+        if (!home)
+        {
+                ft_putendl_fd("cd: HOME not set", STDERR_FILENO);
+                return (NULL);
+        }
+        return (ft_strdup(home));
 }
 
-int	builtin_cd(t_simple_cmds *cmd, t_tools *tools)
+static int      update_pwd_vars(t_tools *tools, char *old_pwd)
 {
-	char	*path;
-	char	*oldpwd;
-	char	*cwd;
+        char    *new_pwd;
+        char    *oldpwd_env;
+        char    *pwd_env;
+        int     ret;
 
-	if (!cmd->str[1] || ft_strcmp(cmd->str[1], "~") == 0)
-		path = get_env_var("HOME", tools->env);
-	else if (ft_strcmp(cmd->str[1], "-") == 0)
-		path = get_env_var("OLDPWD", tools->env);
-	else
-		path = cmd->str[1];
-	if (!path || chdir(path) != 0)
-	{
-		ft_putstr_fd("cd: ", STDERR_FILENO);
-		perror(path);
-		return (ERR_INVALID_CMD);
-	}
-	oldpwd = get_env_var("PWD", tools->env);
-	if (update_env_var("OLDPWD", oldpwd ? oldpwd : "", &tools->env) != SUCCESS)
-		return (ERR_MALLOC_FAILURE);
-	cwd = getcwd(NULL, 0);
-	if (update_env_var("PWD", cwd, &tools->env) != SUCCESS)
-	{
-		free(cwd);
-		return (ERR_MALLOC_FAILURE);
-	}
-	free(cwd);
-	return (SUCCESS);
+        new_pwd = getcwd(NULL, 0);
+        if (!new_pwd)
+        {
+                free(old_pwd);
+                perror("cd: getcwd failed");
+                return (ERR_GETCWD_FAILED);
+        }
+
+        oldpwd_env = ft_strjoin("OLDPWD=", old_pwd);
+        pwd_env = ft_strjoin("PWD=", new_pwd);
+        if (!oldpwd_env || !pwd_env)
+        {
+                free(old_pwd);
+                free(new_pwd);
+                free(oldpwd_env);
+                free(pwd_env);
+                ft_putendl_fd("cd: memory allocation failed", STDERR_FILENO);
+                return (ERR_MALLOC_FAILURE);
+        }
+
+        ret = add_env_var(oldpwd_env, &tools->env);
+        if (ret == SUCCESS)
+                ret = add_env_var(pwd_env, &tools->env);
+
+        free(old_pwd);
+        free(new_pwd);
+        free(oldpwd_env);
+        free(pwd_env);
+
+        if (ret != SUCCESS)
+        {
+                ft_putendl_fd("cd: failed to update environment variables", 
+                        STDERR_FILENO);
+                return (ERR_MALLOC_FAILURE);
+        }
+        return (SUCCESS);
+}
+
+int     builtin_cd(t_simple_cmds *cmd, t_tools *tools)
+{
+        char    *path;
+        char    *old_pwd;
+
+        // Vérifications initiales
+        if (!cmd || !cmd->str || !tools || !tools->env)
+        {
+                ft_putendl_fd("cd: invalid command structure", STDERR_FILENO);
+                return (ERR_INVALID_CMD);
+        }
+
+        // Obtenir le chemin à utiliser
+        if (!cmd->str[1])
+        {
+                path = get_home_directory(tools);
+                if (!path)
+                        return (ERR_INVALID_CMD);
+        }
+        else
+        {
+                path = ft_strdup(cmd->str[1]);
+                if (!path)
+                {
+                        ft_putendl_fd("cd: memory allocation failed", STDERR_FILENO);
+                        return (ERR_MALLOC_FAILURE);
+                }
+        }
+
+        // Sauvegarder l'ancien répertoire
+        old_pwd = getcwd(NULL, 0);
+        if (!old_pwd)
+        {
+                free(path);
+                perror("cd: getcwd failed");
+                return (ERR_GETCWD_FAILED);
+        }
+
+        // Changer de répertoire
+        if (chdir(path) == -1)
+        {
+                free(path);
+                free(old_pwd);
+                perror("cd");
+                return (ERR_CHDIR_FAILED);
+        }
+        free(path);
+
+        // Mettre à jour PWD et OLDPWD
+        return (update_pwd_vars(tools, old_pwd));
 }

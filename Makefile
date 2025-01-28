@@ -1,4 +1,5 @@
 NAME = minishell
+TEST_NAME = tests
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -I$(INCLUDES_DIR) -I$(LIBFT_DIR) $(READLINE_INC)
 
@@ -12,6 +13,7 @@ MAIN_DIR = ./srcs/main
 ENV_DIR = ./srcs/env
 BUILTINS_DIR = ./srcs/builtins
 TOOLS_DIR = ./srcs/tools
+TESTS_DIR = ./srcs/tests
 
 # Readline paths
 READLINE_INC = -I/opt/homebrew/opt/readline/include
@@ -28,6 +30,7 @@ MAIN_FILES = main.c
 ENV_FILES =
 BUILTINS_FILES = echo.c cd.c
 TOOLS_FILES =
+TEST_FILES = tests.c
 
 # Create full source paths
 SRC_FILES = $(addprefix $(MAIN_DIR)/, $(MAIN_FILES)) \
@@ -37,7 +40,13 @@ SRC_FILES = $(addprefix $(MAIN_DIR)/, $(MAIN_FILES)) \
 	$(addprefix $(BUILTINS_DIR)/, $(BUILTINS_FILES)) \
 	$(addprefix $(TOOLS_DIR)/, $(TOOLS_FILES))
 
+TEST_SRC_FILES = $(addprefix $(TESTS_DIR)/, $(TEST_FILES)) \
+	$(addprefix $(EXEC_DIR)/, $(EXEC_FILES)) \
+	$(addprefix $(BUILTINS_DIR)/, $(BUILTINS_FILES)) \
+	$(addprefix $(TOOLS_DIR)/, $(TOOLS_FILES))
+
 OBJS = $(SRC_FILES:./srcs/%.c=$(OBJ_DIR)/%.o)
+TEST_OBJS = $(TEST_SRC_FILES:./srcs/%.c=$(OBJ_DIR)/%.o)
 
 # Progress bar variables
 TOTAL_FILES := $(words $(SRC_FILES))
@@ -56,6 +65,11 @@ all: $(NAME)
 $(NAME): $(OBJS) $(LIBFT)
 	@$(CC) $(CFLAGS) -o $(NAME) $(OBJS) $(LIBS)
 
+tests: $(TEST_OBJS) $(LIBFT)
+	@$(CC) $(CFLAGS) -o $(TEST_NAME) $(TEST_OBJS) $(LIBS)
+	@echo "Running tests..."
+	@./$(TEST_NAME)
+
 $(OBJ_DIR)/%.o: ./srcs/%.c | $(OBJ_DIR)
 	@mkdir -p $(dir $@)
 	@$(CC) $(CFLAGS) -c $< -o $@
@@ -68,6 +82,7 @@ $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)/env
 	@mkdir -p $(OBJ_DIR)/builtins
 	@mkdir -p $(OBJ_DIR)/tools
+	@mkdir -p $(OBJ_DIR)/tests
 
 $(LIBFT):
 	@make --no-print-directory -C $(LIBFT_DIR)
@@ -77,9 +92,9 @@ clean:
 	@make clean --no-print-directory -C $(LIBFT_DIR)
 
 fclean: clean
-	@rm -f $(NAME)
+	@rm -f $(NAME) $(TEST_NAME)
 	@make fclean --no-print-directory -C $(LIBFT_DIR)
 
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re tests

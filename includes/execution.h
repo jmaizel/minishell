@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:31:48 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 21:06:34 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/28 10:08:16 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,9 +35,13 @@
 # define PERMISSION_DENIED 126
 # define SUCCESS 0
 # define GENERAL_ERROR 1
-# define ERR_INVALID_CMD 100
-# define ERR_EXEC_FAILURE 101
-# define ERR_MALLOC_FAILURE 102
+
+# define ERR_INVALID_CMD 1
+# define ERR_MALLOC_FAILURE 2
+# define ERR_GETCWD_FAILED 3
+# define ERR_CHDIR_FAILED 4
+# define ERR_EXEC_FAILURE 5
+
 
 /* Exécution des commandes */
 void	execute_simple_command(t_simple_cmds *cmd, t_tools *tools);
