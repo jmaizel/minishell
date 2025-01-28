@@ -1,23 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   builtins.h                                         :+:      :+:    :+:   */
+/*   pwd.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/27 11:42:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/28 14:19:02 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/01/28 14:05:25 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/01/28 14:40:48 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef BUILTINS_H
-# define BUILTINS_H
+#include "../includes/execution.h"
 
-# include "../includes/minishell.h"
-# include "../includes/execution.h"
+int	builtin_pwd(t_simple_cmds *cmd, t_tools *tools)
+{
+	char	*cwd;
 
-int	builtin_echo(t_simple_cmds *cmd);
-int	builtin_cd(t_simple_cmds *cmd, t_tools *tools);
-int	builtin_pwd(t_simple_cmds *cmd, t_tools *tools);
-
-#endif
+	(void)cmd;
+	(void)tools;
+	cwd = getcwd(NULL, 0);
+	if (!cwd)
+	{
+		perror("pwd: getcwd failed");
+		return (ERR_GETCWD_FAILED);
+	}
+	ft_putendl_fd(cwd, STDOUT_FILENO);
+	free(cwd);
+	return (SUCCESS);
+}
