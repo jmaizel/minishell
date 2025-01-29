@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:31:48 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/29 10:40:56 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/29 14:13:32 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ void	handle_append_redirection(t_lexer *redir);
 void	handle_heredoc(t_lexer *redir);
 
 /* Gestion des variables d'environnement */
-char    *get_env_var(const char *key, char **env);
+char	*get_env_var(const char *key, char **env);
 int		add_env_var(char *var, char ***env);
 int		remove_env_var(char *key, char ***env);
 char	**duplicate_env(char **env);

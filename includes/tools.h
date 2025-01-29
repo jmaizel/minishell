@@ -6,12 +6,12 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/29 10:31:04 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/29 10:36:40 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/29 14:13:47 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef TOOLS_H
-#define TOOLS_H
+# define TOOLS_H
 
 # include "../libft/includes/libft.h"
 
