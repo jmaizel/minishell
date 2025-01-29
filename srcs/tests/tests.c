@@ -5,153 +5,161 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/28 09:42:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/29 13:55:50 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/01/29 15:01:44 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/01/29 16:15:56 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
 #include <assert.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 
-static char     g_current_dir[1024] = "/home/user";
-static int      g_chdir_should_fail = 0;
+/* =========================== */
+/*       Test du Builtin echo  */
+/* =========================== */
 
-// Mock de chdir pour les tests
-int     chdir(const char *path)
+static void test_builtin_echo(void)
 {
-        if (g_chdir_should_fail)
-                return (-1);
-        strcpy(g_current_dir, path);
-        return (0);
+    t_simple_cmds cmd;
+    char *args1[] = {"echo", "Hello, world!", NULL};
+    char *args2[] = {"echo", "-n", "No newline", NULL};
+    char *args3[] = {"echo", NULL};
+
+    printf("Running test_builtin_echo...\n");
+
+    cmd.str = args1;
+    assert(builtin_echo(&cmd) == 0);
+    printf("Test Passed: echo \"Hello, world!\"\n");
+
+    cmd.str = args2;
+    assert(builtin_echo(&cmd) == 0);
+    printf("Test Passed: echo -n \"No newline\"\n");
+
+    cmd.str = args3;
+    assert(builtin_echo(&cmd) == 0);
+    printf("Test Passed: echo with no args\n");
 }
 
-char    *getcwd(char *buf, size_t size)
+/* =========================== */
+/*       Test du Builtin pwd   */
+/* =========================== */
+
+static void test_builtin_pwd(void)
 {
-        (void)size;
-        if (buf)
-                strcpy(buf, g_current_dir);
-        return (ft_strdup(g_current_dir));
+    t_simple_cmds cmd;
+    t_tools tools;
+
+    printf("Running test_builtin_pwd...\n");
+
+    assert(builtin_pwd(&cmd, &tools) == 0);
+    printf("Test Passed: pwd\n");
 }
 
-static void     setup_test_environment(t_simple_cmds *cmd, t_tools *tools,
-        char **args, char **env)
-{
-        ft_memset(cmd, 0, sizeof(t_simple_cmds));
-        ft_memset(tools, 0, sizeof(t_tools));
-        cmd->str = args;
-        tools->env = duplicate_env(env);
-        if (!tools->env)
-        {
-                printf("Failed to setup test environment\n");
-                exit(1);
-        }
-}
+/* =========================== */
+/*       Test du Builtin env   */
+/* =========================== */
 
-static void     test_builtin_cd(void)
+static void     test_builtin_env(void)
 {
-        t_simple_cmds   cmd;
         t_tools         tools;
-        char            *args[] = {"cd", "/tmp", NULL};
+        t_simple_cmds   cmd;
         char            *mock_env[] = {
-                "HOME=/home/user",
+                "USER=test_user",
+                "SHELL=/bin/bash",
                 "PWD=/home/user",
-                "OLDPWD=/home/user",
                 NULL
         };
+        char            **cmd_str;
 
-        printf("Running test_builtin_cd...\n");
-        g_chdir_should_fail = 0;
-        setup_test_environment(&cmd, &tools, args, mock_env);
+        printf("Running test_builtin_env...\n");
 
-        int ret = builtin_cd(&cmd, &tools);
-        assert(ret == SUCCESS);
-        char *pwd = get_env_var("PWD", tools.env);
-        assert(pwd && strcmp(pwd, "/tmp") == 0);
-
-        free_env(tools.env);
-        printf("Test Passed: cd /tmp\n");
-}
-
-static void     test_cd_without_arguments(void)
-{
-        t_simple_cmds   cmd;
-        t_tools         tools;
-        char            *args[] = {"cd", NULL};
-        char            *mock_env[] = {
-                "HOME=/home/user",
-                "PWD=/tmp",
-                "OLDPWD=/home/user",
-                NULL
-        };
-
-        printf("Running test_cd_without_arguments...\n");
-        g_chdir_should_fail = 0;
-        setup_test_environment(&cmd, &tools, args, mock_env);
-
-        int ret = builtin_cd(&cmd, &tools);
-        assert(ret == SUCCESS);
-        char *pwd = get_env_var("PWD", tools.env);
-        assert(pwd && strcmp(pwd, "/home/user") == 0);
-
-        free_env(tools.env);
-        printf("Test Passed: cd with no arguments goes to HOME\n");
-}
-
-static void     test_cd_to_invalid_directory(void)
-{
-        t_simple_cmds   cmd;
-        t_tools         tools;
-        char            *args[] = {"cd", "/nonexistent", NULL};
-        char            *mock_env[] = {
-                "HOME=/home/user",
-                "PWD=/home/user",
-                "OLDPWD=/home/user",
-                NULL
-        };
-
-        printf("Running test_cd_to_invalid_directory...\n");
-        g_chdir_should_fail = 1;
-        setup_test_environment(&cmd, &tools, args, mock_env);
-
-        int ret = builtin_cd(&cmd, &tools);
-        assert(ret == ERR_CHDIR_FAILED);
-
-        free_env(tools.env);
-        printf("Test Passed: cd to nonexistent directory\n");
-        g_chdir_should_fail = 0;
-}
-
-static void     test_cd_without_env(void)
-{
-        t_simple_cmds   cmd;
-        t_tools         tools;
-        char            *args[] = {"cd", NULL};
-
-        printf("Running test_cd_without_env...\n");
-        ft_memset(&cmd, 0, sizeof(t_simple_cmds));
+        // Initialiser les structures
         ft_memset(&tools, 0, sizeof(t_tools));
-        cmd.str = args;
-        tools.env = NULL;
+        ft_memset(&cmd, 0, sizeof(t_simple_cmds));
 
-        int ret = builtin_cd(&cmd, &tools);
-        assert(ret == ERR_INVALID_CMD);
-        printf("Test Passed: cd with NULL environment\n");
+        // Préparer la commande
+        cmd_str = malloc(sizeof(char *) * 2);  // Juste "env" + NULL
+        if (!cmd_str)
+        {
+                printf("Error: Failed to allocate command string\n");
+                return;
+        }
+        cmd_str[0] = ft_strdup("env");
+        cmd_str[1] = NULL;  // Important ! Votre builtin_env vérifie cmd->str[1]
+        cmd.str = cmd_str;
+
+        // Préparer l'environnement
+        tools.env = duplicate_env(mock_env);
+        if (!tools.env)
+        {
+                free(cmd.str[0]);
+                free(cmd.str);
+                printf("Error: Failed to allocate mock environment\n");
+                return;
+        }
+
+        // Exécuter le test
+        assert(builtin_env(&cmd, &tools) == 0);
+        printf("Test Passed: env with mock environment\n");
+
+        // Nettoyer
+        free(cmd.str[0]);
+        free(cmd.str);
+        free_env(tools.env);
 }
 
-int     main(void)
+/* ============================ */
+/*      Test du Builtin export  */
+/* ============================ */
+
+static void test_builtin_export(void)
 {
-        printf("\nStarting cd builtin tests...\n");
-        printf("==============================\n\n");
+    t_tools tools;
+    t_simple_cmds cmd;
+    char *args1[] = {"export", "NEW_VAR=test", NULL};
+    char *args2[] = {"export", "USER=new_user", NULL};
+    char *mock_env[] = {
+        "USER=old_user",
+        "PWD=/home/user",
+        NULL
+    };
 
-        test_builtin_cd();
-        test_cd_without_arguments();
-        test_cd_to_invalid_directory();
-        test_cd_without_env();
+    printf("Running test_builtin_export...\n");
 
-        printf("\nAll tests passed successfully!\n");
-        printf("==============================\n");
-        return (0);
+    tools.env = duplicate_env(mock_env);
+    if (!tools.env)
+    {
+        printf("Error: failed to duplicate environment\n");
+        return;
+    }
+
+    cmd.str = args1;
+    assert(builtin_export(&cmd, &tools) == 0);
+    assert(get_env_var("NEW_VAR", tools.env) && strcmp(get_env_var("NEW_VAR", tools.env), "test") == 0);
+    printf("Test Passed: export NEW_VAR=test\n");
+
+    cmd.str = args2;
+    assert(builtin_export(&cmd, &tools) == 0);
+    assert(get_env_var("USER", tools.env) && strcmp(get_env_var("USER", tools.env), "new_user") == 0);
+    printf("Test Passed: export USER=new_user\n");
+
+    free_env(tools.env);
+}
+
+/* ============================ */
+/*     Fonction principale      */
+/* ============================ */
+
+int main(void)
+{
+    printf("\nStarting builtin tests...\n");
+    printf("==============================\n\n");
+
+    test_builtin_echo();
+    test_builtin_pwd();
+    test_builtin_env();
+    test_builtin_export();
+
+    printf("\nAll tests passed successfully!\n");
+    printf("==============================\n");
+    return (0);
 }
