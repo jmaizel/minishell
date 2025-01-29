@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:42:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/28 14:36:39 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/29 13:55:50 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,52 +34,6 @@ char    *getcwd(char *buf, size_t size)
         if (buf)
                 strcpy(buf, g_current_dir);
         return (ft_strdup(g_current_dir));
-}
-
-static char     **duplicate_env(char **env)
-{
-        int             i;
-        char    **new_env;
-
-        i = 0;
-        while (env[i])
-                i++;
-        new_env = malloc((i + 1) * sizeof(char *));
-        if (!new_env)
-                return (NULL);
-        i = 0;
-        while (env[i])
-        {
-                new_env[i] = ft_strdup(env[i]);
-                if (!new_env[i])
-                {
-                        while (i > 0)
-                        {
-                                i--;
-                                free(new_env[i]);
-                        }
-                        free(new_env);
-                        return (NULL);
-                }
-                i++;
-        }
-        new_env[i] = NULL;
-        return (new_env);
-}
-
-static void     free_env(char **env)
-{
-        int     i;
-
-        if (!env)
-                return ;
-        i = 0;
-        while (env[i])
-        {
-                free(env[i]);
-                i++;
-        }
-        free(env);
 }
 
 static void     setup_test_environment(t_simple_cmds *cmd, t_tools *tools,
