@@ -6,11 +6,11 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 10:00:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 21:07:10 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/29 10:49:05 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/execution.h"
+#include "../includes/tools.h"
 
 char	*ft_charjoin(char *str, char c)
 {
@@ -47,4 +47,30 @@ char	*ft_strjoin_free(char *s1, char *s2, int free_s1, int free_s2)
 	if (free_s2)
 		free(s2);
 	return (result);
+}
+
+void	sort_string_array(char **array)
+{
+	int		i;
+	int		j;
+	char	*temp;
+
+	if (!array)
+		return ;
+	i = 0;
+	while (array[i])
+	{
+		j = i + 1;
+		while (array[j])
+		{
+			if (ft_strncmp(array[i], array[j], 100) > 0)
+			{
+				temp = array[i];
+				array[i] = array[j];
+				array[j] = temp;
+			}
+			j++;
+		}
+		i++;
+	}
 }

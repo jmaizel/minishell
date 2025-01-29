@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:31:48 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/28 13:49:26 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/29 10:40:56 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 
 # include "minishell.h"
 # include "../libft/includes/libft.h"
+# include "builtins.h"
+# include "tools.h"
 # include <fcntl.h>
 # include <unistd.h>
 # include <stdlib.h>
@@ -27,7 +29,6 @@
 # include <stddef.h>
 # include <signal.h>
 # include <stdbool.h>
-# include "builtins.h"
 
 # define ERROR_EXIT 1
 # define SUCCESS_EXIT 0
@@ -56,9 +57,12 @@ void	handle_append_redirection(t_lexer *redir);
 void	handle_heredoc(t_lexer *redir);
 
 /* Gestion des variables d'environnement */
-char	*get_env_var(char *key, char **env);
+char    *get_env_var(const char *key, char **env);
 int		add_env_var(char *var, char ***env);
 int		remove_env_var(char *key, char ***env);
+char	**duplicate_env(char **env);
+void	free_env(char **env);
+
 char	*expand_variables(char *str, t_tools *tools);
 
 /* Utilitaires */
@@ -67,9 +71,6 @@ int		ft_strcmp(const char *s1, const char *s2);
 void	cleanup_command(t_simple_cmds *cmd);
 
 void	handle_error(const char *msg);
-
-char	*ft_strjoin_free(char *s1, char *s2, int free_s1, int free_s2);
-char	*ft_charjoin(char *str, char c);
 
 /* Gestion des signaux */
 void	sigint_handler(int sig);
