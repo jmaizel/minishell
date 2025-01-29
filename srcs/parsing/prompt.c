@@ -6,7 +6,7 @@
 /*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 13:58:10 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/01/29 14:13:43 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/01/29 14:37:10 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,57 +14,65 @@
 
 // but de cette fonction :
 // 1. recuperer les chemins a partir de PATH au demarrage
-// 2. lire les commandes utilisateur en boucle
-// 3. passer les commandes au psring pour les executer
-void loop_prompt(t_tools *tools, char **env)
+// 2. on setup les signaux
+// 3. gestion du ctrl-D
+// 4. on ignore les lignes vides
+// 5. si la commande n est pas vide on l ajoute a lhistorique
+// 6. on verifie la commande exit pour quitter le programme,
+//	on regarde si il y a des arguments apres
+// 7 traitement des autres commandes
+// 8. on libere la memoire et on nettoie lhistoique
+void	loop_prompt(t_tools *tools, char **env)
 {
-    char *user_input;
-    char **paths;
+	char	*user_input;
+	char	**paths;
+	int		exit_shell;
+	char	*trimmed;
 
-    // Récupérer les chemins PATH
-    paths = get_env_paths(env, "PATH");
-    if (!paths)
-    {
-        ft_printf("Erreur : PATH non trouvé.\n");
-        return;
-    }
-
-    // Configuration de readline
-    rl_catch_signals = 0; // Nous gérons nous-mêmes les signaux
-    
-    // Configurer les signaux
-    setup_signals();
-
-    while (1)
-    {
-        user_input = get_user_input();
-        
-        // Gestion de Ctrl-D (fin de fichier)
-        if (!user_input)
-        {
-            ft_printf("\nExit\n");
-            break;
-        }
-        
-        // Ignorer les lignes vides
-        if (user_input[0] == '\0')
-        {
-            free(user_input);
-            continue;
-        }
-        
-        // Ajouter à l'historique si la commande n'est pas vide
-        if (user_input[0] != '\0')
-            add_history(user_input);
-        
-        // Traitement de la commande
-        parsing_line(user_input, tools);
-        
-        // Libérer la mémoire
-        free(user_input);
-    }
-    
-    // Nettoyer l'historique à la fin
-    clear_history();
-    free_str_array(paths);
+	exit_shell = 0;
+	// Récupérer les chemins PATH
+	paths = get_env_paths(env, "PATH");
+	if (!paths)
+	{
+		ft_printf("Erreur : PATH non trouvé.\n");
+		return ;
+	}
+	setup_signals();
+	while (!exit_shell)
+	{
+		user_input = get_user_input();
+		if (!user_input)
+		{
+			ft_printf("\nExit\n");
+			break ;
+		}
+		if (user_input[0] == '\0')
+		{
+			free(user_input);
+			continue ;
+		}
+		if (user_input[0] != '\0')
+			add_history(user_input);
+		if (ft_strncmp(user_input, "exit", 4) == 0)
+		{
+			trimmed = ft_strtrim(user_input + 4, " \t");
+			if (!trimmed || trimmed[0] == '\0')
+			{
+				exit_shell = 1;
+				free(trimmed);
+			}
+			else
+			{
+				ft_printf("exit: too many arguments\n");
+				free(trimmed);
+			}
+		}
+		else
+		{
+			parsing_line(user_input, tools);
+		}
+		free(user_input);
+	}
+	clear_history();
+	free_str_array(paths);
 }

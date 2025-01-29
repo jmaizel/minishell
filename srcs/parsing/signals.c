@@ -6,7 +6,7 @@
 /*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:58:53 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/29 12:05:29 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/01/29 14:53:18 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,13 @@ void	handle_signal(int sig)
 {
 	if (sig == SIGINT)
 	{
-		rl_replace_line("", 0);
+		// Remplacer la ligne actuelle par une chaîne vide
+		// rl_replace_line("", 0);
+		// Écrire un saut de ligne
 		write(1, "\n", 1);
+		// Préparer une nouvelle ligne
 		rl_on_new_line();
+		// Réafficher le prompt
 		rl_redisplay();
 	}
 }

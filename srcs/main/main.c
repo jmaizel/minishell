@@ -6,7 +6,7 @@
 /*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 12:20:12 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/29 14:05:08 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/01/29 14:30:48 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,5 +35,5 @@ int main(int argc, char **argv, char **env)
     // Lancer la boucle de prompt
     loop_prompt(&tools, env);
     
-    return (0);
+    return (tools.exit_code);
 }

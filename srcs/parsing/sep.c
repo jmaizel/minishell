@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   sep.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 15:17:10 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/01/27 13:57:10 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/01/29 14:52:40 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,41 +62,33 @@ t_sep	*add_cell(t_sep *list, char *cmd_sep, int pos)
 	return (list);
 }
 
-// Fonction de débogage améliorée
-void	print_list(t_sep *list)
+void	print_command_details(t_sep *sep_cmd)
 {
-	int				i;
-	t_pip			*pipe_cell;
-	int				j;
+	t_pip			*pipe_cmd;
+	int				pipe_index;
 	t_redirection	*redir;
 
-	i = 0;
-	while (list)
+	printf("Command Separator: [%s]\n", sep_cmd->cmd_sep);
+	pipe_cmd = sep_cmd->pipcell;
+	pipe_index = 0;
+	while (pipe_cmd)
 	{
-		printf("Commande %d: %s\n", i, list->cmd_sep);
-		if (list->pipcell)
+		printf("  Pipe Command %d: [%s]\n", pipe_index, pipe_cmd->cmd_pipe);
+		redir = pipe_cmd->redirection;
+		if (redir)
 		{
-			pipe_cell = list->pipcell;
-			j = 0;
-			while (pipe_cell)
-			{
-				printf("  Pipe %d: %s\n", j, pipe_cell->cmd_pipe);
-				redir = pipe_cell->redirection;
-				if (redir)
-				{
-					if (redir->input_file)
-						printf("    Entrée: %s\n", redir->input_file);
-					if (redir->output_file)
-						printf("    Sortie: %s\n", redir->output_file);
-					if (redir->append_file)
-						printf("    Ajout: %s\n", redir->append_file);
-				}
-				pipe_cell = pipe_cell->next;
-				j++;
-			}
+			printf("    Redirections:\n");
+			if (redir->input_file)
+				printf("      Input File: %s\n", redir->input_file);
+			if (redir->output_file)
+				printf("      Output File: %s\n", redir->output_file);
+			if (redir->append_file)
+				printf("      Append File: %s\n", redir->append_file);
+			if (redir->heredoc)
+				printf("      Heredoc Delimiter: %s\n", redir->heredoc);
 		}
-		list = list->next;
-		i++;
+		pipe_cmd = pipe_cmd->next;
+		pipe_index++;
 	}
 }
 
@@ -107,24 +99,31 @@ void	print_list(t_sep *list)
 // 4. afficher la liste pour deboguer
 void	parsing_line(char *user_input, t_tools *tools)
 {
+	char	**semicolon_cmds;
 	t_sep	*list;
-	char	**cmds;
 	int		i;
+	t_sep	*current_sep;
 
-	list = NULL;
-	cmds = ft_split(user_input, ';');
-	if (!cmds)
+	printf("🔍 Parsing Input: [%s]\n", user_input);
+	printf("==================================\n");
+	// Séparer par ;
+	semicolon_cmds = ft_split(user_input, ';');
+	if (!semicolon_cmds)
 	{
-		printf("Erreur : ft_split a echoue./n");
+		printf("Erreur : ft_split a échoué.\n");
 		return ;
 	}
+	list = NULL;
 	i = 0;
-	while (cmds[i])
+	while (semicolon_cmds[i])
 	{
-		list = add_cell(list, cmds[i], i);
+		current_sep = create_cell(semicolon_cmds[i]);
+		parse_pipes(current_sep);
+		print_command_details(current_sep);
+		list = add_cell(list, semicolon_cmds[i], i);
 		i++;
 	}
 	tools->cmds = (struct s_simple_cmds *)list;
-	print_list(list);
-	free_str_array(cmds);
+	free_str_array(semicolon_cmds);
+	printf("==================================\n");
 }

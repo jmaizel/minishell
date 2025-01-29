@@ -6,7 +6,7 @@
 /*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 13:04:29 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/29 12:01:55 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/01/29 14:49:43 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,11 +32,6 @@ char	*extract_redirection_file(char *redir_ptr)
 }
 
 // fonction pour parser les redirections
-// 1. on initialise tout les champs
-// 2. on recherche si cest une entree ou une sortie
-// 3. on parse les entree
-// 4. on parse les sorties , pour les sorties ,
-// d abord je regarde si c est un append avec >> et apres si c est une simple sortie
 t_redirection	*parse_redirections(char *cmd)
 {
 	t_redirection	*redir;
@@ -47,12 +42,10 @@ t_redirection	*parse_redirections(char *cmd)
 	char			*file_end;
 
 	redir = malloc(sizeof(t_redirection));
-	// Initialiser tous les champs
 	redir->input_file = NULL;
 	redir->output_file = NULL;
 	redir->append_file = NULL;
 	redir->heredoc = NULL;
-	// Variables pour parcourir et analyser
 	ptr = cmd;
 	in_quotes = 0;
 	quote_char = 0;
@@ -127,41 +120,32 @@ t_redirection	*parse_redirections(char *cmd)
 	return (redir);
 }
 
-int handle_heredoc(char *delim)
+int	handle_heredoc(char *delim)
 {
-    int pipe_fd[2];
-    char *line;
-    
-    if (pipe(pipe_fd) == -1)
-    {
-        perror("pipe");
-        return (-1);
-    }
-    
-    while (1)
-    {
-        line = readline("> ");
-        
-        // Si ligne vide ou EOF, on arrête
-        if (!line)
-            break;
-        
-        // Si la ligne correspond au délimiteur, on arrête
-        if (ft_strncmp(line, delim, ft_strlen(delim) + 1) == 0)
-        {
-            free(line);
-            break;
-        }
-        
-        // Écrire la ligne dans le pipe
-        write(pipe_fd[1], line, ft_strlen(line));
-        write(pipe_fd[1], "\n", 1);
-        
-        free(line);
-    }
-    
-    close(pipe_fd[1]);
-    return (pipe_fd[0]);
+	int		pipe_fd[2];
+	char	*line;
+
+	if (pipe(pipe_fd) == -1)
+	{
+		perror("pipe");
+		return (-1);
+	}
+	while (1)
+	{
+		line = readline("> ");
+		if (!line)
+			break ;
+		if (ft_strncmp(line, delim, ft_strlen(delim) + 1) == 0)
+		{
+			free(line);
+			break ;
+		}
+		write(pipe_fd[1], line, ft_strlen(line));
+		write(pipe_fd[1], "\n", 1);
+		free(line);
+	}
+	close(pipe_fd[1]);
+	return (pipe_fd[0]);
 }
 
 // fonction qui va parser les pipes :
@@ -194,9 +178,11 @@ void	parse_pipes(t_sep *cell)
 			free(pipe_cell);
 			return ;
 		}
+		// Parser les redirections
 		pipe_cell->redirection = parse_redirections(pipe_cell->cmd_pipe);
 		pipe_cell->next = NULL;
 		pipe_cell->prev = NULL;
+		// Ajouter à la liste des pipes
 		if (!pipe_list)
 			pipe_list = pipe_cell;
 		else
