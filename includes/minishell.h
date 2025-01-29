@@ -81,12 +81,13 @@ typedef struct s_simple_cmds
 
 // Ajout d'une structure de redirection
 typedef struct s_redirection {
-    char *input_file;
-    char *output_file;
-    char *append_file;
-    char *heredoc;
-    int type;
-} t_redirection;
+    char *input_file; // <
+    char *output_file; // >
+    char *append_file; // >>
+    char *heredoc; // <<
+    int input_fd; // fd pour l input
+    int output_fd; //fd pour l output
+} t_redirection; 
 
 // Modification de la structure s_pip pour inclure les redirections
 typedef struct s_pip 

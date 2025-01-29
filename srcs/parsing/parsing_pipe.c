@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing_pipe.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 13:04:29 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/27 16:05:39 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/01/29 12:01:55 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,35 +40,128 @@ char	*extract_redirection_file(char *redir_ptr)
 t_redirection	*parse_redirections(char *cmd)
 {
 	t_redirection	*redir;
-	char			*input_redir;
-	char			*output_redir;
+	char			*ptr;
+	int				in_quotes;
+	char			quote_char;
+	char			*delim_end;
+	char			*file_end;
 
 	redir = malloc(sizeof(t_redirection));
+	// Initialiser tous les champs
 	redir->input_file = NULL;
 	redir->output_file = NULL;
 	redir->append_file = NULL;
 	redir->heredoc = NULL;
-	input_redir = ft_strchr(cmd, '<');
-	output_redir = ft_strchr(cmd, '>');
-	if (input_redir)
+	// Variables pour parcourir et analyser
+	ptr = cmd;
+	in_quotes = 0;
+	quote_char = 0;
+	while (*ptr)
 	{
-		redir->type = TOK_PIPE_IN;
-		redir->input_file = extract_redirection_file(input_redir);
-	}
-	if (output_redir)
-	{
-		if (*(output_redir + 1) == '>')
+		// Gestion des quotes
+		if (!in_quotes && (*ptr == '\'' || *ptr == '"'))
 		{
-			redir->type = TOK_REDIRECTION;
-			redir->output_file = extract_redirection_file(output_redir + 1);
+			in_quotes = 1;
+			quote_char = *ptr;
 		}
-		else
+		else if (in_quotes && *ptr == quote_char)
 		{
-			redir->type = TOK_PIPE_OUT;
-			redir->output_file = extract_redirection_file(output_redir);
+			in_quotes = 0;
+			quote_char = 0;
 		}
+		// Si pas dans les quotes, analyser les redirections
+		if (!in_quotes)
+		{
+			if (strncmp(ptr, "<<", 2) == 0)
+			{
+				// Heredoc
+				ptr += 2;
+				while (ft_isspace(*ptr))
+					ptr++;
+				// Extraire le délimiteur
+				delim_end = ptr;
+				while (*delim_end && !ft_isspace(*delim_end))
+					delim_end++;
+				redir->heredoc = ft_substr(ptr, 0, delim_end - ptr);
+				ptr = delim_end;
+			}
+			else if (strncmp(ptr, ">>", 2) == 0)
+			{
+				// Append
+				ptr += 2;
+				while (ft_isspace(*ptr))
+					ptr++;
+				file_end = ptr;
+				while (*file_end && !ft_isspace(*file_end))
+					file_end++;
+				redir->append_file = ft_substr(ptr, 0, file_end - ptr);
+				ptr = file_end;
+			}
+			else if (*ptr == '<')
+			{
+				// Input redirection
+				ptr++;
+				while (ft_isspace(*ptr))
+					ptr++;
+				file_end = ptr;
+				while (*file_end && !ft_isspace(*file_end))
+					file_end++;
+				redir->input_file = ft_substr(ptr, 0, file_end - ptr);
+				ptr = file_end;
+			}
+			else if (*ptr == '>')
+			{
+				// Output redirection
+				ptr++;
+				while (ft_isspace(*ptr))
+					ptr++;
+				file_end = ptr;
+				while (*file_end && !ft_isspace(*file_end))
+					file_end++;
+				redir->output_file = ft_substr(ptr, 0, file_end - ptr);
+				ptr = file_end;
+			}
+		}
+		ptr++;
 	}
 	return (redir);
+}
+
+int handle_heredoc(char *delim)
+{
+    int pipe_fd[2];
+    char *line;
+    
+    if (pipe(pipe_fd) == -1)
+    {
+        perror("pipe");
+        return (-1);
+    }
+    
+    while (1)
+    {
+        line = readline("> ");
+        
+        // Si ligne vide ou EOF, on arrête
+        if (!line)
+            break;
+        
+        // Si la ligne correspond au délimiteur, on arrête
+        if (ft_strncmp(line, delim, ft_strlen(delim) + 1) == 0)
+        {
+            free(line);
+            break;
+        }
+        
+        // Écrire la ligne dans le pipe
+        write(pipe_fd[1], line, ft_strlen(line));
+        write(pipe_fd[1], "\n", 1);
+        
+        free(line);
+    }
+    
+    close(pipe_fd[1]);
+    return (pipe_fd[0]);
 }
 
 // fonction qui va parser les pipes :
