@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:17:29 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/29 10:50:15 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/30 12:04:31 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,8 @@ static int	is_builtin(char *cmd)
 			|| ft_strcmp(cmd, "cd") == 0
 			|| ft_strcmp(cmd, "pwd") == 0
 			|| ft_strcmp(cmd, "env") == 0
-			|| ft_strcmp(cmd, "export") == 0));
+			|| ft_strcmp(cmd, "export") == 0
+			|| ft_strcmp(cmd, "unset") == 0));
 }
 
 static int	execute_builtin(t_simple_cmds *cmd, t_tools *tools)
@@ -34,7 +35,9 @@ static int	execute_builtin(t_simple_cmds *cmd, t_tools *tools)
 	else if (ft_strcmp(cmd->str[0], "env") == 0)
 		ret = builtin_env(cmd, tools);
 	else if (ft_strcmp(cmd->str[0], "export") == 0)
-		ret = builtin_env(cmd, tools);
+		ret = builtin_export(cmd, tools);
+	else if (ft_strcmp(cmd->str[0], "unset") == 0)
+		ret = builtin_unset(cmd, tools);
 	else
 		return (0);
 	tools->exit_code = ret;
