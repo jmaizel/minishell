@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/29 15:01:44 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/30 10:23:42 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/30 13:38:21 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -273,6 +273,64 @@ static void     test_export_invalid_name(void)
        printf("Test Passed: export with invalid variable name\n");
 }
 
+/* =========================== */
+/*       Test du Builtin unset */
+/* =========================== */
+
+static void test_builtin_unset(void)
+{
+    t_tools tools;
+    t_simple_cmds cmd;
+    char *args1[] = {"unset", "TEST_VAR", NULL};
+    char *args2[] = {"unset", "NON_EXISTENT_VAR", NULL};
+    char *args3[] = {"unset", "VAR1", "VAR2", NULL};
+    char *args4[] = {"unset", "PATH", NULL};
+    char *mock_env[] = {
+        "TEST_VAR=value",
+        "USER=test_user",
+        "PATH=/bin",
+        "VAR1=one",
+        "VAR2=two",
+        NULL
+    };
+
+    printf("Running test_builtin_unset...\n");
+
+    tools.env = duplicate_env(mock_env);
+    if (!tools.env)
+    {
+        printf("Error: failed to duplicate environment\n");
+        return;
+    }
+
+    // Supprimer une variable existante
+    cmd.str = args1;
+    assert(builtin_unset(&cmd, &tools) == 0);
+    assert(get_env_var("TEST_VAR", tools.env) == NULL);
+    printf("Test Passed: unset TEST_VAR\n");
+
+    // Supprimer une variable inexistante (ne doit pas provoquer d'erreur)
+    cmd.str = args2;
+    assert(builtin_unset(&cmd, &tools) == 0);
+    printf("Test Passed: unset NON_EXISTENT_VAR (should do nothing)\n");
+
+    // Supprimer plusieurs variables
+    cmd.str = args3;
+    assert(builtin_unset(&cmd, &tools) == 0);
+    assert(get_env_var("VAR1", tools.env) == NULL);
+    assert(get_env_var("VAR2", tools.env) == NULL);
+    printf("Test Passed: unset multiple variables (VAR1, VAR2)\n");
+
+    // Supprimer une variable système (PATH)
+    cmd.str = args4;
+    assert(builtin_unset(&cmd, &tools) == 0);
+    assert(get_env_var("PATH", tools.env) == NULL);
+    printf("Test Passed: unset PATH (system variable)\n");
+
+    free_env(tools.env);
+}
+
+
 /* ============================ */
 /*     Fonction principale      */
 /* ============================ */
@@ -287,6 +345,8 @@ int     main(void)
         test_builtin_pwd();
         test_builtin_env();
         test_builtin_export();
+		test_builtin_unset();
+		
 
         // Tests supplémentaires
         test_echo_multiple_args();

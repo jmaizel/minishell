@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 11:27:41 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/30 12:00:13 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/30 14:04:25 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 static int	is_valid_identifier(const char *var)
 {
-	int	i;
+	int		i;
 
 	if (!var || (!ft_isalpha(var[0]) && var[0] != '_'))
 		return (0);
@@ -30,8 +30,8 @@ static int	is_valid_identifier(const char *var)
 
 int	builtin_unset(t_simple_cmds *cmd, t_tools *tools)
 {
-	int	i;
-	int	ret;
+	int		i;
+	int		ret;
 
 	if (!cmd || !cmd->str || !tools || !tools->env)
 		return (ERR_INVALID_CMD);
