@@ -81,15 +81,14 @@ typedef struct s_simple_cmds
 
 
 typedef struct s_parsed_cmd {
-    char *input_file; // <
-    char *output_file; // >
-    char *append_file; // >>
-    char *heredoc_delim; // <<
-    int input_fd; // fd pour l input
-    int output_fd; //fd pour l output
-    char *full_cmd; // commande complete avec argument
-    char *cmd; //premiere partie de la commande
-} t_parsed_cmd; 
+    char *full_cmd;          // Commande complète
+    char *cmd;               // Commande nettoyée
+    char *input_file;        // Fichier d'entrée pour 
+    char *output_file;       // Fichier de sortie pour >
+    char *append_file;       // Fichier pour >>
+    char **heredoc_delim;   // Tableau de délimiteurs pour 
+    int heredoc_count;       // Nombre de délimiteurs
+} t_parsed_cmd;
 
 typedef struct s_pip 
 {
