@@ -24,7 +24,7 @@ typedef	struct			s_sep
 	struct s_sep		*next;
 	struct s_pip		*pipcell;
 }						t_sep;
-// Déclaration préalable (forward declaration)
+
 struct s_simple_cmds;
 
 typedef enum e_token_type
@@ -39,7 +39,7 @@ typedef enum e_token_type
     TOK_INVALID       // Token invalide
 } t_token_type;
 
-// Structure principale contenant les données et l'état global de l'application
+
 typedef struct s_tools
 {
     char **env;            // Variables d'environnement (tableau de chaînes de caractères)
@@ -49,7 +49,7 @@ typedef struct s_tools
     // D'autres champs peuvent être ajoutés ici selon les besoins du projet
 } t_tools;
 
-// Structure représentant un token
+
 typedef struct s_tokens
 {
     t_token_type type;       // Le type du token (par exemple, commande, argument, pipe, etc.)
@@ -57,7 +57,7 @@ typedef struct s_tokens
     struct s_tokens *next;   // Pointeur vers le token suivant
 } t_tokens;
 
-// Structure représentant un lexer
+
 typedef struct s_lexer
 {
     char *str;               // Chaîne à analyser
@@ -67,7 +67,7 @@ typedef struct s_lexer
     struct s_lexer *prev;    // Pointeur vers le lexer précédent
 } t_lexer;
 
-// Structure représentant une commande simple
+
 typedef struct s_simple_cmds
 {
     char **str;                          // Tableau de chaînes (arguments ou commandes)
@@ -79,53 +79,43 @@ typedef struct s_simple_cmds
     struct s_simple_cmds *prev;          // Pointeur vers la commande précédente
 } t_simple_cmds;
 
-// Ajout d'une structure de redirection
-typedef struct s_redirection {
+
+typedef struct s_parsed_cmd {
     char *input_file; // <
     char *output_file; // >
     char *append_file; // >>
-    char *heredoc; // <<
+    char *heredoc_delim; // <<
     int input_fd; // fd pour l input
     int output_fd; //fd pour l output
-} t_redirection; 
+    char *full_cmd; // commande complete avec argument
+    char *cmd; //premiere partie de la commande
+} t_parsed_cmd; 
 
-// Modification de la structure s_pip pour inclure les redirections
 typedef struct s_pip 
 {
     char *cmd_pipe;         // Commande dans le pipe
-    t_redirection *redirection;  // Redirection pour cette commande
+    t_parsed_cmd *redirection;  // Redirection pour cette commande
     struct s_pip *next;
     struct s_pip *prev;
 } t_pip;
 
 
-//builtins
-
-//env
-char	**get_env_paths(char **env,char *var_name);
+//env :
 void	print_env_vars(t_tools *tools);
+char	**get_env_paths(char **env, char *var_name);
 
-//propmpt
-void	loop_prompt(t_tools *tools, char **env);
+//parsing :
+t_parsed_cmd *parse_command(char *input);
 void	parsing_line(char *user_input, t_tools *tools);
-t_sep	*create_cell(char *cmd_sep);
-t_sep	*add_cell(t_sep *list, char *cmd_sep, int pos);
-void	print_list(t_sep *list);
-char	*get_user_input(void);
-void	handle_signal(int sig);
-void	setup_signals(void);
-
-//exec
-
-//tools
-
-//parsing
-t_redirection	*parse_redirections(char *cmd);
+void	free_parsed_cmd(t_parsed_cmd *cmd);
+void	print_parsed_command(t_parsed_cmd *cmd);
 void	parse_pipes(t_sep *cell);
-
-
-//utils
+void	loop_prompt(t_tools *tools, char **env);
+t_sep	*add_cell(t_sep *list, char *cmd_sep, int pos);
+t_sep	*create_cell(char *cmd_sep);
+void	setup_signals(void);
+void	handle_signal(int sig);
+char	*get_user_input(void);
 void	free_str_array(char **array);
 int	ft_isspace(int c);
-
 #endif

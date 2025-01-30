@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   prompt.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 13:58:10 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/01/29 14:37:10 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/01/30 11:57:00 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,8 +51,6 @@ void	loop_prompt(t_tools *tools, char **env)
 			free(user_input);
 			continue ;
 		}
-		if (user_input[0] != '\0')
-			add_history(user_input);
 		if (ft_strncmp(user_input, "exit", 4) == 0)
 		{
 			trimmed = ft_strtrim(user_input + 4, " \t");
@@ -73,6 +71,6 @@ void	loop_prompt(t_tools *tools, char **env)
 		}
 		free(user_input);
 	}
-	clear_history();
+	rl_clear_history();
 	free_str_array(paths);
 }

@@ -24,7 +24,9 @@ PARSING_FILES = env.c \
 				sep.c \
 				utils.c \
 				parsing_pipe.c \
-				signals.c
+				signals.c \
+				parsing_command.c \
+				parsing_line.c
 #EXEC_FILES = execution.c redirection.c execution_utils.c builtins.c
 MAIN_FILES = main.c
 ENV_FILES =
