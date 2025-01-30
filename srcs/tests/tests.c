@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/29 15:01:44 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/29 16:15:56 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/30 10:23:42 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,15 +43,24 @@ static void test_builtin_echo(void)
 /*       Test du Builtin pwd   */
 /* =========================== */
 
+
 static void test_builtin_pwd(void)
 {
-    t_simple_cmds cmd;
-    t_tools tools;
+        t_simple_cmds   cmd;
+        t_tools         tools;
+        char            *args[] = {"pwd", NULL};
 
-    printf("Running test_builtin_pwd...\n");
+        printf("Running test_builtin_pwd...\n");
 
-    assert(builtin_pwd(&cmd, &tools) == 0);
-    printf("Test Passed: pwd\n");
+        // Initialiser les structures
+        ft_memset(&tools, 0, sizeof(t_tools));
+        ft_memset(&cmd, 0, sizeof(t_simple_cmds));
+
+        // Configurer la commande
+        cmd.str = args;
+
+        assert(builtin_pwd(&cmd, &tools) == 0);
+        printf("Test Passed: pwd\n");
 }
 
 /* =========================== */
@@ -145,21 +154,149 @@ static void test_builtin_export(void)
     free_env(tools.env);
 }
 
+/* =========================== */
+/*   Tests supplémentaires    */
+/*        pour echo           */
+/* =========================== */
+
+static void     test_echo_multiple_args(void)
+{
+       t_simple_cmds   cmd;
+       char            *args[] = {"echo", "Hello", "World", "42", NULL};
+
+       printf("Running test_echo_multiple_args...\n");
+       cmd.str = args;
+       assert(builtin_echo(&cmd) == 0);
+       printf("Test Passed: echo with multiple arguments\n");
+}
+
+static void     test_echo_multiple_options(void)
+{
+       t_simple_cmds   cmd;
+       char            *args[] = {"echo", "-n", "-n", "-n", "test", NULL};
+
+       printf("Running test_echo_multiple_options...\n");
+       cmd.str = args;
+       assert(builtin_echo(&cmd) == 0);
+       printf("Test Passed: echo with multiple -n options\n");
+}
+
+/* =========================== */
+/*   Tests supplémentaires    */
+/*        pour pwd            */
+/* =========================== */
+
+static void     test_pwd_with_args(void)
+{
+        t_simple_cmds   cmd;
+        t_tools         tools;
+        char            *args[] = {"pwd", "--help", NULL};
+
+        printf("Running test_pwd_with_args...\n");
+
+        // Initialiser les structures
+        ft_memset(&tools, 0, sizeof(t_tools));
+        ft_memset(&cmd, 0, sizeof(t_simple_cmds));
+
+        // Configurer la commande
+        cmd.str = args;
+
+        assert(builtin_pwd(&cmd, &tools) == ERR_INVALID_CMD);
+        printf("Test Passed: pwd with invalid arguments\n");
+}
+
+/* =========================== */
+/*   Tests supplémentaires    */
+/*        pour env            */
+/* =========================== */
+
+static void     test_env_with_args(void)
+{
+       t_tools         tools;
+       t_simple_cmds   cmd;
+       char            *args[] = {"env", "something", NULL};
+       char            *mock_env[] = {
+               "USER=test_user",
+               NULL
+       };
+
+       printf("Running test_env_with_args...\n");
+       ft_memset(&tools, 0, sizeof(t_tools));
+       tools.env = duplicate_env(mock_env);
+       cmd.str = args;
+
+       assert(builtin_env(&cmd, &tools) == ERR_INVALID_CMD);
+       free_env(tools.env);
+       printf("Test Passed: env with arguments (should fail)\n");
+}
+
+/* =========================== */
+/*   Tests supplémentaires    */
+/*        pour export         */
+/* =========================== */
+
+static void     test_export_empty(void)
+{
+       t_tools         tools;
+       t_simple_cmds   cmd;
+       char            *args[] = {"export", NULL};
+       char            *mock_env[] = {
+               "USER=test_user",
+               "PATH=/bin",
+               NULL
+       };
+
+       printf("Running test_export_empty...\n");
+       ft_memset(&tools, 0, sizeof(t_tools));
+       tools.env = duplicate_env(mock_env);
+       cmd.str = args;
+
+       assert(builtin_export(&cmd, &tools) == SUCCESS);
+       free_env(tools.env);
+       printf("Test Passed: export without arguments\n");
+}
+
+static void     test_export_invalid_name(void)
+{
+       t_tools         tools;
+       t_simple_cmds   cmd;
+       char            *args[] = {"export", "2VAR=test", NULL};
+       char            *mock_env[] = {"PATH=/bin", NULL};
+
+       printf("Running test_export_invalid_name...\n");
+       ft_memset(&tools, 0, sizeof(t_tools));
+       tools.env = duplicate_env(mock_env);
+       cmd.str = args;
+
+       assert(builtin_export(&cmd, &tools) == ERR_INVALID_CMD);
+       free_env(tools.env);
+       printf("Test Passed: export with invalid variable name\n");
+}
+
 /* ============================ */
 /*     Fonction principale      */
 /* ============================ */
 
-int main(void)
+int     main(void)
 {
-    printf("\nStarting builtin tests...\n");
-    printf("==============================\n\n");
+        printf("\nStarting builtin tests...\n");
+        printf("==============================\n\n");
 
-    test_builtin_echo();
-    test_builtin_pwd();
-    test_builtin_env();
-    test_builtin_export();
+        // Tests originaux
+        test_builtin_echo();
+        test_builtin_pwd();
+        test_builtin_env();
+        test_builtin_export();
 
-    printf("\nAll tests passed successfully!\n");
-    printf("==============================\n");
-    return (0);
+        // Tests supplémentaires
+        test_echo_multiple_args();
+        test_echo_multiple_options();
+        test_pwd_with_args();
+        test_env_with_args();
+        test_export_empty();
+        test_export_invalid_name();
+
+        printf("\nAll tests passed successfully!\n");
+        printf("==============================\n");
+        return (0);
 }
