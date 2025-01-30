@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 10:00:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/29 10:49:05 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/30 16:00:13 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,3 +74,17 @@ void	sort_string_array(char **array)
 		i++;
 	}
 }
+
+void	free_tools(t_tools *tools)
+{
+	if (!tools)
+		return;
+	if (tools->env)
+	{
+		free_env(tools->env);
+		tools->env = NULL;
+	}
+	free(tools);
+	tools = NULL;
+}
+
