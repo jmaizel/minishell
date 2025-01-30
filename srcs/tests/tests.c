@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/29 15:01:44 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/30 13:38:21 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/30 16:42:25 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,6 +153,49 @@ static void test_builtin_export(void)
 
     free_env(tools.env);
 }
+
+
+/* =========================== */
+/*       Test du Builtin exit  */
+/* =========================== */
+
+/* static void test_builtin_exit(void)
+{
+    t_tools tools;
+    t_simple_cmds cmd;
+    char *args1[] = {"exit", NULL};
+    char *args2[] = {"exit", "42", NULL};
+    char *args3[] = {"exit", "abc", NULL};
+    char *args4[] = {"exit", "42", "43", NULL};
+
+    printf("Running test_builtin_exit...\n");
+
+    ft_memset(&tools, 0, sizeof(t_tools));
+    ft_memset(&cmd, 0, sizeof(t_simple_cmds));
+    tools.exit_code = 5;
+
+    printf("Test: exit avec aucun argument...\n");
+    cmd.str = args1;
+    builtin_exit(&cmd, &tools);
+    assert(tools.exit_code == 5);
+
+    printf("Test: exit avec 42...\n");
+    cmd.str = args2;
+    builtin_exit(&cmd, &tools);
+    assert(tools.exit_code == 42);
+
+    printf("Test: exit avec argument non numérique...\n");
+    cmd.str = args3;
+    builtin_exit(&cmd, &tools);
+    assert(tools.exit_code == 2);
+
+    printf("Test: exit avec trop d’arguments...\n");
+    cmd.str = args4;
+    builtin_exit(&cmd, &tools);
+    assert(tools.exit_code == 1);
+
+    printf("Test Passed: builtin_exit\n");
+} */
 
 /* =========================== */
 /*   Tests supplémentaires    */
@@ -346,7 +389,7 @@ int     main(void)
         test_builtin_env();
         test_builtin_export();
 		test_builtin_unset();
-		
+		//test_builtin_exit();
 
         // Tests supplémentaires
         test_echo_multiple_args();
