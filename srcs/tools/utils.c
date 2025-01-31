@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 10:00:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/30 16:00:13 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/31 11:02:26 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ void	sort_string_array(char **array)
 void	free_tools(t_tools *tools)
 {
 	if (!tools)
-		return;
+		return ;
 	if (tools->env)
 	{
 		free_env(tools->env);
@@ -87,4 +87,3 @@ void	free_tools(t_tools *tools)
 	free(tools);
 	tools = NULL;
 }
-
