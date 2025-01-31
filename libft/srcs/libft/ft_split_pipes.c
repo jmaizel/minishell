@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 15:44:59 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/27 16:01:54 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/01/31 16:04:32 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ static int	is_quote(char c)
 	return (c == '\'' || c == '"');
 }
 
-static void	skip_quotes(const char *str, int *i)
+/* static void	skip_quotes(const char *str, int *i)
 {
 	char	quote;
 
@@ -27,28 +27,29 @@ static void	skip_quotes(const char *str, int *i)
 		(*i)++;
 	if (str[*i] == quote)
 		(*i)++;
-}
+} */
 
 static int	count_segments(const char *s, char delimiter)
 {
 	int	i;
 	int	count;
+	int	in_quote;
 
 	i = 0;
 	count = 0;
+	in_quote = 0;
 	while (s[i])
 	{
-		while (s[i] && s[i] == delimiter)
+		while (s[i] && s[i] == delimiter && !in_quote)
 			i++;
 		if (s[i])
 		{
 			count++;
-			while (s[i] && (s[i] != delimiter || is_quote(s[i])))
+			while (s[i] && (s[i] != delimiter || in_quote))
 			{
 				if (is_quote(s[i]))
-					skip_quotes(s, &i);
-				else
-					i++;
+					in_quote = !in_quote; // Toggle quote status
+				i++;
 			}
 		}
 	}
@@ -59,18 +60,17 @@ static char	*get_next_segment(const char *s, char delimiter, int *index)
 {
 	int	start;
 	int	len;
+	int	in_quote;
 
 	start = *index;
 	len = 0;
-	while (s[*index] && (s[*index] != delimiter || is_quote(s[*index])))
+	in_quote = 0;
+	while (s[*index] && (s[*index] != delimiter || in_quote))
 	{
 		if (is_quote(s[*index]))
-			skip_quotes(s, index);
-		else
-		{
-			(*index)++;
-			len++;
-		}
+			in_quote = !in_quote;
+		(*index)++;
+		len++;
 	}
 	return (ft_substr(s, start, len));
 }
@@ -100,3 +100,4 @@ char	**ft_split_pipes(const char *s, char delimiter)
 	result[j] = NULL;
 	return (result);
 }
+

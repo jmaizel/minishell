@@ -27,7 +27,8 @@ PARSING_FILES = env.c \
 				signals.c \
 				parsing_redir.c \
 				parsing_line.c \
-				parse_command_args.c
+				parse_command_args.c \
+				is_redir_only.c
 #EXEC_FILES = execution.c redirection.c execution_utils.c builtins.c
 MAIN_FILES = main.c
 ENV_FILES =

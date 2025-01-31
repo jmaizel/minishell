@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 13:30:33 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/31 11:58:02 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/01/31 16:11:53 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,14 +103,37 @@ void	free_parsed_cmd(t_parsed_cmd *cmd)
 
 void	parsing_line(char *user_input, t_tools *tools)
 {
-	t_parsed_cmd *parsed_cmd;
-	t_cmd_args *cmd_args;
+	t_sep *sep_cell;
+	t_pip *current_pipe;
 
 	(void)tools;
-	parsed_cmd = parse_redir(user_input);
-	cmd_args = parse_command_args(parsed_cmd->cmd);
-	print_parsed_command(parsed_cmd);
-	print_cmd_args(cmd_args);
-	free_parsed_cmd(parsed_cmd);
-	free_cmd_args(cmd_args);
+
+	// Vérifie si la commande est valide avant de parser
+	if (!is_valid_command(user_input))
+	{
+		printf("Erreur de syntaxe : commande invalide !\n");
+		return;
+	}
+
+	// Crée une cellule de séparation contenant la ligne d'entrée
+	sep_cell = create_cell(user_input);
+	if (!sep_cell)
+		return;
+
+	// Parse les pipes et stocke dans sep_cell->pipcell
+	parse_pipes(sep_cell);
+
+	// Affiche chaque commande et ses redirections
+	current_pipe = sep_cell->pipcell;
+	while (current_pipe)
+	{
+		printf("\n=== PIPE SEGMENT ===\n");
+		printf(" Command: [%s]\n", current_pipe->cmd_pipe);
+		print_parsed_command(current_pipe->redirection);
+		current_pipe = current_pipe->next;
+	}
+
+	// Nettoyage mémoire
+	// (Pense à une fonction free_sep_cell si nécessaire)
 }
+

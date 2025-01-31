@@ -101,8 +101,11 @@ char	*get_user_input(void);
 void	free_str_array(char **array);
 int	ft_isspace(int c);
 
+bool	is_redirection_only(const char *str);
+
 t_cmd_args	*parse_command_args(char *cmd_str);
 void	print_cmd_args(t_cmd_args *cmd_args);
 void	free_cmd_args(t_cmd_args *cmd_args);
+int	is_valid_command(const char *cmd);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 13:04:29 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/31 11:36:16 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/01/31 16:10:41 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,21 +30,34 @@ void	parse_pipes(t_sep *cell)
 	pipe_commands = ft_split_pipes(cell->cmd_sep, '|');
 	if (!pipe_commands)
 		return ;
+	
 	i = 0;
 	while (pipe_commands[i])
 	{
+		// Nettoie les espaces initiaux pour éviter des erreurs
+		char *clean_cmd = ft_strtrim(pipe_commands[i], " \t");
+		if (!clean_cmd)
+			return;
+
 		pipe_cell = malloc(sizeof(t_pip));
 		if (!pipe_cell)
 			return ;
-		pipe_cell->cmd_pipe = ft_strdup(pipe_commands[i]);
-		if (!pipe_cell->cmd_pipe)
+		
+		// S'assurer que la commande ne commence pas par une redirection isolée
+		if (is_redirection_only(clean_cmd))
 		{
+			printf("Erreur de syntaxe : redirection sans commande !\n");
+			free(clean_cmd);
 			free(pipe_cell);
-			return ;
+			return;
 		}
+
+		pipe_cell->cmd_pipe = clean_cmd;
 		pipe_cell->redirection = parse_redir(pipe_cell->cmd_pipe);
 		pipe_cell->next = NULL;
 		pipe_cell->prev = NULL;
+
+		// Ajouter à la liste chainée
 		if (!pipe_list)
 			pipe_list = pipe_cell;
 		else
@@ -60,3 +73,4 @@ void	parse_pipes(t_sep *cell)
 	cell->pipcell = pipe_list;
 	free_str_array(pipe_commands);
 }
+
