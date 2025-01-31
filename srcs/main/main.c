@@ -6,21 +6,23 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 12:20:12 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/15 12:33:13 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/01/30 14:40:57 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+#include <stdio.h>
 
-int main(void)
+int	main(int argc, char **argv, char **env)
 {
-	char *test1 = "echo \"Hello 'world'\""; // Toutes les quotes sont fermées
-	char *test2 = "echo 'Hello world";      // Single quote non fermée
-	char *test3 = "echo \"Hello world";     // Double quote non fermée
-
-	printf("Test 1: %d\n", is_quote_closed(test1)); // 1
-	printf("Test 2: %d\n", is_quote_closed(test2)); // 0
-	printf("Test 3: %d\n", is_quote_closed(test3)); // 0
-
-	return (0);
+	(void)argc;
+	(void)argv;
+	t_tools tools;
+	ft_memset(&tools, 0, sizeof(t_tools));
+	tools.env = env;
+	tools.exit_code = 0;
+	tools.tokens = NULL;
+	tools.cmds = NULL;
+	loop_prompt(&tools, env);
+	return (tools.exit_code);
 }

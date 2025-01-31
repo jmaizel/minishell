@@ -10,7 +10,6 @@
 #                                                                              #
 # **************************************************************************** #
 
-# Nom de la bibliothèque
 NAME = libft.a
 
 # Compilateur et options de compilation
@@ -23,7 +22,7 @@ LIBFT_DIR = srcs/libft
 PRINTF_DIR = srcs/ft_printf
 
 # Fichiers d'en-tête
-INCLUDES = -I $(INCLUDES_DIR)
+INCLUDES = -I $(INCLUDES_DIR) 
 
 # Fichiers sources de la libft
 SRC_LIBFT = \
@@ -69,7 +68,9 @@ SRC_LIBFT = \
     $(LIBFT_DIR)/ft_lstdelone.c \
     $(LIBFT_DIR)/ft_lstclear.c \
     $(LIBFT_DIR)/ft_lstiter.c \
-    $(LIBFT_DIR)/ft_lstmap.c
+    $(LIBFT_DIR)/ft_lstmap.c \
+    $(LIBFT_DIR)/ft_split_pipes.c \
+
 
 # Fichiers sources de ft_printf
 SRC_PRINTF = \
@@ -83,7 +84,7 @@ SRC_PRINTF = \
 
 
 # Tous les fichiers sources
-SRC = $(SRC_LIBFT) $(SRC_PRINTF) $(SRC_GNL)
+SRC = $(SRC_LIBFT) $(SRC_PRINTF) 
 
 # Fichiers objets correspondants
 OBJ = $(SRC:.c=.o)
@@ -95,7 +96,7 @@ $(NAME): $(OBJ)
 	@ar rcs $(NAME) $(OBJ)
 	@echo "Libft compilée avec succès !"
 
-%.o: %.c
+%.o: %.c $(INCLUDES_DIR)/*.h
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:

@@ -1,33 +1,35 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parsing1.c                                         :+:      :+:    :+:   */
+/*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/15 12:19:12 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/15 12:33:18 by jmaizel          ###   ########.fr       */
+/*   Created: 2025/01/20 11:25:48 by jacobmaizel       #+#    #+#             */
+/*   Updated: 2025/01/27 16:16:00 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-int	is_quote_closed(char *str)
+void	free_str_array(char **array)
 {
-	int	single_quote;
-	int	double_quote;
 	int	i;
 
-	single_quote = 0;
-	double_quote = 0;
+	if (!array)
+		return ;
 	i = 0;
-	while (str[i])
+	while (array[i])
 	{
-		if (str[i] == '\'' && double_quote == 0)
-			single_quote = !single_quote;
-		else if (str[i] == '\"' && single_quote == 0)
-			double_quote = !double_quote;
+		free(array[i]);
 		i++;
 	}
-	return (single_quote == 0 && double_quote == 0);
+	free(array);
+}
+
+int	ft_isspace(int c)
+{
+	if (c == 32)
+		return (1);
+	return (0);
 }
