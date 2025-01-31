@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 11:07:36 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 16:45:12 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/31 13:30:10 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,15 +24,30 @@ void	update_exit_status(t_tools *tools, int status)
 	}
 }
 
-int	get_command_exit_status(t_simple_cmds *cmd)
+int	get_command_exit_status(t_pip *pip)
 {
-	if (!cmd || !cmd->str || !cmd->str[0])
+	t_cmd_args	*args;
+	int			exit_status;
+
+	if (!pip || !pip->redirection || !pip->redirection->cmd)
 		return (GENERAL_ERROR);
-	if (ft_strcmp(cmd->str[0], "exit") == 0)
+
+	args = parse_command_args(pip->redirection->full_cmd);
+	if (!args || !args->argv || !args->argv[0])
 	{
-		if (cmd->str[1])
-			return (ft_atoi(cmd->str[1]));
-		return (0);
+		free_cmd_args(args);
+		return (GENERAL_ERROR);
 	}
+
+	if (ft_strcmp(args->argv[0], "exit") == 0)
+	{
+		if (args->argv[1])
+			exit_status = ft_atoi(args->argv[1]);
+		else
+			exit_status = 0;
+		free_cmd_args(args);
+		return (exit_status);
+	}
+	free_cmd_args(args);
 	return (GENERAL_ERROR);
 }

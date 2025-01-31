@@ -6,31 +6,11 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:33:23 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/31 13:10:19 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/31 14:45:17 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
-
-static void handle_redirection(t_parsed_cmd *cmd)
-{
-    int i;
-    
-    for (i = 0; i < cmd->input_count; i++)
-        handle_input_redirection(cmd->input_file[i]);
-    for (i = 0; i < cmd->output_count; i++)
-        handle_output_redirection(cmd->output_file[i]);
-    for (i = 0; i < cmd->append_count; i++)
-        handle_append_redirection(cmd->append_file[i]);
-    for (i = 0; i < cmd->heredoc_count; i++)
-        handle_heredoc(cmd->heredoc_delim[i]);
-}
-
-void apply_redirections(t_pip *cmd)
-{
-    if (cmd->redirection)
-        handle_redirection(cmd->redirection);
-}
 
 void handle_input_redirection(char *file)
 {
@@ -81,4 +61,30 @@ void handle_append_redirection(char *file)
         exit(EXIT_FAILURE);
     }
     close(fd);
+}
+
+static void handle_redirection(t_parsed_cmd *cmd, t_pip *pip)
+{
+    int i;
+
+    if (!cmd)
+        return;
+
+    for (i = 0; i < cmd->input_count; i++)
+        handle_input_redirection(cmd->input_file[i]);
+
+    for (i = 0; i < cmd->output_count; i++)
+        handle_output_redirection(cmd->output_file[i]);
+
+    for (i = 0; i < cmd->append_count; i++)
+        handle_append_redirection(cmd->append_file[i]);
+
+    for (i = 0; i < cmd->heredoc_count; i++)
+        handle_heredoc(cmd->heredoc_delim[i], pip);
+}
+
+void apply_redirections(t_pip *pip)
+{
+    if (pip && pip->redirection)
+        handle_redirection(pip->redirection, pip);
 }

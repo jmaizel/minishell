@@ -6,13 +6,13 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:43:16 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/28 18:17:14 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/31 13:50:55 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/builtins.h"
 
-static int	is_option_n(char *arg)
+static int	is_option_n(const char *arg)
 {
 	int	i;
 
@@ -28,26 +28,31 @@ static int	is_option_n(char *arg)
 	return (1);
 }
 
-int	builtin_echo(t_simple_cmds *cmd)
+int	builtin_echo(t_parsed_cmd *cmd)
 {
-	int	i;
-	int	newline;
+	char	**args;
+	int		i;
+	int		newline;
 
+	args = ft_split(cmd->full_cmd, ' ');
+	if (!args)
+		return (1);
 	i = 1;
 	newline = 1;
-	while (cmd->str[i] && is_option_n(cmd->str[i]))
+	while (args[i] && is_option_n(args[i]))
 	{
 		newline = 0;
 		i++;
 	}
-	while (cmd->str[i])
+	while (args[i])
 	{
-		ft_putstr_fd(cmd->str[i], STDOUT_FILENO);
-		if (cmd->str[i + 1])
+		ft_putstr_fd(args[i], STDOUT_FILENO);
+		if (args[i + 1])
 			ft_putchar_fd(' ', STDOUT_FILENO);
 		i++;
 	}
 	if (newline)
 		ft_putchar_fd('\n', STDOUT_FILENO);
+	free_str_array(args);
 	return (0);
 }
