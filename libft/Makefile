@@ -20,10 +20,9 @@ CFLAGS = -Wall -Wextra -Werror
 INCLUDES_DIR = includes
 LIBFT_DIR = srcs/libft
 PRINTF_DIR = srcs/ft_printf
-GET_NEXT_LINE_DIR = srcs/get_next_line
 
 # Fichiers d'en-tête
-INCLUDES = -I $(INCLUDES_DIR) -I $(GET_NEXT_LINE_DIR)
+INCLUDES = -I $(INCLUDES_DIR) 
 
 # Fichiers sources de la libft
 SRC_LIBFT = \
@@ -83,12 +82,9 @@ SRC_PRINTF = \
     $(PRINTF_DIR)/ft_print_hex.c \
     $(PRINTF_DIR)/ft_print_ptr.c
 
-# Fichiers sources de get_next_line
-SRC_GET_NEXT_LINE = \
-    $(GET_NEXT_LINE_DIR)/get_next_line.c
 
 # Tous les fichiers sources
-SRC = $(SRC_LIBFT) $(SRC_PRINTF) $(SRC_GET_NEXT_LINE)
+SRC = $(SRC_LIBFT) $(SRC_PRINTF) 
 
 # Fichiers objets correspondants
 OBJ = $(SRC:.c=.o)
