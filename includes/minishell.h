@@ -32,6 +32,10 @@ typedef enum e_token_type
     TOK_COMMAND,      // Représente une commande simple
     TOK_ARGUMENT,     // Représente un argument
     TOK_PIPE,         // Représente un pipe '|'
+    TOK_HEREDOC,
+    TOK_INPUT,
+    TOK_OUTPUT,
+    TOK_APPEND,
     TOK_REDIRECTION,  // Représente une redirection, comme '>' ou '<'
     TOK_PIPE_OUT,     // Représente un pipe sortant
     TOK_PIPE_IN,      // Représente un pipe entrant
@@ -67,25 +71,21 @@ typedef struct s_lexer
     struct s_lexer *prev;    // Pointeur vers le lexer précédent
 } t_lexer;
 
-
-typedef struct s_simple_cmds
-{
-    char **str;                          // Tableau de chaînes (arguments ou commandes)
-    int (*builtin)(t_tools *, struct s_simple_cmds *); // Fonction builtin (si applicable)
-    int num_redirections;                // Nombre de redirections
-    char *hd_file_name;                  // Nom du fichier de redirection
-    t_lexer *redirections;               // Liste des redirections associées
-    struct s_simple_cmds *next;          // Pointeur vers la commande suivante
-    struct s_simple_cmds *prev;          // Pointeur vers la commande précédente
-} t_simple_cmds;
-
+typedef struct s_cmd_args {
+    char **argv;           // Tableau d'arguments
+    int argc;              // Nombre d'arguments
+    char *cmd;             // Première partie (commande principale)
+} t_cmd_args;
 
 typedef struct s_parsed_cmd {
     char *full_cmd;          // Commande complète
     char *cmd;               // Commande nettoyée
-    char *input_file;        // Fichier d'entrée pour 
-    char *output_file;       // Fichier de sortie pour >
-    char *append_file;       // Fichier pour >>
+    char **input_file;      // Tableau de fichiers d'entrée
+    int input_count;         // Nombre de fichiers d'entrée
+    char **output_file;     // Tableau de fichiers de sortie
+    int output_count;        // Nombre de fichiers de sortie
+    char **append_file;       // Fichier pour >>
+    int append_count; //nombre de append
     char **heredoc_delim;   // Tableau de délimiteurs pour 
     int heredoc_count;       // Nombre de délimiteurs
 } t_parsed_cmd;
@@ -96,6 +96,7 @@ typedef struct s_pip
     t_parsed_cmd *redirection;  // Redirection pour cette commande
     struct s_pip *next;
     struct s_pip *prev;
+    int pip_count; //nombre de pipe
 } t_pip;
 
 
@@ -104,7 +105,7 @@ void	print_env_vars(t_tools *tools);
 char	**get_env_paths(char **env, char *var_name);
 
 //parsing :
-t_parsed_cmd *parse_command(char *input);
+t_parsed_cmd *parse_redir(char *input);
 void	parsing_line(char *user_input, t_tools *tools);
 void	free_parsed_cmd(t_parsed_cmd *cmd);
 void	print_parsed_command(t_parsed_cmd *cmd);
@@ -117,4 +118,9 @@ void	handle_signal(int sig);
 char	*get_user_input(void);
 void	free_str_array(char **array);
 int	ft_isspace(int c);
+
+t_cmd_args	*parse_command_args(char *cmd_str);
+void	print_cmd_args(t_cmd_args *cmd_args);
+void	free_cmd_args(t_cmd_args *cmd_args);
+
 #endif

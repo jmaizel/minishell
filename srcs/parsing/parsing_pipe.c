@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 13:04:29 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/30 13:29:49 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/01/31 11:36:16 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,11 +42,9 @@ void	parse_pipes(t_sep *cell)
 			free(pipe_cell);
 			return ;
 		}
-		// Parser les redirections
-		pipe_cell->redirection = parse_command(pipe_cell->cmd_pipe);
+		pipe_cell->redirection = parse_redir(pipe_cell->cmd_pipe);
 		pipe_cell->next = NULL;
 		pipe_cell->prev = NULL;
-		// Ajouter à la liste des pipes
 		if (!pipe_list)
 			pipe_list = pipe_cell;
 		else
