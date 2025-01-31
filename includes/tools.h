@@ -1,27 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   tools.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/15 12:20:12 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/31 15:20:53 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/01/29 10:31:04 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/01/30 14:47:40 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#ifndef TOOLS_H
+# define TOOLS_H
 
-int	main(int argc, char **argv, char **env)
-{
-	(void)argc;
-	(void)argv;
-	t_tools tools;
-	ft_memset(&tools, 0, sizeof(t_tools));
-	tools.env = env;
-	tools.exit_code = 0;
-	tools.tokens = NULL;
-	tools.cmds = NULL;
-	loop_prompt(&tools, env);
-	return (tools.exit_code);
-}
+# include "../libft/includes/libft.h"
+# include "../includes/minishell.h"
+# include "../includes/execution.h"
+
+char	*ft_strjoin_free(char *s1, char *s2, int free_s1, int free_s2);
+char	*ft_charjoin(char *str, char c);
+void	sort_string_array(char **array);
+void	free_tools(t_tools *tools);
+
+#endif

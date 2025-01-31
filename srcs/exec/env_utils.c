@@ -6,13 +6,13 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 11:43:19 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 20:11:58 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/31 15:21:37 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
 
-char	*get_env_var(char *key, char **env)
+char	*get_env_var(const char *key, char **env)
 {
 	int	len;
 	int	i;
@@ -32,8 +32,8 @@ char	*get_env_var(char *key, char **env)
 
 int	add_env_var(char *var, char ***env)
 {
-	int		i;
-	char	**new_env;
+	int			i;
+	char		**new_env;
 
 	if (!var || !env || !*env)
 		return (ERR_INVALID_CMD);
@@ -88,4 +88,47 @@ int	remove_env_var(char *key, char ***env)
 		i++;
 	}
 	return (1);
+}
+
+char	**duplicate_env(char **env)
+{
+	int			i;
+	char		**new_env;
+
+	i = 0;
+	while (env[i])
+		i++;
+	new_env = malloc(sizeof(char *) * (i + 1));
+	if (!new_env)
+		return (NULL);
+	i = 0;
+	while (env[i])
+	{
+		new_env[i] = ft_strdup(env[i]);
+		if (!new_env[i])
+		{
+			while (--i >= 0)
+				free(new_env[i]);
+			free(new_env);
+			return (NULL);
+		}
+		i++;
+	}
+	new_env[i] = NULL;
+	return (new_env);
+}
+
+void	free_env(char **env)
+{
+	int	i;
+
+	if (!env)
+		return ;
+	i = 0;
+	while (env[i])
+	{
+		free(env[i]);
+		i++;
+	}
+	free(env);
 }

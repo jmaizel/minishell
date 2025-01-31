@@ -1,111 +1,66 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: votre_nom <votre_email@domain.com>          +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/13 14:00:00 by votre_nom         #+#    #+#              #
-#    Updated: 2024/11/13 14:00:00 by votre_nom        ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
 NAME = libft.a
 
-# Compilateur et options de compilation
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
 
-# Répertoires
-INCLUDES_DIR = includes
-LIBFT_DIR = srcs/libft
-PRINTF_DIR = srcs/ft_printf
+INCLUDES = -I incldudes
 
-# Fichiers d'en-tête
-INCLUDES = -I $(INCLUDES_DIR) 
+DIR_LIBFT = srcs/libft
+DIR_PRINTF = srcs/ft_printf
+DIR_GNL = srcs/get_next_line
 
-# Fichiers sources de la libft
-SRC_LIBFT = \
-    $(LIBFT_DIR)/ft_atoi.c \
-    $(LIBFT_DIR)/ft_bzero.c \
-    $(LIBFT_DIR)/ft_calloc.c \
-    $(LIBFT_DIR)/ft_isalnum.c \
-    $(LIBFT_DIR)/ft_isalpha.c \
-    $(LIBFT_DIR)/ft_isascii.c \
-    $(LIBFT_DIR)/ft_isdigit.c \
-    $(LIBFT_DIR)/ft_isprint.c \
-    $(LIBFT_DIR)/ft_itoa.c \
-    $(LIBFT_DIR)/ft_memchr.c \
-    $(LIBFT_DIR)/ft_memcmp.c \
-    $(LIBFT_DIR)/ft_memcpy.c \
-    $(LIBFT_DIR)/ft_memmove.c \
-    $(LIBFT_DIR)/ft_memset.c \
-    $(LIBFT_DIR)/ft_putchar_fd.c \
-    $(LIBFT_DIR)/ft_putendl_fd.c \
-    $(LIBFT_DIR)/ft_putnbr_fd.c \
-    $(LIBFT_DIR)/ft_putstr_fd.c \
-    $(LIBFT_DIR)/ft_split.c \
-    $(LIBFT_DIR)/ft_strchr.c \
-    $(LIBFT_DIR)/ft_strdup.c \
-    $(LIBFT_DIR)/ft_striteri.c \
-    $(LIBFT_DIR)/ft_strjoin.c \
-    $(LIBFT_DIR)/ft_strlcat.c \
-    $(LIBFT_DIR)/ft_strlcpy.c \
-    $(LIBFT_DIR)/ft_strlen.c \
-    $(LIBFT_DIR)/ft_strmapi.c \
-    $(LIBFT_DIR)/ft_strncmp.c \
-    $(LIBFT_DIR)/ft_strnstr.c \
-    $(LIBFT_DIR)/ft_strrchr.c \
-    $(LIBFT_DIR)/ft_strtrim.c \
-    $(LIBFT_DIR)/ft_substr.c \
-    $(LIBFT_DIR)/ft_tolower.c \
-    $(LIBFT_DIR)/ft_toupper.c \
-    $(LIBFT_DIR)/ft_lstnew.c \
-    $(LIBFT_DIR)/ft_lstadd_front.c \
-    $(LIBFT_DIR)/ft_lstsize.c \
-    $(LIBFT_DIR)/ft_lstlast.c \
-    $(LIBFT_DIR)/ft_lstadd_back.c \
-    $(LIBFT_DIR)/ft_lstdelone.c \
-    $(LIBFT_DIR)/ft_lstclear.c \
-    $(LIBFT_DIR)/ft_lstiter.c \
-    $(LIBFT_DIR)/ft_lstmap.c \
-    $(LIBFT_DIR)/ft_split_pipes.c \
+SRC_LIBFT = $(DIR_LIBFT)/ft_atoi.c $(DIR_LIBFT)/ft_isprint.c $(DIR_LIBFT)/ft_lstlast.c \
+            $(DIR_LIBFT)/ft_memmove.c $(DIR_LIBFT)/ft_strchr.c $(DIR_LIBFT)/ft_strmapi.c \
+            $(DIR_LIBFT)/ft_toupper.c $(DIR_LIBFT)/ft_bzero.c $(DIR_LIBFT)/ft_itoa.c \
+            $(DIR_LIBFT)/ft_lstmap.c $(DIR_LIBFT)/ft_memset.c $(DIR_LIBFT)/ft_strdup.c \
+            $(DIR_LIBFT)/ft_strncmp.c $(DIR_LIBFT)/ft_calloc.c $(DIR_LIBFT)/ft_lstadd_back.c \
+            $(DIR_LIBFT)/ft_lstnew.c $(DIR_LIBFT)/ft_putchar_fd.c $(DIR_LIBFT)/ft_striteri.c \
+            $(DIR_LIBFT)/ft_strnstr.c $(DIR_LIBFT)/ft_isalnum.c $(DIR_LIBFT)/ft_lstadd_front.c \
+            $(DIR_LIBFT)/ft_lstsize.c $(DIR_LIBFT)/ft_putendl_fd.c $(DIR_LIBFT)/ft_strjoin.c \
+            $(DIR_LIBFT)/ft_strrchr.c $(DIR_LIBFT)/ft_isalpha.c $(DIR_LIBFT)/ft_lstclear.c \
+            $(DIR_LIBFT)/ft_memchr.c $(DIR_LIBFT)/ft_putnbr_fd.c $(DIR_LIBFT)/ft_strlcat.c \
+            $(DIR_LIBFT)/ft_strtrim.c $(DIR_LIBFT)/ft_isascii.c $(DIR_LIBFT)/ft_lstdelone.c \
+            $(DIR_LIBFT)/ft_memcmp.c $(DIR_LIBFT)/ft_putstr_fd.c $(DIR_LIBFT)/ft_strlcpy.c \
+            $(DIR_LIBFT)/ft_substr.c $(DIR_LIBFT)/ft_isdigit.c $(DIR_LIBFT)/ft_lstiter.c \
+            $(DIR_LIBFT)/ft_memcpy.c $(DIR_LIBFT)/ft_split.c $(DIR_LIBFT)/ft_strlen.c \
+            $(DIR_LIBFT)/ft_tolower.c $(DIR_LIBFT)/ft_split_pipes.c
 
+SRC_PRINTF = $(DIR_PRINTF)/ft_print_char.c $(DIR_PRINTF)/ft_print_int.c \
+             $(DIR_PRINTF)/ft_print_str.c $(DIR_PRINTF)/ft_printf.c \
+             $(DIR_PRINTF)/ft_print_hex.c $(DIR_PRINTF)/ft_print_ptr.c \
+             $(DIR_PRINTF)/ft_print_unsigned_int.c
 
-# Fichiers sources de ft_printf
-SRC_PRINTF = \
-    $(PRINTF_DIR)/ft_printf.c \
-    $(PRINTF_DIR)/ft_print_char.c \
-    $(PRINTF_DIR)/ft_print_str.c \
-    $(PRINTF_DIR)/ft_print_int.c \
-    $(PRINTF_DIR)/ft_print_unsigned_int.c \
-    $(PRINTF_DIR)/ft_print_hex.c \
-    $(PRINTF_DIR)/ft_print_ptr.c
+SRC_GNL = $(DIR_GNL)/get_next_line.c $(DIR_GNL)/get_next_line_bonus.c \
+          $(DIR_GNL)/get_next_line_utils.c $(DIR_GNL)/get_next_line_utils_bonus.c
 
+SRC = $(SRC_LIBFT) $(SRC_PRINTF) $(SRC_GNL)
 
-# Tous les fichiers sources
-SRC = $(SRC_LIBFT) $(SRC_PRINTF) 
-
-# Fichiers objets correspondants
 OBJ = $(SRC:.c=.o)
 
-# Règles du Makefile
+TOTAL_FILES := $(words $(SRC))
+COMPILED_FILES = 0
+
+define progress_bar
+	@$(eval COMPILED_FILES=$(shell echo $$(($(COMPILED_FILES) + 1))))
+	@PROGRESS=$$(($(COMPILED_FILES) * 100 / $(TOTAL_FILES))); \
+	BAR=$$(seq -s= $$(($$PROGRESS / 5)) | sed 's/[0-9]//g'); \
+	printf "\rCompiling [%-20s] %d%%" $$BAR $$PROGRESS
+endef
+
 all: $(NAME)
 
 $(NAME): $(OBJ)
 	@ar rcs $(NAME) $(OBJ)
-	@echo "Libft compilée avec succès !"
 
-%.o: %.c $(INCLUDES_DIR)/*.h
+%.o: %.c
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	$(call progress_bar)
 
 clean:
 	@rm -f $(OBJ)
-	@echo "Nettoyage des fichiers objets."
 
 fclean: clean
 	@rm -f $(NAME)
-	@echo "Nettoyage complet (objets et bibliothèque)."
 
 re: fclean all
 

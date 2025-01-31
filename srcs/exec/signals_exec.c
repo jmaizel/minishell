@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   signals.c                                          :+:      :+:    :+:   */
+/*   signals_exec.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 17:42:25 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/28 13:49:20 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/31 15:43:19 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ void	child_sigint_handler(int sig)
 		write(STDOUT_FILENO, "\n", 1);
 }
 
-void	setup_signals(void)
+void	setup_signals_exec(void)
 {
 	signal(SIGINT, sigint_handler);
 	signal(SIGQUIT, SIG_IGN);

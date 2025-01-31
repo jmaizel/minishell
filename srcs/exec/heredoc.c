@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 10:00:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 16:47:48 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/31 15:23:08 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ static int	write_heredoc_content(int fd, char *delimiter)
 	return (1);
 }
 
-void	handle_heredoc(t_lexer *redir)
+void	handle_heredoc(char *delim, t_pip *pip)
 {
 	char	*filename;
 	int		fd;
@@ -85,6 +85,7 @@ void	handle_heredoc(t_lexer *redir)
 	filename = create_heredoc_filename();
 	if (!filename)
 		handle_error("heredoc: filename creation failed");
+	
 	pid = fork();
 	if (pid == 0)
 	{
@@ -92,7 +93,7 @@ void	handle_heredoc(t_lexer *redir)
 		fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0600);
 		if (fd == -1)
 			handle_error("heredoc: open failed");
-		if (write_heredoc_content(fd, redir->token.value))
+		if (write_heredoc_content(fd, delim))
 			exit(130);
 		close(fd);
 		exit(0);
@@ -104,11 +105,16 @@ void	handle_heredoc(t_lexer *redir)
 		free(filename);
 		exit(130);
 	}
+	
 	fd = open(filename, O_RDONLY);
 	if (fd == -1)
 		handle_error("heredoc: open failed");
-	if (dup2(fd, STDIN_FILENO) == -1)
-		handle_error("heredoc: dup2 failed");
+	
+	if (pip && pip->redirection)
+	{
+		if (dup2(fd, STDIN_FILENO) == -1)
+			handle_error("heredoc: dup2 failed");
+	}
 	close(fd);
 	unlink(filename);
 	free(filename);

@@ -6,39 +6,83 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:03:16 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 16:40:25 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/31 16:33:40 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
 
-void	cleanup_command(t_simple_cmds *cmd)
+void	free_str_array_exec(char **array)
 {
-	t_lexer	*redir;
-	t_lexer	*next;
-	int		i;
+	int	i;
 
+	if (!array)
+		return ;
+	i = 0;
+	while (array[i])
+	{
+		free(array[i]);
+		array[i] = NULL;
+		i++;
+	}
+	free(array);
+}
+
+void	cleanup_parsed_cmd(t_parsed_cmd *cmd)
+{
 	if (!cmd)
 		return ;
-	if (cmd->str)
+	if (cmd->full_cmd)
 	{
-		i = 0;
-		while (cmd->str[i])
+		free(cmd->full_cmd);
+		cmd->full_cmd = NULL;
+	}
+	if (cmd->cmd)
+	{
+		free(cmd->cmd);
+		cmd->cmd = NULL;
+	}
+	free_str_array(cmd->input_file);
+	free_str_array(cmd->output_file);
+	free_str_array(cmd->append_file);
+	free_str_array(cmd->heredoc_delim);
+	free(cmd);
+}
+
+void	cleanup_pip(t_pip *pip)
+{
+	t_pip	*current;
+	t_pip	*next;
+
+	current = pip;
+	while (current)
+	{
+		next = current->next;
+		if (current->cmd_pipe)
 		{
-			free(cmd->str[i]);
-			i++;
+			free(current->cmd_pipe);
+			current->cmd_pipe = NULL;
 		}
-		free(cmd->str);
+		if (current->redirection)
+			cleanup_parsed_cmd(current->redirection);
+		free(current);
+		current = next;
 	}
-	if (cmd->hd_file_name)
-		free(cmd->hd_file_name);
-	redir = cmd->redirections;
-	while (redir)
+}
+
+void	cleanup_cmd_args(t_cmd_args *args)
+{
+	if (!args)
+		return ;
+	if (args->argv)
 	{
-		next = redir->next;
-		if (redir->token.value)
-			free(redir->token.value);
-		free(redir);
-		redir = next;
+		free_str_array(args->argv);
+		args->argv = NULL;
 	}
+	if (args->cmd)
+	{
+		free(args->cmd);
+		args->cmd = NULL;
+	}
+	free(args);
 }

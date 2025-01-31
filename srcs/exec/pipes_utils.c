@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipes.c                                            :+:      :+:    :+:   */
+/*   pipes_utils.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/17 17:41:59 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/31 15:23:16 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/01/31 11:37:38 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/01/31 12:01:27 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,18 +72,4 @@ void close_all_pipes(int *pipes, int pipe_count)
         close(pipes[i]);
         i++;
     }
-    free(pipes);
-}
-
-pid_t *allocate_pids(int count)
-{
-    pid_t *pids;
-
-    pids = malloc(sizeof(pid_t) * count);
-    if (!pids)
-    {
-        perror("malloc failed for pids");
-        return (NULL);
-    }
-    return (pids);
 }
