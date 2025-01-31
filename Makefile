@@ -2,6 +2,7 @@ NAME = minishell
 TEST_NAME = tests
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -I$(INCLUDES_DIR) -I$(LIBFT_DIR) $(READLINE_INC)
+CFLAGS = -Wall -Wextra -Werror -I$(INCLUDES_DIR) -I$(LIBFT_DIR) $(READLINE_INC)
 
 # Directory structure
 LIBFT_DIR = ./libft
@@ -24,7 +25,7 @@ LIBS = $(READLINE_LIB) -lreadline -L$(LIBFT_DIR) -lft
 LIBFT = $(LIBFT_DIR)/libft.a
 
 # Source files by directory
-PARSING_FILES = parsing1.c
+PARSING_FILES = env.c parse_command_args.c parsing_line.c parsing_pipe.c parsing_command.c prompt.c sep.c signals.c 
 EXEC_FILES = cleanup.c env_utils.c error_handling.c execution.c execution_utils.c expansion.c pipes.c redirection.c signals.c heredoc.c exit_status.c 
 MAIN_FILES = main.c
 ENV_FILES =
@@ -86,8 +87,11 @@ $(OBJ_DIR):
 
 $(LIBFT):
 	@make --no-print-directory -C $(LIBFT_DIR)
+	@make --no-print-directory -C $(LIBFT_DIR)
 
 clean:
+	@rm -rf $(OBJ_DIR)
+	@make clean --no-print-directory -C $(LIBFT_DIR)
 	@rm -rf $(OBJ_DIR)
 	@make clean --no-print-directory -C $(LIBFT_DIR)
 
