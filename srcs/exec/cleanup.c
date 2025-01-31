@@ -6,13 +6,13 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:03:16 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/31 15:21:27 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/31 16:33:40 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
 
-void	free_str_array(char **array)
+void	free_str_array_exec(char **array)
 {
 	int	i;
 

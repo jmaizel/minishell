@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:31:48 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/31 15:22:03 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/31 16:34:05 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ pid_t	*allocate_pids(int count);
 /* Utilities */
 char	*find_executable(char *command, char **env);
 int		ft_strcmp(const char *s1, const char *s2);
-void	free_str_array(char **array);
+void	free_str_array_exec(char **array);
 void	cleanup_parsed_cmd(t_parsed_cmd *cmd);
 void	cleanup_pip(t_pip *pip);
 void	cleanup_sep(t_sep *sep);
@@ -86,7 +86,7 @@ void	handle_error(const char *msg);
 /* Signal handling */
 void	sigint_handler(int sig);
 void	child_sigint_handler(int sig);
-void	setup_signals(void);
+void	setup_signals_exec(void);
 void	setup_child_signals(void);
 
 #endif
