@@ -5,25 +5,17 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/15 12:20:12 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/31 16:54:14 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/01/31 16:54:14 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/01/31 17:05:56 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/15 12:20:12 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/28 11:31:51 by cdedessu         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#include "../includes/minishell.h"
 
-#include "../includes/execution.h"
-
+/**
+ * @brief Récupère l'entrée utilisateur et affiche le prompt.
+ * @return Une chaîne contenant la ligne de commande saisie.
+ */
 static char	*get_input(void)
 {
 	char	*line;
@@ -36,35 +28,46 @@ static char	*get_input(void)
 	return (line);
 }
 
+/**
+ * @brief Exécute une ligne de commande en la passant d'abord par le parsing.
+ * @param line La ligne de commande à analyser et exécuter.
+ * @param tools Structure contenant l'environnement et les données du shell.
+ */
 static void	execute_command_line(char *line, t_tools *tools)
 {
-	t_simple_cmds	cmd;
-	char			**args;
+	t_pip *cmd;
 
-	ft_memset(&cmd, 0, sizeof(t_simple_cmds));
-	args = malloc(2 * sizeof(char *));
-	if (!args)
+	if (!line || !*line)
+		return;
+
+	// Parser la ligne pour obtenir `tools->cmds` (liste de `t_pip`)
+	parsing_line(line, tools);
+
+	// Vérifier si le parsing a réussi
+	if (!tools->cmds)
 	{
-		ft_putendl_fd("Error: Memory allocation failed", STDERR_FILENO);
-		return ;
+		ft_putendl_fd("Parsing error: invalid command", STDERR_FILENO);
+		return;
 	}
-	args[0] = ft_strdup(line);
-	if (!args[0])
-	{
-		free(args);
-		ft_putendl_fd("Error: Memory allocation failed", STDERR_FILENO);
-		return ;
-	}
-	args[1] = NULL;
-	cmd.str = args;
-	cmd.redirections = NULL;
-	cmd.next = NULL;
-	cmd.prev = NULL;
-	execute_simple_command(&cmd, tools);
-	free(args[0]);
-	free(args);
+
+	cmd = (t_pip *)tools->cmds;
+
+	// Exécuter la commande (simple ou pipeline)
+	if (cmd->next)
+		execute_pipeline(cmd, tools);
+	else
+		execute_simple_command(cmd, tools);
+
+	// Nettoyer après exécution
+	cleanup_pip(cmd);
+	tools->cmds = NULL;
 }
 
+/**
+ * @brief Copie l'environnement système pour l'utiliser dans le shell.
+ * @param envp Tableau de chaînes représentant l'environnement.
+ * @return Un nouveau tableau de chaînes alloué dynamiquement.
+ */
 char	**copy_env(char **envp)
 {
 	int		i;
@@ -74,9 +77,11 @@ char	**copy_env(char **envp)
 	count = 0;
 	while (envp[count])
 		count++;
+
 	new_env = malloc(sizeof(char *) * (count + 1));
 	if (!new_env)
 		return (NULL);
+
 	i = 0;
 	while (i < count)
 	{
@@ -94,16 +99,24 @@ char	**copy_env(char **envp)
 	return (new_env);
 }
 
+/**
+ * @brief Libère la mémoire allouée pour l'environnement.
+ * @param env Tableau de chaînes à libérer.
+ */
 static void	cleanup_env(char **env)
 {
-	char	**tmp;
+	int i = 0;
 
-	tmp = env;
-	while (*tmp)
-		free(*tmp++);
+	if (!env)
+		return;
+	while (env[i])
+		free(env[i++]);
 	free(env);
 }
 
+/**
+ * @brief Fonction principale du programme.
+ */
 int	main(int argc, char **argv, char **envp)
 {
 	char	*line;
@@ -112,24 +125,33 @@ int	main(int argc, char **argv, char **envp)
 	(void)argc;
 	(void)argv;
 	ft_memset(&tools, 0, sizeof(t_tools));
+
+	// Copier l'environnement
 	tools.env = copy_env(envp);
 	if (!tools.env)
 	{
 		ft_putendl_fd("Error: Failed to copy environment", STDERR_FILENO);
 		return (1);
 	}
+
 	setup_signals();
+
+	// Boucle principale du shell
 	while (1)
 	{
 		line = get_input();
 		if (!line)
-			break ;
+			break;
 		execute_command_line(line, &tools);
 		free(line);
 	}
+
+	// Nettoyage avant de quitter
 	cleanup_env(tools.env);
 	return (tools.exit_code);
 }
+
+
 
 /* int	main(int argc, char **argv, char **env)
 {
