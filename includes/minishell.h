@@ -32,10 +32,10 @@ typedef enum e_token_type
     TOK_COMMAND,      // Représente une commande simple
     TOK_ARGUMENT,     // Représente un argument
     TOK_PIPE,         // Représente un pipe '|'
-    TOK_HEREDOC,
-    TOK_INPUT,
-    TOK_OUTPUT,
-    TOK_APPEND,
+    TOK_HEREDOC,      // represente heredoc <<
+    TOK_INPUT,        // represebte input <
+    TOK_OUTPUT,       // represente output >
+    TOK_APPEND,       // represente append >>
     TOK_REDIRECTION,  // Représente une redirection, comme '>' ou '<'
     TOK_PIPE_OUT,     // Représente un pipe sortant
     TOK_PIPE_IN,      // Représente un pipe entrant
@@ -52,24 +52,6 @@ typedef struct s_tools
     struct s_tokens *tokens;      // Liste des tokens générés par le lexer
     // D'autres champs peuvent être ajoutés ici selon les besoins du projet
 } t_tools;
-
-
-typedef struct s_tokens
-{
-    t_token_type type;       // Le type du token (par exemple, commande, argument, pipe, etc.)
-    char *value;             // La valeur littérale du token (par exemple, le texte de la commande ou de l'argument)
-    struct s_tokens *next;   // Pointeur vers le token suivant
-} t_tokens;
-
-
-typedef struct s_lexer
-{
-    char *str;               // Chaîne à analyser
-    t_tokens token;          // Le token analysé
-    int i;                   // Position actuelle dans la chaîne
-    struct s_lexer *next;    // Pointeur vers le lexer suivant
-    struct s_lexer *prev;    // Pointeur vers le lexer précédent
-} t_lexer;
 
 typedef struct s_cmd_args {
     char **argv;           // Tableau d'arguments

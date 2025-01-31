@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:58:53 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/30 11:40:25 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/01/31 15:14:37 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,13 +33,9 @@ void	handle_signal(int sig)
 {
 	if (sig == SIGINT)
 	{
-		// Remplacer la ligne actuelle par une chaîne vide
 		rl_replace_line("", 0);
-		// Écrire un saut de ligne
 		write(1, "\n", 1);
-		// Préparer une nouvelle ligne
 		rl_on_new_line();
-		// Réafficher le prompt
 		rl_redisplay();
 	}
 }
