@@ -6,94 +6,79 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:33:23 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 16:53:02 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/31 13:10:19 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
 
-static void	handle_redirection(t_lexer *redir)
+static void handle_redirection(t_parsed_cmd *cmd)
 {
-	if (redir->token.type == TOK_INPUT_REDIR)
-		handle_input_redirection(redir);
-	else if (redir->token.type == TOK_OUTPUT_REDIR)
-		handle_output_redirection(redir);
-	else if (redir->token.type == TOK_APPEND_REDIR)
-		handle_append_redirection(redir);
-	else if (redir->token.type == TOK_HEREDOC_REDIR)
-		handle_heredoc(redir);
-	else
-	{
-		ft_putendl_fd("Unsupported redirection type", STDERR_FILENO);
-		exit(ERROR_EXIT);
-	}
+    int i;
+    
+    for (i = 0; i < cmd->input_count; i++)
+        handle_input_redirection(cmd->input_file[i]);
+    for (i = 0; i < cmd->output_count; i++)
+        handle_output_redirection(cmd->output_file[i]);
+    for (i = 0; i < cmd->append_count; i++)
+        handle_append_redirection(cmd->append_file[i]);
+    for (i = 0; i < cmd->heredoc_count; i++)
+        handle_heredoc(cmd->heredoc_delim[i]);
 }
 
-void	apply_redirections(t_simple_cmds *cmd)
+void apply_redirections(t_pip *cmd)
 {
-	t_lexer	*redir;
-
-	redir = cmd->redirections;
-	while (redir)
-	{
-		handle_redirection(redir);
-		redir = redir->next;
-	}
+    if (cmd->redirection)
+        handle_redirection(cmd->redirection);
 }
 
-void	handle_input_redirection(t_lexer *redir)
+void handle_input_redirection(char *file)
 {
-	int	fd;
-
-	fd = open(redir->token.value, O_RDONLY);
-	if (fd == -1)
-	{
-		perror("open failed");
-		exit(EXIT_FAILURE);
-	}
-	if (dup2(fd, STDIN_FILENO) == -1)
-	{
-		perror("dup2 failed");
-		close(fd);
-		exit(EXIT_FAILURE);
-	}
-	close(fd);
+    int fd = open(file, O_RDONLY);
+    if (fd == -1)
+    {
+        perror("open failed");
+        exit(EXIT_FAILURE);
+    }
+    if (dup2(fd, STDIN_FILENO) == -1)
+    {
+        perror("dup2 failed");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+    close(fd);
 }
 
-void	handle_output_redirection(t_lexer *redir)
+void handle_output_redirection(char *file)
 {
-	int	fd;
-
-	fd = open(redir->token.value, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (fd == -1)
-	{
-		perror("open failed");
-		exit(EXIT_FAILURE);
-	}
-	if (dup2(fd, STDOUT_FILENO) == -1)
-	{
-		perror("dup2 failed");
-		close(fd);
-		exit(EXIT_FAILURE);
-	}
-	close(fd);
+    int fd = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd == -1)
+    {
+        perror("open failed");
+        exit(EXIT_FAILURE);
+    }
+    if (dup2(fd, STDOUT_FILENO) == -1)
+    {
+        perror("dup2 failed");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+    close(fd);
 }
 
-void	handle_append_redirection(t_lexer *redir)
+void handle_append_redirection(char *file)
 {
-	int	fd;
-
-	fd = open(redir->token.value, O_WRONLY | O_CREAT | O_APPEND, 0644);
-	if (fd == -1)
-	{
-		perror("open failed");
-		exit(EXIT_FAILURE);
-	}
-	if (dup2(fd, STDOUT_FILENO) == -1)
-	{
-		perror("dup2 failed");
-		close(fd);
-		exit(EXIT_FAILURE);
-	}
-	close(fd);
+    int fd = open(file, O_WRONLY | O_CREAT | O_APPEND, 0644);
+    if (fd == -1)
+    {
+        perror("open failed");
+        exit(EXIT_FAILURE);
+    }
+    if (dup2(fd, STDOUT_FILENO) == -1)
+    {
+        perror("dup2 failed");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+    close(fd);
 }

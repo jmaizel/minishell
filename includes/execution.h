@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:31:48 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/29 14:13:32 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/31 13:17:32 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,11 @@ char	*expand_variables(char *str, t_tools *tools);
 /* Utilitaires */
 char	*find_executable(char *command, char **env);
 int		ft_strcmp(const char *s1, const char *s2);
-void	cleanup_command(t_simple_cmds *cmd);
+
+void	free_str_array(char **array);
+void	cleanup_parsed_cmd(t_parsed_cmd *cmd);
+void	cleanup_pip(t_pip *pip);
+void	cleanup_sep(t_sep *sep);
 
 void	handle_error(const char *msg);
 

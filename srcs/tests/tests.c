@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/29 15:01:44 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/30 16:42:25 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/01/31 12:58:40 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -373,6 +373,51 @@ static void test_builtin_unset(void)
     free_env(tools.env);
 }
 
+/* =========================== */
+/*   Test de l'exécution avec pipes */
+/* =========================== */
+
+static void test_execute_pipeline(void)
+{
+    t_tools tools;
+    ft_memset(&tools, 0, sizeof(t_tools));
+
+    t_simple_cmds *cmds = malloc(sizeof(t_simple_cmds));
+    t_simple_cmds *cmd2 = malloc(sizeof(t_simple_cmds));
+    t_simple_cmds *cmd3 = malloc(sizeof(t_simple_cmds));
+
+    if (!cmds || !cmd2 || !cmd3)
+    {
+        printf("Error: Failed to allocate memory for commands\n");
+        return;
+    }
+
+    char *args1[] = {"ls", NULL};
+    char *args2[] = {"grep", ".c", NULL};
+    char *args3[] = {"wc", "-l", NULL};
+
+    cmds->str = args1;
+    cmds->next = cmd2;
+    cmds->prev = NULL;
+
+    cmd2->str = args2;
+    cmd2->next = cmd3;
+    cmd2->prev = cmds;
+
+    cmd3->str = args3;
+    cmd3->next = NULL;
+    cmd3->prev = cmd2;
+
+    printf("Running pipe execution test: ls | grep .c | wc -l\n");
+    execute_pipeline(cmds, &tools);
+
+    printf("Test completed. Exit code: %d\n", tools.exit_code);
+
+    free(cmds);
+    free(cmd2);
+    free(cmd3);
+}
+
 
 /* ============================ */
 /*     Fonction principale      */
@@ -398,6 +443,8 @@ int     main(void)
         test_env_with_args();
         test_export_empty();
         test_export_invalid_name();
+
+		test_execute_pipeline();
 
         printf("\nAll tests passed successfully!\n");
         printf("==============================\n");
