@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:43:16 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/31 13:50:55 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/02 19:35:49 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,17 @@ static int	is_option_n(const char *arg)
 	return (1);
 }
 
+static void	print_arguments(char **args, int i)
+{
+	while (args[i])
+	{
+		ft_putstr_fd(args[i], STDOUT_FILENO);
+		if (args[i + 1])
+			ft_putchar_fd(' ', STDOUT_FILENO);
+		i++;
+	}
+}
+
 int	builtin_echo(t_parsed_cmd *cmd)
 {
 	char	**args;
@@ -44,13 +55,7 @@ int	builtin_echo(t_parsed_cmd *cmd)
 		newline = 0;
 		i++;
 	}
-	while (args[i])
-	{
-		ft_putstr_fd(args[i], STDOUT_FILENO);
-		if (args[i + 1])
-			ft_putchar_fd(' ', STDOUT_FILENO);
-		i++;
-	}
+	print_arguments(args, i);
 	if (newline)
 		ft_putchar_fd('\n', STDOUT_FILENO);
 	free_str_array(args);

@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:31:48 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/31 16:34:05 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/02 19:33:03 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ void	apply_redirections(t_pip *pip);
 void	handle_input_redirection(char *file);
 void	handle_output_redirection(char *file);
 void	handle_append_redirection(char *file);
-void    handle_heredoc(char *delim, t_pip *pip);
+void	handle_heredoc(char *delim, t_pip *pip);
 
 /* Environment variables */
 char	*get_env_var(const char *key, char **env);
