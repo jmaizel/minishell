@@ -5,86 +5,71 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/17 10:33:23 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/31 15:23:23 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/02/02 23:00:00 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/03 21:07:30 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
 
-void handle_input_redirection(char *file)
+static void	open_and_redirect(int std_fd, char *file, int flags, mode_t mode)
 {
-    int fd = open(file, O_RDONLY);
-    if (fd == -1)
-    {
-        perror("open failed");
-        exit(EXIT_FAILURE);
-    }
-    if (dup2(fd, STDIN_FILENO) == -1)
-    {
-        perror("dup2 failed");
-        close(fd);
-        exit(EXIT_FAILURE);
-    }
-    close(fd);
+	int	fd;
+
+	if (!file)
+		return ;
+	fd = open(file, flags, mode);
+	if (fd == -1)
+	{
+		perror("open failed");
+		exit(EXIT_FAILURE);
+	}
+	if (dup2(fd, std_fd) == -1)
+	{
+		perror("dup2 failed");
+		close(fd);
+		exit(EXIT_FAILURE);
+	}
+	close(fd);
 }
 
-void handle_output_redirection(char *file)
+void	handle_input_redirection(char *file)
 {
-    int fd = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (fd == -1)
-    {
-        perror("open failed");
-        exit(EXIT_FAILURE);
-    }
-    if (dup2(fd, STDOUT_FILENO) == -1)
-    {
-        perror("dup2 failed");
-        close(fd);
-        exit(EXIT_FAILURE);
-    }
-    close(fd);
+	open_and_redirect(STDIN_FILENO, file, O_RDONLY, 0);
 }
 
-void handle_append_redirection(char *file)
+void	handle_output_redirection(char *file)
 {
-    int fd = open(file, O_WRONLY | O_CREAT | O_APPEND, 0644);
-    if (fd == -1)
-    {
-        perror("open failed");
-        exit(EXIT_FAILURE);
-    }
-    if (dup2(fd, STDOUT_FILENO) == -1)
-    {
-        perror("dup2 failed");
-        close(fd);
-        exit(EXIT_FAILURE);
-    }
-    close(fd);
+	open_and_redirect(STDOUT_FILENO, file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 }
 
-static void handle_redirection(t_parsed_cmd *cmd, t_pip *pip)
+void	handle_append_redirection(char *file)
 {
-    int i;
-
-    if (!cmd)
-        return;
-
-    for (i = 0; i < cmd->input_count; i++)
-        handle_input_redirection(cmd->input_file[i]);
-
-    for (i = 0; i < cmd->output_count; i++)
-        handle_output_redirection(cmd->output_file[i]);
-
-    for (i = 0; i < cmd->append_count; i++)
-        handle_append_redirection(cmd->append_file[i]);
-
-    for (i = 0; i < cmd->heredoc_count; i++)
-        handle_heredoc(cmd->heredoc_delim[i], pip);
+	open_and_redirect(STDOUT_FILENO, file, O_WRONLY | O_CREAT | O_APPEND, 0644);
 }
 
-void apply_redirections(t_pip *pip)
+static void	handle_redirection(t_parsed_cmd *cmd, t_pip *pip)
 {
-    if (pip && pip->redirection)
-        handle_redirection(pip->redirection, pip);
+	int	i;
+
+	if (!cmd)
+		return ;
+	i = 0;
+	while (i < cmd->input_count)
+		handle_input_redirection(cmd->input_file[i++]);
+	i = 0;
+	while (i < cmd->output_count)
+		handle_output_redirection(cmd->output_file[i++]);
+	i = 0;
+	while (i < cmd->append_count)
+		handle_append_redirection(cmd->append_file[i++]);
+	i = 0;
+	while (i < cmd->heredoc_count)
+		handle_heredoc(cmd->heredoc_delim[i++], pip);
+}
+
+void	apply_redirections(t_pip *pip)
+{
+	if (pip && pip->redirection)
+		handle_redirection(pip->redirection, pip);
 }

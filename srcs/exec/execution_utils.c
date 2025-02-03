@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/17 11:41:52 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/27 20:10:52 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/02/02 20:45:00 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/03 20:50:59 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ static void	ft_free_split(char **split)
 	free(split);
 }
 
-static char	*check_access(char *path, char *command)
+static char	*check_access(const char *path, const char *command)
 {
 	char	*full_path;
 	char	*temp;
@@ -37,25 +37,24 @@ static char	*check_access(char *path, char *command)
 		return (NULL);
 	temp = ft_strjoin(full_path, command);
 	free(full_path);
-	full_path = temp;
-	if (!full_path)
+	if (!temp)
 		return (NULL);
-	if (access(full_path, X_OK) == 0)
-		return (full_path);
-	free(full_path);
+	if (access(temp, X_OK) == 0)
+		return (temp);
+	free(temp);
 	return (NULL);
 }
 
-char	*find_executable(char *command, char **env)
+char	*find_executable(const char *command, t_env_manager *env_mgr)
 {
 	char	**paths;
 	char	*path;
 	char	*full_path;
 	int		i;
 
-	if (!command || !env)
+	if (!command || !env_mgr || !env_mgr->tools || !env_mgr->tools->env)
 		return (NULL);
-	path = get_env_var("PATH", env);
+	path = get_env_var("PATH", env_mgr);
 	if (!path || !*path)
 	{
 		ft_putstr_fd("Error: PATH not found in environment.\n", STDERR_FILENO);

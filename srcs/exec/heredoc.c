@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/28 10:00:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/31 15:23:08 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/02/02 22:00:00 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/03 21:14:09 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,9 +48,7 @@ static char	*create_heredoc_filename(void)
 		free(count_str);
 		return (NULL);
 	}
-	filename = ft_strjoin(temp, count_str);
-	free(temp);
-	free(count_str);
+	filename = ft_strjoin_free(temp, count_str, 1, 1);
 	return (filename);
 }
 
@@ -85,7 +83,6 @@ void	handle_heredoc(char *delim, t_pip *pip)
 	filename = create_heredoc_filename();
 	if (!filename)
 		handle_error("heredoc: filename creation failed");
-	
 	pid = fork();
 	if (pid == 0)
 	{
@@ -105,11 +102,9 @@ void	handle_heredoc(char *delim, t_pip *pip)
 		free(filename);
 		exit(130);
 	}
-	
 	fd = open(filename, O_RDONLY);
 	if (fd == -1)
 		handle_error("heredoc: open failed");
-	
 	if (pip && pip->redirection)
 	{
 		if (dup2(fd, STDIN_FILENO) == -1)

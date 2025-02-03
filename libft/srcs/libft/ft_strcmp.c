@@ -1,23 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   error_handling.c                                   :+:      :+:    :+:   */
+/*   ft_strcmp.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/02 20:30:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/03 20:48:46 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/02/03 21:31:26 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/03 21:31:41 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/execution.h"
+#include "../../includes/libft.h"
 
-void	handle_error(const char *msg, t_tools *tools, int exit_code)
+int	ft_strcmp(const char *s1, const char *s2)
 {
-	if (msg)
-		perror(msg);
-	if (tools)
-		tools->exit_code = exit_code;
-	else
-		exit(exit_code);
+	while (*s1 && *s1 == *s2)
+	{
+		s1++;
+		s2++;
+	}
+	return ((unsigned char)*s1 - (unsigned char)*s2);
 }

@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:31:48 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/02 19:33:03 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/03 21:30:23 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,10 @@
 # include <signal.h>
 # include <stdbool.h>
 
-/* Error codes */
+/* ************************************************************************** */
+/*                                  ERRORS                                    */
+/* ************************************************************************** */
+
 # define ERROR_EXIT 1
 # define SUCCESS_EXIT 0
 # define CMD_NOT_FOUND 127
@@ -38,55 +41,108 @@
 # define SUCCESS 0
 # define GENERAL_ERROR 1
 
-/* Error types */
 # define ERR_INVALID_CMD 1
 # define ERR_MALLOC_FAILURE 2
 # define ERR_GETCWD_FAILED 3
 # define ERR_CHDIR_FAILED 4
 # define ERR_EXEC_FAILURE 5
 
-/* Command execution */
-void	execute_simple_command(t_pip *pip, t_tools *tools);
-void	execute_pipeline(t_pip *pipeline, t_tools *tools);
-void	execute_external_command(t_pip *pip, t_tools *tools);
-void	update_exit_status(t_tools *tools, int status);
-int		get_command_exit_status(t_pip *pip);
+/* ************************************************************************** */
+/*                            STRUCTURES D'EXÉCUTION                          */
+/* ************************************************************************** */
 
-/* Redirection handling */
+typedef struct s_executor
+{
+	t_tools	*tools;
+}	t_executor;
+
+typedef struct s_redirection_handler
+{
+	t_pip	*pip;
+}	t_redirection_handler;
+
+typedef struct s_builtin_handler
+{
+	t_executor	*executor;
+}	t_builtin_handler;
+
+typedef struct s_env_manager
+{
+	t_tools	*tools;
+}	t_env_manager;
+
+typedef struct s_pipe_manager
+{
+	int		*pipes;
+	int		pipe_count;
+}	t_pipe_manager;
+
+typedef struct s_signal_handler
+{
+	void	(*sigint_handler)(int);
+	void	(*child_handler)(int);
+}	t_signal_handler;
+
+typedef struct s_cleanup_manager
+{
+	t_tools	*tools;
+}	t_cleanup_manager;
+
+/* ************************************************************************** */
+/*                                EXECUTION                                   */
+/* ************************************************************************** */
+
+void    execute_simple_command(t_pip *pip, t_tools *tools, t_env_manager *env_mgr);
+void    execute_external_command(t_pip *pip, t_tools *tools, t_env_manager *env_mgr);
+void	update_exit_status(t_tools *tools, int status);
+char	*find_executable(char *command, char **env);
+
+/* ************************************************************************** */
+/*                          REDIRECTION HANDLING                             */
+/* ************************************************************************** */
+
 void	apply_redirections(t_pip *pip);
 void	handle_input_redirection(char *file);
 void	handle_output_redirection(char *file);
 void	handle_append_redirection(char *file);
 void	handle_heredoc(char *delim, t_pip *pip);
 
-/* Environment variables */
-char	*get_env_var(const char *key, char **env);
-int		add_env_var(char *var, char ***env);
-int		remove_env_var(char *key, char ***env);
-char	**duplicate_env(char **env);
-void	free_env(char **env);
-char	*expand_variables(char *str, t_tools *tools);
+/* ************************************************************************** */
+/*                         ENVIRONMENT HANDLING                              */
+/* ************************************************************************** */
 
-/* Pipe handling */
+char    *get_env_var(const char *key, t_env_manager *env_mgr);
+int     add_env_var(char *var, t_env_manager *env_mgr);
+int     remove_env_var(char *key, t_env_manager *env_mgr);
+char    **duplicate_env(t_env_manager *env_mgr);
+void    free_env(t_env_manager *env_mgr);
+
+/* ************************************************************************** */
+/*                           PIPE HANDLING                                   */
+/* ************************************************************************** */
+
 int		count_pipes(t_pip *cmd);
-void	cleanup_pipe_array(int **pipes, int count);
 int		*create_pipes(int count);
 void	close_all_pipes(int *pipes, int pipe_count);
 pid_t	*allocate_pids(int count);
 
-/* Utilities */
-char	*find_executable(char *command, char **env);
-int		ft_strcmp(const char *s1, const char *s2);
+/* ************************************************************************** */
+/*                           SIGNAL HANDLING                                 */
+/* ************************************************************************** */
+
+void	setup_signals_exec(void);
+void	sigint_handler(int sig);
+void	child_sigint_handler(int sig);
+
+/* ************************************************************************** */
+/*                         MEMORY MANAGEMENT                                 */
+/* ************************************************************************** */
+
 void	free_str_array_exec(char **array);
 void	cleanup_parsed_cmd(t_parsed_cmd *cmd);
 void	cleanup_pip(t_pip *pip);
-void	cleanup_sep(t_sep *sep);
-void	handle_error(const char *msg);
+void    handle_error(const char *msg, t_tools *tools, int exit_code);
 
-/* Signal handling */
-void	sigint_handler(int sig);
-void	child_sigint_handler(int sig);
-void	setup_signals_exec(void);
-void	setup_child_signals(void);
+/* ************************************************************************** */
 
 #endif
