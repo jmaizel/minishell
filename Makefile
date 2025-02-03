@@ -1,7 +1,10 @@
 NAME = minishell
 TEST_NAME = tests
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -I$(INCLUDES_DIR) -I$(LIBFT_DIR) $(READLINE_INC)
+
+# Compilation flags
+READLINE_INC = -I/usr/local/opt/readline/include
+READLINE_LIB = -L/usr/local/opt/readline/lib
 CFLAGS = -Wall -Wextra -Werror -I$(INCLUDES_DIR) -I$(LIBFT_DIR) $(READLINE_INC)
 
 # Directory structure
@@ -16,28 +19,21 @@ BUILTINS_DIR = ./srcs/builtins
 TOOLS_DIR = ./srcs/tools
 TESTS_DIR = ./srcs/tests
 
-# Readline paths
-READLINE_INC = -I/opt/homebrew/opt/readline/include
-READLINE_LIB = -L/opt/homebrew/opt/readline/lib
+# Libraries
 LIBS = $(READLINE_LIB) -lreadline -L$(LIBFT_DIR) -lft
-
-# Library
 LIBFT = $(LIBFT_DIR)/libft.a
 
-# Source files by directory
-PARSING_FILES = env.c parse_command_args.c parsing_line.c parsing_pipe.c prompt.c sep.c signals.c parsing_redir.c utils.c
+# Source files
+PARSING_FILES = env.c parse_command_args.c parsing_line.c parsing_pipe.c prompt.c sep.c signals.c parsing_redir.c utils.c quotes.c count_args.c
 EXEC_FILES = cleanup.c env_utils.c error_handling.c execution.c execution_utils.c expansion.c pipes.c redirection.c signals_exec.c heredoc.c exit_status.c 
 MAIN_FILES = main.c
-ENV_FILES =
 BUILTINS_FILES = echo.c cd.c pwd.c env.c export.c unset.c exit.c
 TOOLS_FILES = utils.c
 TEST_FILES = tests.c
 
-# Create full source paths
 SRC_FILES = $(addprefix $(MAIN_DIR)/, $(MAIN_FILES)) \
 	$(addprefix $(PARSING_DIR)/, $(PARSING_FILES)) \
 	$(addprefix $(EXEC_DIR)/, $(EXEC_FILES)) \
-	$(addprefix $(ENV_DIR)/, $(ENV_FILES)) \
 	$(addprefix $(BUILTINS_DIR)/, $(BUILTINS_FILES)) \
 	$(addprefix $(TOOLS_DIR)/, $(TOOLS_FILES))
 
@@ -49,7 +45,7 @@ TEST_SRC_FILES = $(addprefix $(TESTS_DIR)/, $(TEST_FILES)) \
 OBJS = $(SRC_FILES:./srcs/%.c=$(OBJ_DIR)/%.o)
 TEST_OBJS = $(TEST_SRC_FILES:./srcs/%.c=$(OBJ_DIR)/%.o)
 
-# Progress bar variables
+# Progress bar
 TOTAL_FILES := $(words $(SRC_FILES))
 COMPILED_FILES := 0
 
@@ -80,18 +76,14 @@ $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)/parsing
 	@mkdir -p $(OBJ_DIR)/exec
 	@mkdir -p $(OBJ_DIR)/main
-	@mkdir -p $(OBJ_DIR)/env
 	@mkdir -p $(OBJ_DIR)/builtins
 	@mkdir -p $(OBJ_DIR)/tools
 	@mkdir -p $(OBJ_DIR)/tests
 
 $(LIBFT):
 	@make --no-print-directory -C $(LIBFT_DIR)
-	@make --no-print-directory -C $(LIBFT_DIR)
 
 clean:
-	@rm -rf $(OBJ_DIR)
-	@make clean --no-print-directory -C $(LIBFT_DIR)
 	@rm -rf $(OBJ_DIR)
 	@make clean --no-print-directory -C $(LIBFT_DIR)
 

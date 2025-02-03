@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing_pipe.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 13:04:29 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/31 11:36:16 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/03 12:52:47 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,46 +17,43 @@
 // 2. ensuite on parcours ces commandes et on creer une cellule pour chaque commande
 // 3. on parser les redirections
 // 4. on finit par stcoker la liste des pipes dans la cellule
-
 void	parse_pipes(t_sep *cell)
 {
 	char	**pipe_commands;
-	int		i;
-	t_pip	*pipe_list;
-	t_pip	*pipe_cell;
 	t_pip	*current;
+	int		i;
+	t_pip	*new_pipe;
 
-	pipe_list = NULL;
+	if (!cell || !cell->cmd_sep)
+		return ;
 	pipe_commands = ft_split_pipes(cell->cmd_sep, '|');
 	if (!pipe_commands)
 		return ;
 	i = 0;
+	cell->pipcell = NULL;
 	while (pipe_commands[i])
 	{
-		pipe_cell = malloc(sizeof(t_pip));
-		if (!pipe_cell)
-			return ;
-		pipe_cell->cmd_pipe = ft_strdup(pipe_commands[i]);
-		if (!pipe_cell->cmd_pipe)
+		new_pipe = malloc(sizeof(t_pip));
+		if (!new_pipe)
 		{
-			free(pipe_cell);
+			free_str_array(pipe_commands);
 			return ;
 		}
-		pipe_cell->redirection = parse_redir(pipe_cell->cmd_pipe);
-		pipe_cell->next = NULL;
-		pipe_cell->prev = NULL;
-		if (!pipe_list)
-			pipe_list = pipe_cell;
+		new_pipe->cmd_pipe = ft_strdup(pipe_commands[i]);
+		new_pipe->redirection = NULL;
+		new_pipe->next = NULL;
+		new_pipe->prev = NULL;
+		if (!cell->pipcell)
+			cell->pipcell = new_pipe;
 		else
 		{
-			current = pipe_list;
+			current = cell->pipcell;
 			while (current->next)
 				current = current->next;
-			current->next = pipe_cell;
-			pipe_cell->prev = current;
+			current->next = new_pipe;
+			new_pipe->prev = current;
 		}
 		i++;
 	}
-	cell->pipcell = pipe_list;
 	free_str_array(pipe_commands);
 }
