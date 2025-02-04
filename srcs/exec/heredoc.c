@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 22:00:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/03 21:14:09 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/04 19:49:39 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ static char	*create_heredoc_filename(void)
 	static int	counter = 0;
 	char		*pid_str;
 	char		*count_str;
-	char		*temp;
 	char		*filename;
 
 	pid_str = ft_itoa(getpid());
@@ -41,14 +40,7 @@ static char	*create_heredoc_filename(void)
 		free(count_str);
 		return (NULL);
 	}
-	temp = ft_strjoin("/tmp/.heredoc_", pid_str);
-	free(pid_str);
-	if (!temp)
-	{
-		free(count_str);
-		return (NULL);
-	}
-	filename = ft_strjoin_free(temp, count_str, 1, 1);
+	filename = ft_strjoin_free(ft_strjoin_free("/tmp/.heredoc_", pid_str, 1, 0), count_str, 1, 1);
 	return (filename);
 }
 
@@ -73,7 +65,7 @@ static int	write_heredoc_content(int fd, char *delimiter)
 	return (1);
 }
 
-void	handle_heredoc(char *delim, t_pip *pip)
+void	handle_heredoc(char *delim, t_pip *pip, t_tools *tools)
 {
 	char	*filename;
 	int		fd;
@@ -82,14 +74,20 @@ void	handle_heredoc(char *delim, t_pip *pip)
 
 	filename = create_heredoc_filename();
 	if (!filename)
-		handle_error("heredoc: filename creation failed");
+		handle_error("heredoc: filename creation failed", tools, ERR_MALLOC_FAILURE);
+	
 	pid = fork();
+	if (pid == -1)
+	{
+		free(filename);
+		handle_error("heredoc: fork failed", tools, ERR_EXEC_FAILURE);
+	}
 	if (pid == 0)
 	{
 		handle_heredoc_signals();
 		fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0600);
 		if (fd == -1)
-			handle_error("heredoc: open failed");
+			handle_error("heredoc: open failed", tools, ERR_GETCWD_FAILED);
 		if (write_heredoc_content(fd, delim))
 			exit(130);
 		close(fd);
@@ -104,11 +102,11 @@ void	handle_heredoc(char *delim, t_pip *pip)
 	}
 	fd = open(filename, O_RDONLY);
 	if (fd == -1)
-		handle_error("heredoc: open failed");
+		handle_error("heredoc: open failed", tools, ERR_GETCWD_FAILED);
 	if (pip && pip->redirection)
 	{
 		if (dup2(fd, STDIN_FILENO) == -1)
-			handle_error("heredoc: dup2 failed");
+			handle_error("heredoc: dup2 failed", tools, ERR_EXEC_FAILURE);
 	}
 	close(fd);
 	unlink(filename);

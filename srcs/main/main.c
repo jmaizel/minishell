@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 12:20:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/02 18:49:44 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/04 21:00:00 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ static void	free_cmd_resources(t_pip *pip, t_parsed_cmd *parsed_cmd)
 	if (parsed_cmd)
 	{
 		free(parsed_cmd->cmd);
-		free(parsed_cmd->full_cmd); // Libérer la chaîne de commande
+		free(parsed_cmd->full_cmd);
 		free(parsed_cmd);
 	}
 	if (pip)
@@ -63,14 +63,14 @@ static int	init_cmd_pipeline(t_pip **pip, t_parsed_cmd **parsed_cmd, char *line)
 	return (1);
 }
 
-static void	execute_command_line(char *line, t_tools *tools)
+static void	execute_command_line(char *line, t_tools *tools, t_env_manager *env_mgr)
 {
 	t_pip			*pip;
 	t_parsed_cmd	*parsed_cmd;
 
 	if (!init_cmd_pipeline(&pip, &parsed_cmd, line))
 		return ;
-	execute_simple_command(pip, tools);
+	execute_simple_command(pip, tools, env_mgr);
 	free_cmd_resources(pip, parsed_cmd);
 }
 
@@ -102,58 +102,43 @@ char	**copy_env(char **envp)
 	return (new_env);
 }
 
-static void	cleanup_env(char **env)
+static void	cleanup_env_manager(t_env_manager *env_mgr)
 {
-	int	i;
-
-	if (!env)
-		return ;
-	i = 0;
-	while (env[i])
-	{
-		free(env[i]);
-		i++;
-	}
-	free(env);
+	if (env_mgr)
+		free_env(env_mgr->tools->env);
 }
 
 int	main(int argc, char **argv, char **envp)
 {
-	char	*line;
-	t_tools	tools;
+	char			*line;
+	t_tools			tools;
+	t_env_manager	env_mgr;
 
 	(void)argc;
 	(void)argv;
 	ft_memset(&tools, 0, sizeof(t_tools));
+	ft_memset(&env_mgr, 0, sizeof(t_env_manager));
+
 	tools.env = copy_env(envp);
 	if (!tools.env)
 	{
 		ft_putendl_fd("Error: Failed to copy environment", 2);
 		return (1);
 	}
+
+	env_mgr.tools = &tools; // Initialisation du gestionnaire d'environnement
 	setup_signals();
+
 	while (1)
 	{
 		line = get_input();
 		if (!line)
 			break ;
-		execute_command_line(line, &tools);
+		execute_command_line(line, &tools, &env_mgr);
 		free(line);
 	}
-	cleanup_env(tools.env);
+
+	cleanup_env_manager(&env_mgr);
+	free_env(env_mgr.tools->env);
 	return (tools.exit_code);
 }
-
-/* int	main(int argc, char **argv, char **env)
-{
-	(void)argc;
-	(void)argv;
-	t_tools tools;
-	ft_memset(&tools, 0, sizeof(t_tools));
-	tools.env = env;
-	tools.exit_code = 0;
-	tools.tokens = NULL;
-	tools.cmds = NULL;
-	loop_prompt(&tools, env);
-	return (tools.exit_code);
-} */

@@ -6,11 +6,12 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 21:00:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/03 20:53:20 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/04 20:43:50 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
+#include "../includes/builtins.h"
 
 static int	is_builtin(const char *cmd)
 {
@@ -23,7 +24,7 @@ static int	is_builtin(const char *cmd)
 		|| ft_strcmp(cmd, "exit") == 0));
 }
 
-static int	execute_builtin(t_parsed_cmd *cmd, t_tools *tools)
+static int	execute_builtin(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
 {
 	int		ret;
 	char	*cmd_name;
@@ -34,15 +35,15 @@ static int	execute_builtin(t_parsed_cmd *cmd, t_tools *tools)
 	if (ft_strcmp(cmd_name, "echo") == 0)
 		ret = builtin_echo(cmd);
 	else if (ft_strcmp(cmd_name, "cd") == 0)
-		ret = builtin_cd(cmd, tools);
+		ret = builtin_cd(cmd, tools, env_mgr);
 	else if (ft_strcmp(cmd_name, "pwd") == 0)
 		ret = builtin_pwd(cmd, tools);
 	else if (ft_strcmp(cmd_name, "env") == 0)
 		ret = builtin_env(cmd, tools);
 	else if (ft_strcmp(cmd_name, "export") == 0)
-		ret = builtin_export(cmd, tools);
+		ret = builtin_export(cmd, tools, env_mgr);
 	else if (ft_strcmp(cmd_name, "unset") == 0)
-		ret = builtin_unset(cmd, tools);
+		ret = builtin_unset(cmd, tools, env_mgr);
 	else if (ft_strcmp(cmd_name, "exit") == 0)
 		ret = builtin_exit(cmd, tools);
 	else
@@ -82,11 +83,14 @@ void	execute_external_command(t_pip *pip, t_tools *tools, t_env_manager *env_mgr
 	}
 	args = parse_command_args(cmd->full_cmd);
 	if (!args)
-		return (free(path), tools->exit_code = ERR_MALLOC_FAILURE);
+	{
+		free(path);
+		tools->exit_code = ERR_MALLOC_FAILURE;
+	}
 	pid = fork();
 	if (pid == 0)
 	{
-		apply_redirections(pip);
+		apply_redirections(pip, tools);
 		if (execve(path, args->argv, env_mgr->tools->env) == -1)
 		{
 			perror("execve failed");
@@ -125,7 +129,7 @@ void	execute_simple_command(t_pip *pip, t_tools *tools, t_env_manager *env_mgr)
 		return ;
 	}
 	if (is_builtin(cmd->cmd))
-		execute_builtin(cmd, tools);
+		execute_builtin(cmd, tools, env_mgr);  // 🛠 Correction: Ajout de `env_mgr`
 	else
 		execute_external_command(pip, tools, env_mgr);
 }

@@ -6,13 +6,13 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 23:10:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/03 21:09:09 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/04 19:45:50 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
 
-static void	sigint_handler(int sig)
+void	sigint_handler(int sig)
 {
 	(void)sig;
 	if (write(STDOUT_FILENO, "\nminishell> ", 12) == -1)
@@ -22,7 +22,7 @@ static void	sigint_handler(int sig)
 	rl_redisplay();
 }
 
-static void	child_sigint_handler(int sig)
+void	child_sigint_handler(int sig)
 {
 	(void)sig;
 	if (sig == SIGINT && write(STDOUT_FILENO, "\n", 1) == -1)

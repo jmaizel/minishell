@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/30 11:27:41 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/02 19:44:01 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/02/04 20:45:00 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/04 20:13:46 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,10 +28,24 @@ static int	is_valid_identifier(const char *var)
 	return (1);
 }
 
-static int	process_unset_args(char **args, t_tools *tools)
+int	builtin_unset(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
 {
-	int	i;
-	int	ret;
+	char	**args;
+	int		i;
+	int		ret;
+
+	if (!cmd || !tools || !env_mgr || !env_mgr->tools || !env_mgr->tools->env)
+		return (ERR_INVALID_CMD);
+
+	args = ft_split(cmd->full_cmd, ' ');
+	if (!args)
+		return (ERR_MALLOC_FAILURE);
+
+	if (!args[1])
+	{
+		free_str_array(args);
+		return (SUCCESS);
+	}
 
 	i = 1;
 	ret = SUCCESS;
@@ -45,28 +59,9 @@ static int	process_unset_args(char **args, t_tools *tools)
 			ret = ERR_INVALID_CMD;
 		}
 		else
-			remove_env_var(args[i], &tools->env);
+			remove_env_var(args[i], env_mgr);
 		i++;
 	}
-	return (ret);
-}
-
-int	builtin_unset(t_parsed_cmd *cmd, t_tools *tools)
-{
-	char	**args;
-	int		ret;
-
-	if (!cmd || !tools || !tools->env)
-		return (ERR_INVALID_CMD);
-	args = ft_split(cmd->full_cmd, ' ');
-	if (!args)
-		return (ERR_MALLOC_FAILURE);
-	if (!args[1])
-	{
-		free_str_array(args);
-		return (SUCCESS);
-	}
-	ret = process_unset_args(args, tools);
 	free_str_array(args);
 	return (ret);
 }

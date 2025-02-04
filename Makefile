@@ -87,11 +87,8 @@ $(OBJ_DIR):
 
 $(LIBFT):
 	@make --no-print-directory -C $(LIBFT_DIR)
-	@make --no-print-directory -C $(LIBFT_DIR)
 
 clean:
-	@rm -rf $(OBJ_DIR)
-	@make clean --no-print-directory -C $(LIBFT_DIR)
 	@rm -rf $(OBJ_DIR)
 	@make clean --no-print-directory -C $(LIBFT_DIR)
 

@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 20:15:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/03 20:47:16 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/04 20:24:43 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,18 +120,17 @@ char	**duplicate_env(t_env_manager *env_mgr)
 	return (new_env);
 }
 
-void	free_env(t_env_manager *env_mgr)
+void free_env(char **env)
 {
-	int	i;
+    int i;
 
-	if (!env_mgr || !env_mgr->tools || !env_mgr->tools->env)
-		return ;
-	i = 0;
-	while (env_mgr->tools->env[i])
-	{
-		free(env_mgr->tools->env[i]);
-		i++;
-	}
-	free(env_mgr->tools->env);
-	env_mgr->tools->env = NULL;
+    if (!env)
+        return;
+    i = 0;
+    while (env[i])
+    {
+        free(env[i]);
+        i++;
+    }
+    free(env);
 }

@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/28 17:38:16 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/02 19:40:17 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/02/04 20:30:00 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/04 20:37:25 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,12 +28,15 @@ static int	is_valid_var_name(const char *var)
 	return (1);
 }
 
-static void	print_sorted_env(char **env)
+static void	print_sorted_env(t_env_manager *env_mgr)
 {
 	char	**sorted_env;
 	int		i;
 
-	sorted_env = duplicate_env(env);
+	if (!env_mgr || !env_mgr->tools || !env_mgr->tools->env)
+		return ;
+
+	sorted_env = duplicate_env(env_mgr);
 	if (!sorted_env)
 		return ;
 	sort_string_array(sorted_env);
@@ -44,22 +47,37 @@ static void	print_sorted_env(char **env)
 		ft_putendl_fd(sorted_env[i], STDOUT_FILENO);
 		i++;
 	}
-	free_env(sorted_env);
+	free_str_array_exec(sorted_env);
 }
 
-static int	add_or_update_var(const char *arg, t_tools *tools)
+static int	add_or_update_var(const char *arg, t_env_manager *env_mgr)
 {
 	if (ft_strchr(arg, '='))
-		return (add_env_var((char *)arg, &tools->env));
-	if (get_env_var(arg, tools->env))
+		return (add_env_var((char *)arg, env_mgr));
+	if (get_env_var(arg, env_mgr))
 		return (SUCCESS);
-	return (add_env_var((char *)arg, &tools->env));
+	return (add_env_var((char *)arg, env_mgr));
 }
 
-static int	process_export_args(char **args, t_tools *tools)
+int	builtin_export(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
 {
-	int	i;
-	int	ret;
+	char	**args;
+	int		i;
+	int		ret;
+
+	if (!cmd || !tools || !env_mgr || !env_mgr->tools || !env_mgr->tools->env)
+		return (ERR_INVALID_CMD);
+
+	args = ft_split(cmd->full_cmd, ' ');
+	if (!args)
+		return (ERR_MALLOC_FAILURE);
+
+	if (!args[1])
+	{
+		print_sorted_env(env_mgr);
+		free_str_array_exec(args);
+		return (SUCCESS);
+	}
 
 	i = 1;
 	ret = SUCCESS;
@@ -67,7 +85,7 @@ static int	process_export_args(char **args, t_tools *tools)
 	{
 		if (is_valid_var_name(args[i]))
 		{
-			if (add_or_update_var(args[i], tools) != SUCCESS)
+			if (add_or_update_var(args[i], env_mgr) != SUCCESS)
 				ret = ERR_MALLOC_FAILURE;
 		}
 		else
@@ -79,26 +97,6 @@ static int	process_export_args(char **args, t_tools *tools)
 		}
 		i++;
 	}
-	return (ret);
-}
-
-int	builtin_export(t_parsed_cmd *cmd, t_tools *tools)
-{
-	char	**args;
-	int		ret;
-
-	if (!cmd || !tools || !tools->env)
-		return (ERR_INVALID_CMD);
-	args = ft_split(cmd->full_cmd, ' ');
-	if (!args)
-		return (ERR_MALLOC_FAILURE);
-	if (!args[1])
-	{
-		print_sorted_env(tools->env);
-		free_str_array(args);
-		return (SUCCESS);
-	}
-	ret = process_export_args(args, tools);
-	free_str_array(args);
+	free_str_array_exec(args);
 	return (ret);
 }

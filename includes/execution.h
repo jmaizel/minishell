@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:31:48 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/03 21:30:23 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/04 20:33:36 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 
 # include "minishell.h"
 # include "../libft/includes/libft.h"
-# include "builtins.h"
 # include "tools.h"
 # include <fcntl.h>
 # include <unistd.h>
@@ -95,17 +94,17 @@ typedef struct s_cleanup_manager
 void    execute_simple_command(t_pip *pip, t_tools *tools, t_env_manager *env_mgr);
 void    execute_external_command(t_pip *pip, t_tools *tools, t_env_manager *env_mgr);
 void	update_exit_status(t_tools *tools, int status);
-char	*find_executable(char *command, char **env);
+char    *find_executable(const char *command, t_env_manager *env_mgr);
 
 /* ************************************************************************** */
 /*                          REDIRECTION HANDLING                             */
 /* ************************************************************************** */
 
-void	apply_redirections(t_pip *pip);
+void    apply_redirections(t_pip *pip, t_tools *tools);
 void	handle_input_redirection(char *file);
 void	handle_output_redirection(char *file);
 void	handle_append_redirection(char *file);
-void	handle_heredoc(char *delim, t_pip *pip);
+void    handle_heredoc(char *delim, t_pip *pip, t_tools *tools);
 
 /* ************************************************************************** */
 /*                         ENVIRONMENT HANDLING                              */
@@ -115,7 +114,7 @@ char    *get_env_var(const char *key, t_env_manager *env_mgr);
 int     add_env_var(char *var, t_env_manager *env_mgr);
 int     remove_env_var(char *key, t_env_manager *env_mgr);
 char    **duplicate_env(t_env_manager *env_mgr);
-void    free_env(t_env_manager *env_mgr);
+void	free_env(char **env);
 
 /* ************************************************************************** */
 /*                           PIPE HANDLING                                   */
