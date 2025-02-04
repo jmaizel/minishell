@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 20:45:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/04 20:13:46 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/04 21:08:05 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,17 +36,14 @@ int	builtin_unset(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
 
 	if (!cmd || !tools || !env_mgr || !env_mgr->tools || !env_mgr->tools->env)
 		return (ERR_INVALID_CMD);
-
 	args = ft_split(cmd->full_cmd, ' ');
 	if (!args)
 		return (ERR_MALLOC_FAILURE);
-
 	if (!args[1])
 	{
 		free_str_array(args);
 		return (SUCCESS);
 	}
-
 	i = 1;
 	ret = SUCCESS;
 	while (args[i])

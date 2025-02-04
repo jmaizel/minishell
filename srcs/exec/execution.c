@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 21:00:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/04 20:43:50 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/04 20:53:28 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,13 +39,13 @@ static int	execute_builtin(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env
 	else if (ft_strcmp(cmd_name, "pwd") == 0)
 		ret = builtin_pwd(cmd, tools);
 	else if (ft_strcmp(cmd_name, "env") == 0)
-		ret = builtin_env(cmd, tools);
+		ret = builtin_env(cmd, tools, env_mgr);
 	else if (ft_strcmp(cmd_name, "export") == 0)
 		ret = builtin_export(cmd, tools, env_mgr);
 	else if (ft_strcmp(cmd_name, "unset") == 0)
 		ret = builtin_unset(cmd, tools, env_mgr);
 	else if (ft_strcmp(cmd_name, "exit") == 0)
-		ret = builtin_exit(cmd, tools);
+		ret = builtin_exit(cmd, tools, env_mgr);
 	else
 		return (0);
 	tools->exit_code = ret;

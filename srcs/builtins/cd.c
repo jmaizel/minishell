@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 20:10:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/04 20:15:29 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/04 21:09:03 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,8 @@ static int	update_pwd_vars(t_env_manager *env_mgr, char *old_pwd)
 	free(pwd_env);
 	if (ret != SUCCESS)
 	{
-		ft_putendl_fd("cd: failed to update environment variables", STDERR_FILENO);
+		ft_putendl_fd("cd: failed to update environment variables",
+			STDERR_FILENO);
 		return (ERR_MALLOC_FAILURE);
 	}
 	return (SUCCESS);

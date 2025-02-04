@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 20:30:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/04 20:37:25 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/04 21:08:37 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,6 @@ static void	print_sorted_env(t_env_manager *env_mgr)
 
 	if (!env_mgr || !env_mgr->tools || !env_mgr->tools->env)
 		return ;
-
 	sorted_env = duplicate_env(env_mgr);
 	if (!sorted_env)
 		return ;
@@ -67,18 +66,15 @@ int	builtin_export(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
 
 	if (!cmd || !tools || !env_mgr || !env_mgr->tools || !env_mgr->tools->env)
 		return (ERR_INVALID_CMD);
-
 	args = ft_split(cmd->full_cmd, ' ');
 	if (!args)
 		return (ERR_MALLOC_FAILURE);
-
 	if (!args[1])
 	{
 		print_sorted_env(env_mgr);
 		free_str_array_exec(args);
 		return (SUCCESS);
 	}
-
 	i = 1;
 	ret = SUCCESS;
 	while (args[i])
