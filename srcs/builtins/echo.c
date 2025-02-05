@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   echo.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:43:16 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/02 19:35:49 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/05 17:01:46 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@ int	builtin_echo(t_parsed_cmd *cmd)
 	int		newline;
 
 	args = ft_split(cmd->full_cmd, ' ');
+
 	if (!args)
 		return (1);
 	i = 1;

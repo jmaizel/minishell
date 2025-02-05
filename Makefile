@@ -25,7 +25,7 @@ LIBS = $(READLINE_LIB) -lreadline -L$(LIBFT_DIR) -lft
 LIBFT = $(LIBFT_DIR)/libft.a
 
 # Source files by directory
-PARSING_FILES = env.c parse_command_args.c parsing_line.c parsing_pipe.c prompt.c sep.c signals.c parsing_redir.c utils.c
+PARSING_FILES = count_args.c quotes.c env.c parse_command_args.c parsing_line.c parsing_pipe.c prompt.c sep.c signals.c parsing_redir.c utils.c
 EXEC_FILES = cleanup.c env_utils.c error_handling.c execution.c execution_utils.c expansion.c pipes.c redirection.c signals_exec.c heredoc.c exit_status.c 
 MAIN_FILES = main.c
 ENV_FILES =

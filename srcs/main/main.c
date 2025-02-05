@@ -12,9 +12,14 @@
 
 #include "../includes/execution.h"
 
-static char	*get_input(void)
+/* static char	*get_input(void)
 {
-	char	*line;
+	char			*line;
+	char			**tmp;
+	t_pip			*pip;
+	t_parsed_cmd	*parsed_cmd;
+	t_sep			*cell;
+	t_pip			*current;
 
 	line = readline("minishell> ");
 	if (!line)
@@ -22,9 +27,8 @@ static char	*get_input(void)
 	else if (*line)
 		add_history(line);
 	return (line);
-}
-
-static void	free_cmd_resources(t_pip *pip, t_parsed_cmd *parsed_cmd)
+} */
+/* static void	free_cmd_resources(t_pip *pip, t_parsed_cmd *parsed_cmd)
 {
 	if (parsed_cmd)
 	{
@@ -34,12 +38,10 @@ static void	free_cmd_resources(t_pip *pip, t_parsed_cmd *parsed_cmd)
 	}
 	if (pip)
 		free(pip);
-}
-
-static int	init_cmd_pipeline(t_pip **pip, t_parsed_cmd **parsed_cmd, char *line)
+} */
+/* static int	init_cmd_pipeline(t_pip **pip, t_parsed_cmd **parsed_cmd,
+		char *line)
 {
-	char	**tmp;
-
 	*pip = malloc(sizeof(t_pip));
 	if (!(*pip))
 		return (ft_putendl_fd("Error: malloc failed for pipeline", 2), 0);
@@ -61,17 +63,45 @@ static int	init_cmd_pipeline(t_pip **pip, t_parsed_cmd **parsed_cmd, char *line)
 	free(tmp); // Libérer le tableau
 	(*pip)->redirection = *parsed_cmd;
 	return (1);
-}
-
-static void	execute_command_line(char *line, t_tools *tools, t_env_manager *env_mgr)
+} */
+/* static void	execute_command_line(char *line, t_tools *tools,
+		t_env_manager *env_mgr)
 {
-	t_pip			*pip;
-	t_parsed_cmd	*parsed_cmd;
-
 	if (!init_cmd_pipeline(&pip, &parsed_cmd, line))
 		return ;
 	execute_simple_command(pip, tools, env_mgr);
 	free_cmd_resources(pip, parsed_cmd);
+} */
+void	parse_and_execute(char *user_input, t_tools *tools,
+		t_env_manager *env_mgr)
+{
+	t_sep *cell;
+	t_pip *current;
+	if (!user_input || check_invalid_chars(user_input))
+	{
+		ft_printf("Error: Invalid input\n");
+		return ;
+	}
+	cell = create_cell(ft_strdup(user_input));
+	if (!cell)
+		return ;
+	parse_pipes(cell);
+	current = cell->pipcell;
+	while (current)
+	{
+		if (current->cmd_pipe)
+		{
+			current->redirection = parse_redir(current->cmd_pipe);
+			if (current->redirection)
+			{
+				// printf("Executing command: [%s]\n",
+				//	current->redirection->cmd);
+				execute_simple_command(current, tools, env_mgr);
+			}
+		}
+		current = current->next;
+	}
+	free_cell(cell);
 }
 
 char	**copy_env(char **envp)
@@ -102,7 +132,7 @@ char	**copy_env(char **envp)
 	return (new_env);
 }
 
-static void	cleanup_env_manager(t_env_manager *env_mgr)
+void	cleanup_env_manager(t_env_manager *env_mgr)
 {
 	if (env_mgr)
 		free_env(env_mgr->tools->env);
@@ -110,35 +140,42 @@ static void	cleanup_env_manager(t_env_manager *env_mgr)
 
 int	main(int argc, char **argv, char **envp)
 {
-	char			*line;
 	t_tools			tools;
 	t_env_manager	env_mgr;
+	char			*user_input;
+	char			**paths;
 
 	(void)argc;
 	(void)argv;
 	ft_memset(&tools, 0, sizeof(t_tools));
 	ft_memset(&env_mgr, 0, sizeof(t_env_manager));
-
 	tools.env = copy_env(envp);
-	if (!tools.env)
+	env_mgr.tools = &tools;
+	paths = get_env_paths(envp, "PATH");
+	if (!paths)
 	{
-		ft_putendl_fd("Error: Failed to copy environment", 2);
+		ft_printf("Erreur : PATH non trouvé.\n");
 		return (1);
 	}
-
-	env_mgr.tools = &tools; // Initialisation du gestionnaire d'environnement
 	setup_signals();
-
 	while (1)
 	{
-		line = get_input();
-		if (!line)
+		user_input = get_user_input();
+		if (!user_input)
+		{
+			ft_printf("\nExit\n");
 			break ;
-		execute_command_line(line, &tools, &env_mgr);
-		free(line);
+		}
+		if (user_input[0] == '\0')
+		{
+			free(user_input);
+			continue ;
+		}
+		parse_and_execute(user_input, &tools, &env_mgr);
+		free(user_input);
 	}
-
-	cleanup_env_manager(&env_mgr);
-	free_env(env_mgr.tools->env);
+	cleanup_executor(((t_cleanup_manager *)(&env_mgr)));
+	free_str_array(paths);
+	rl_clear_history();
 	return (tools.exit_code);
 }

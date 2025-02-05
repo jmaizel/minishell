@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   execution.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:31:48 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/04 21:06:35 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/05 14:28:07 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,5 +111,7 @@ void	free_str_array_exec(char **array);
 void	cleanup_parsed_cmd(t_parsed_cmd *cmd);
 void	cleanup_pip(t_pip *pip);
 void	handle_error(const char *msg, t_tools *tools, int exit_code);
+void	cleanup_executor(t_cleanup_manager *cleanup);
+void	cleanup_env_manager(t_env_manager *env_mgr);
 
 #endif
