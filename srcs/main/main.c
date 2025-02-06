@@ -104,32 +104,42 @@ void	parse_and_execute(char *user_input, t_tools *tools,
 	free_cell(cell);
 }
 
-char	**copy_env(char **envp)
+char    **copy_env(char **envp)
 {
-	int		count;
-	int		i;
-	char	**new_env;
+        int             count;
+        int             i;
+        char    **new_env;
+        int             has_oldpwd;
 
-	count = 0;
-	while (envp[count])
-		count++;
-	new_env = malloc(sizeof(char *) * (count + 1));
-	if (!new_env)
-		return (NULL);
-	i = -1;
-	while (++i < count)
-	{
-		new_env[i] = ft_strdup(envp[i]);
-		if (!new_env[i])
-		{
-			while (i > 0)
-				free(new_env[--i]);
-			free(new_env);
-			return (NULL);
-		}
-	}
-	new_env[count] = NULL;
-	return (new_env);
+        count = 0;
+        while (envp[count])
+                count++;
+        new_env = malloc(sizeof(char *) * (count + 2));  // +2 to potentially add OLDPWD
+        if (!new_env)
+                return (NULL);
+        i = -1;
+        has_oldpwd = 0;
+        while (++i < count)
+        {
+                new_env[i] = ft_strdup(envp[i]);
+                if (!new_env[i])
+                {
+                        while (i > 0)
+                                free(new_env[--i]);
+                        free(new_env);
+                        return (NULL);
+                }
+                if (ft_strncmp(envp[i], "OLDPWD=", 7) == 0)
+                        has_oldpwd = 1;
+        }
+        if (!has_oldpwd)
+        {
+                new_env[i] = ft_strdup("OLDPWD=");
+                new_env[i + 1] = NULL;
+        }
+        else
+                new_env[i] = NULL;
+        return (new_env);
 }
 
 void	cleanup_env_manager(t_env_manager *env_mgr)

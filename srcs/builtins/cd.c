@@ -5,116 +5,93 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/04 20:10:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/04 21:09:03 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/02/06 20:31:22 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/06 20:31:24 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/builtins.h"
 
-static char	*get_home_directory(t_env_manager *env_mgr)
+int builtin_cd(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
 {
-	char	*home;
+    // Si 'tools' n'est pas utilisé du tout dans ta fonction, ajoute (void)tools
+    (void)tools;
 
-	if (!env_mgr || !env_mgr->tools || !env_mgr->tools->env)
-		return (NULL);
-	home = get_env_var("HOME", env_mgr);
-	if (!home)
-	{
-		ft_putendl_fd("cd: HOME not set", STDERR_FILENO);
-		return (NULL);
-	}
-	return (ft_strdup(home));
-}
+    char **args;
+    char *oldpwd = NULL;
+    char *newpwd = NULL;
+    char *tmp_str = NULL;
+    int  ret = BUILTIN_SUCCESS;
 
-static int	update_pwd_vars(t_env_manager *env_mgr, char *old_pwd)
-{
-	char	*new_pwd;
-	char	*oldpwd_env;
-	char	*pwd_env;
-	int		ret;
+    // Récupération des arguments : "cd [arg]"
+    args = ft_split(cmd->full_cmd, ' '); 
+    if (!args)
+        return (BUILTIN_ERROR);
 
-	new_pwd = getcwd(NULL, 0);
-	if (!new_pwd)
-	{
-		free(old_pwd);
-		perror("cd: getcwd failed");
-		return (ERR_GETCWD_FAILED);
-	}
-	oldpwd_env = ft_strjoin("OLDPWD=", old_pwd);
-	pwd_env = ft_strjoin("PWD=", new_pwd);
-	if (!oldpwd_env || !pwd_env)
-	{
-		free(old_pwd);
-		free(new_pwd);
-		free(oldpwd_env);
-		free(pwd_env);
-		ft_putendl_fd("cd: memory allocation failed", STDERR_FILENO);
-		return (ERR_MALLOC_FAILURE);
-	}
-	ret = add_env_var(oldpwd_env, env_mgr);
-	if (ret == SUCCESS)
-		ret = add_env_var(pwd_env, env_mgr);
-	free(old_pwd);
-	free(new_pwd);
-	free(oldpwd_env);
-	free(pwd_env);
-	if (ret != SUCCESS)
-	{
-		ft_putendl_fd("cd: failed to update environment variables",
-			STDERR_FILENO);
-		return (ERR_MALLOC_FAILURE);
-	}
-	return (SUCCESS);
-}
+    // On récupère le PWD courant (pour l'OLDPWD)
+    oldpwd = getcwd(NULL, 0);
 
-int	builtin_cd(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
-{
-	char	*path;
-	char	*old_pwd;
-	char	**args;
+    // 1) Si pas d'argument -> aller dans $HOME
+    if (!args[1])
+    {
+        char *home = get_env_var("HOME", env_mgr);
+        if (!home)
+        {
+            ft_putendl_fd("cd: HOME not set", STDERR_FILENO);
+            free_str_array(args);
+            free(oldpwd);
+            return (BUILTIN_ERROR);
+        }
+        if (chdir(home) == -1)
+        {
+            ft_putstr_fd("cd: ", STDERR_FILENO);
+            ft_putstr_fd(home, STDERR_FILENO);
+            ft_putstr_fd(": ", STDERR_FILENO);
+            ft_putendl_fd(strerror(errno), STDERR_FILENO);
+            ret = BUILTIN_ERROR;
+        }
+    }
+    // 2) Sinon -> cd <args[1]>
+    else
+    {
+        if (chdir(args[1]) == -1)
+        {
+            ft_putstr_fd("cd: ", STDERR_FILENO);
+            ft_putstr_fd(args[1], STDERR_FILENO);
+            ft_putstr_fd(": ", STDERR_FILENO);
+            ft_putendl_fd(strerror(errno), STDERR_FILENO);
+            ret = BUILTIN_ERROR;
+        }
+    }
 
-	if (!cmd || !tools || !tools->env)
-	{
-		ft_putendl_fd("cd: invalid command structure", STDERR_FILENO);
-		return (ERR_INVALID_CMD);
-	}
-	args = ft_split(cmd->full_cmd, ' ');
-	if (!args)
-		return (ERR_MALLOC_FAILURE);
-	if (!args[1])
-	{
-		path = get_home_directory(env_mgr);
-		if (!path)
-		{
-			free_str_array(args);
-			return (ERR_INVALID_CMD);
-		}
-	}
-	else
-	{
-		path = ft_strdup(args[1]);
-		free_str_array(args);
-		if (!path)
-		{
-			ft_putendl_fd("cd: memory allocation failed", STDERR_FILENO);
-			return (ERR_MALLOC_FAILURE);
-		}
-	}
-	old_pwd = getcwd(NULL, 0);
-	if (!old_pwd)
-	{
-		free(path);
-		perror("cd: getcwd failed");
-		return (ERR_GETCWD_FAILED);
-	}
-	if (chdir(path) == -1)
-	{
-		free(path);
-		free(old_pwd);
-		perror("cd");
-		return (ERR_CHDIR_FAILED);
-	}
-	free(path);
-	return (update_pwd_vars(env_mgr, old_pwd));
+    // Si chdir a réussi, mettre à jour OLD_PWD et PWD
+    if (ret == BUILTIN_SUCCESS)
+    {
+        // OLD_PWD = l'ancienne valeur de PWD (stockée dans 'oldpwd')
+        if (oldpwd)
+        {
+            tmp_str = ft_strjoin("OLDPWD=", oldpwd);
+            if (tmp_str)
+            {
+                add_env_var(tmp_str, env_mgr);
+                free(tmp_str);
+            }
+        }
+        // PWD = le nouveau répertoire
+        newpwd = getcwd(NULL, 0);
+        if (newpwd)
+        {
+            tmp_str = ft_strjoin("PWD=", newpwd);
+            if (tmp_str)
+            {
+                add_env_var(tmp_str, env_mgr);
+                free(tmp_str);
+            }
+            free(newpwd);
+        }
+    }
+
+    free_str_array(args);
+    free(oldpwd);
+    return (ret);
 }

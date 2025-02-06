@@ -6,59 +6,34 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 20:45:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/04 21:08:05 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/06 13:27:28 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/builtins.h"
 
-static int	is_valid_identifier(const char *var)
-{
-	int	i;
-
-	if (!var || (!ft_isalpha(var[0]) && var[0] != '_'))
-		return (0);
-	i = 1;
-	while (var[i])
-	{
-		if (!ft_isalnum(var[i]) && var[i] != '_')
-			return (0);
-		i++;
-	}
-	return (1);
-}
-
 int	builtin_unset(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
 {
 	char	**args;
 	int		i;
-	int		ret;
 
-	if (!cmd || !tools || !env_mgr || !env_mgr->tools || !env_mgr->tools->env)
+	if (!cmd || !tools || !env_mgr)
 		return (ERR_INVALID_CMD);
 	args = ft_split(cmd->full_cmd, ' ');
 	if (!args)
 		return (ERR_MALLOC_FAILURE);
 	if (!args[1])
 	{
+		ft_putendl_fd("unset: not enough arguments", STDERR_FILENO);
 		free_str_array(args);
-		return (SUCCESS);
+		return (ERR_INVALID_CMD);
 	}
 	i = 1;
-	ret = SUCCESS;
 	while (args[i])
 	{
-		if (!is_valid_identifier(args[i]))
-		{
-			ft_putstr_fd("unset: `", STDERR_FILENO);
-			ft_putstr_fd(args[i], STDERR_FILENO);
-			ft_putendl_fd("': not a valid identifier", STDERR_FILENO);
-			ret = ERR_INVALID_CMD;
-		}
-		else
-			remove_env_var(args[i], env_mgr);
+		remove_env_var(args[i], env_mgr);
 		i++;
 	}
 	free_str_array(args);
-	return (ret);
+	return (SUCCESS);
 }

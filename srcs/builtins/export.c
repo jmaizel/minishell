@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 20:30:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/04 21:08:37 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/06 13:29:35 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ static void	print_sorted_env(t_env_manager *env_mgr)
 		ft_putendl_fd(sorted_env[i], STDOUT_FILENO);
 		i++;
 	}
-	free_str_array_exec(sorted_env);
+	free_str_array(sorted_env);
 }
 
 static int	add_or_update_var(const char *arg, t_env_manager *env_mgr)
@@ -72,7 +72,7 @@ int	builtin_export(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
 	if (!args[1])
 	{
 		print_sorted_env(env_mgr);
-		free_str_array_exec(args);
+		free_str_array(args);
 		return (SUCCESS);
 	}
 	i = 1;
@@ -93,6 +93,6 @@ int	builtin_export(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
 		}
 		i++;
 	}
-	free_str_array_exec(args);
+	free_str_array(args);
 	return (ret);
 }
