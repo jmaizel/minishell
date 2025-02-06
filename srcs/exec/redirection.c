@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   redirection.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 10:33:23 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/04 20:33:10 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/06 16:54:44 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,28 +69,47 @@ void	handle_append_redirection(char *file)
 	close(fd);
 }
 
-static void	handle_redirection(t_parsed_cmd *cmd, t_pip *pip, t_tools *tools)
+void    handle_redirection(t_parsed_cmd *cmd, t_pip *pip, t_tools *tools)
 {
-	int	i;
+    int i;
 
-	if (!cmd)
-		return ;
-	i = 0;
-	while (i < cmd->input_count)
-		handle_input_redirection(cmd->input_file[i++]);
-	i = 0;
-	while (i < cmd->output_count)
-		handle_output_redirection(cmd->output_file[i++]);
-	i = 0;
-	while (i < cmd->append_count)
-		handle_append_redirection(cmd->append_file[i++]);
-	i = 0;
-	while (i < cmd->heredoc_count)
-		handle_heredoc(cmd->heredoc_delim[i++], pip, tools);
+    if (!cmd)
+        return ;
+    i = 0;
+    while (i < cmd->input_count)
+    {
+        handle_input_redirection(cmd->input_file[i]);
+        i++;
+    }
+    i = 0;
+    while (i < cmd->output_count)
+    {
+        handle_output_redirection(cmd->output_file[i]);
+        i++;
+    }
+    i = 0;
+    while (i < cmd->append_count)
+    {
+        handle_append_redirection(cmd->append_file[i]);
+        i++;
+    }
+    i = 0;
+    while (i < cmd->heredoc_count)
+    {
+        handle_heredoc(cmd->heredoc_delim[i], pip, tools);
+        i++;
+    }
 }
 
-void	apply_redirections(t_pip *pip, t_tools *tools)
+void    apply_redirections(t_pip *pip, t_tools *tools)
 {
-	if (pip && pip->redirection)
-		handle_redirection(pip->redirection, pip, tools);
+    if (!pip || !pip->redirection)
+        return;
+    printf("Applying redirections for command: %s\n", pip->redirection->cmd);
+    if (pip->redirection->input_count > 0)
+        printf("Input file: %s\n", pip->redirection->input_file[0]);
+    if (pip->redirection->output_count > 0)
+        printf("Output file: %s\n", pip->redirection->output_file[0]);
+    if (pip->redirection)
+        handle_redirection(pip->redirection, pip, tools);
 }

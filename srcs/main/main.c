@@ -72,36 +72,33 @@
 	execute_simple_command(pip, tools, env_mgr);
 	free_cmd_resources(pip, parsed_cmd);
 } */
-void	parse_and_execute(char *user_input, t_tools *tools,
-		t_env_manager *env_mgr)
+void parse_and_execute(char *user_input, t_tools *tools, t_env_manager *env_mgr)
 {
-	t_sep *cell;
-	t_pip *current;
-	if (!user_input || check_invalid_chars(user_input))
+    t_sep *cell;
+    t_pip *current;
+
+    if (!user_input || check_invalid_chars(user_input))
 	{
-		ft_printf("Error: Invalid input\n");
+        ft_printf("Error: Invalid input\n");
 		return ;
 	}
-	cell = create_cell(ft_strdup(user_input));
-	if (!cell)
-		return ;
-	parse_pipes(cell);
-	current = cell->pipcell;
-	while (current)
-	{
-		if (current->cmd_pipe)
-		{
-			current->redirection = parse_redir(current->cmd_pipe);
-			if (current->redirection)
-			{
-				// printf("Executing command: [%s]\n",
-				//	current->redirection->cmd);
-				execute_simple_command(current, tools, env_mgr);
-			}
-		}
-		current = current->next;
-	}
-	free_cell(cell);
+    cell = create_cell(ft_strdup(user_input));
+    if (!cell)
+        return ;
+    parse_pipes(cell);
+    if (count_pipes(cell->pipcell) > 0)
+        execute_pipeline(cell, tools, env_mgr);
+    else
+    {
+        current = cell->pipcell;
+        if (current && current->cmd_pipe)
+        {
+            current->redirection = parse_redir(current->cmd_pipe);
+            if (current->redirection)
+                execute_simple_command(current, tools, env_mgr);
+        }
+    }
+    free_cell(cell);
 }
 
 char	**copy_env(char **envp)

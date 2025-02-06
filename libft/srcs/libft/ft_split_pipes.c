@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_split_pipes.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 15:44:59 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/01/31 15:34:20 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/06 16:39:20 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,24 +55,42 @@ static int	count_segments(const char *s, char delimiter)
 	return (count);
 }
 
-static char	*get_next_segment(const char *s, char delimiter, int *index)
+static char *get_next_segment(const char *s, char delimiter, int *index)
 {
-	int	start;
-	int	len;
+    int start;
+    int len;
+    int temp_index;
 
-	start = *index;
-	len = 0;
-	while (s[*index] && (s[*index] != delimiter || is_quote(s[*index])))
-	{
-		if (is_quote(s[*index]))
-			skip_quotes(s, index);
-		else
-		{
-			(*index)++;
-			len++;
-		}
-	}
-	return (ft_substr(s, start, len));
+    start = *index;
+    len = 0;
+    temp_index = *index;
+    
+    while (s[temp_index] && (s[temp_index] != delimiter || is_quote(s[temp_index])))
+    {
+        if (is_quote(s[temp_index]))
+        {
+            char quote = s[temp_index];
+            len++;
+            temp_index++;
+            while (s[temp_index] && s[temp_index] != quote)
+            {
+                len++;
+                temp_index++;
+            }
+            if (s[temp_index] == quote)
+            {
+                len++;
+                temp_index++;
+            }
+        }
+        else
+        {
+            len++;
+            temp_index++;
+        }
+    }
+    *index = temp_index;
+    return (ft_substr(s, start, len));
 }
 
 char	**ft_split_pipes(const char *s, char delimiter)

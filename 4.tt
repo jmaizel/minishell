@@ -1,0 +1,297 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   builtins.h                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/27 11:42:12 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/04 20:55:19 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef BUILTINS_H
+# define BUILTINS_H
+
+# include "../includes/minishell.h"
+# include "../includes/execution.h"
+# include "../includes/tools.h"
+
+int	builtin_echo(t_parsed_cmd *cmd);
+int	builtin_cd(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr);
+int	builtin_pwd(t_parsed_cmd *cmd, t_tools *tools);
+int	builtin_env(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr);	
+int	builtin_export(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr);
+int	builtin_unset(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr);
+int	builtin_exit(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr);
+
+# define BUILTIN_SUCCESS 0
+# define BUILTIN_ERROR 1
+
+#endif /* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   execution.h                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/17 10:31:48 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/05 14:28:07 by jmaizel          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef EXECUTION_H
+# define EXECUTION_H
+
+# include "minishell.h"
+# include "../libft/includes/libft.h"
+# include "tools.h"
+# include <fcntl.h>
+# include <unistd.h>
+# include <stdlib.h>
+# include <stdio.h>
+# include <string.h>
+# include <sys/wait.h>
+# include <errno.h>
+# include <readline/readline.h>
+# include <readline/history.h>
+# include <stddef.h>
+# include <signal.h>
+# include <stdbool.h>
+
+# define ERROR_EXIT 1
+# define SUCCESS_EXIT 0
+# define CMD_NOT_FOUND 127
+# define PERMISSION_DENIED 126
+# define SUCCESS 0
+# define GENERAL_ERROR 1
+
+# define ERR_INVALID_CMD 1
+# define ERR_MALLOC_FAILURE 2
+# define ERR_GETCWD_FAILED 3
+# define ERR_CHDIR_FAILED 4
+# define ERR_EXEC_FAILURE 5
+
+typedef struct s_executor
+{
+	t_tools	*tools;
+}	t_executor;
+
+typedef struct s_redirection_handler
+{
+	t_pip	*pip;
+}	t_redirection_handler;
+
+typedef struct s_builtin_handler
+{
+	t_executor	*executor;
+}	t_builtin_handler;
+
+typedef struct s_env_manager
+{
+	t_tools	*tools;
+}	t_env_manager;
+
+typedef struct s_pipe_manager
+{
+	int		*pipes;
+	int		pipe_count;
+}	t_pipe_manager;
+
+typedef struct s_signal_handler
+{
+	void	(*sigint_handler)(int);
+	void	(*child_handler)(int);
+}	t_signal_handler;
+
+typedef struct s_cleanup_manager
+{
+	t_tools	*tools;
+}	t_cleanup_manager;
+
+void	execute_simple_command(t_pip *pip, t_tools *tools,
+			t_env_manager *env_mgr);
+void	execute_external_command(t_pip *pip, t_tools *tools,
+			t_env_manager *env_mgr);
+void	update_exit_status(t_tools *tools, int status);
+char	*find_executable(const char *command, t_env_manager *env_mgr);
+
+void	apply_redirections(t_pip *pip, t_tools *tools);
+void	handle_input_redirection(char *file);
+void	handle_output_redirection(char *file);
+void	handle_append_redirection(char *file);
+void	handle_heredoc(char *delim, t_pip *pip, t_tools *tools);
+
+char	*get_env_var(const char *key, t_env_manager *env_mgr);
+int		add_env_var(char *var, t_env_manager *env_mgr);
+int		remove_env_var(char *key, t_env_manager *env_mgr);
+char	**duplicate_env(t_env_manager *env_mgr);
+void	free_env(char **env);
+
+int		count_pipes(t_pip *cmd);
+int		*create_pipes(int count);
+void	close_all_pipes(int *pipes, int pipe_count);
+pid_t	*allocate_pids(int count);
+
+void	setup_signals_exec(void);
+void	sigint_handler(int sig);
+void	child_sigint_handler(int sig);
+
+void	free_str_array_exec(char **array);
+void	cleanup_parsed_cmd(t_parsed_cmd *cmd);
+void	cleanup_pip(t_pip *pip);
+void	handle_error(const char *msg, t_tools *tools, int exit_code);
+void	cleanup_executor(t_cleanup_manager *cleanup);
+void	cleanup_env_manager(t_env_manager *env_mgr);
+
+#endif#ifndef MINISHELL_H
+# define MINISHELL_H
+
+# include "../libft/includes/ft_printf.h"
+# include "../libft/includes/libft.h"
+# include <dirent.h>
+# include <errno.h>
+# include <fcntl.h>
+# include <limits.h>
+# include <stdio.h>
+# include <readline/history.h>
+# include <readline/readline.h>
+# include <signal.h>
+# include <stdbool.h>
+# include <stdlib.h>
+# include <string.h>
+# include <sys/wait.h>
+# include <unistd.h>
+
+typedef struct s_tools
+{
+	char			**env;
+	// Variables d'environnement (tableau de chaînes de caractères)
+	int				exit_code;
+	// Code de sortie de la dernière commande exécutée
+	struct s_simple_cmds *cmds; // Liste des commandes à exécuter
+	struct s_tokens *tokens;    // Liste des tokens générés par le lexer
+								// D'autres champs peuvent être ajoutés ici selon les besoins du projet
+}					t_tools;
+
+// CLEMENT : Structure principale qui contient une commande complète
+typedef struct s_sep
+{
+	char *cmd_sep; // Commande complète brute
+	struct s_sep	*prev;
+	struct s_sep	*next;
+	struct s_pip *pipcell; //  IMPORTANT: Point d'entrée de la liste des pipes
+}					t_sep;
+
+// CLEMENT : Structure pour les arguments de la commande (format execve)
+typedef struct s_cmd_args
+{
+	char **argv; //  IMPORTANT: Tableau d'arguments pour execve
+	int argc;    // Nombre d'arguments
+	char *cmd;   // Nom de la commande
+}					t_cmd_args;
+
+// CLEMENT : Structure pour les redirections de chaque commande
+typedef struct s_parsed_cmd
+{
+	char *full_cmd; // Commande complète avec redirections
+	char *cmd;      //  Commande sans redirections
+
+	//  IMPORTANT: Redirections d'entrée (<)
+	char **input_file; // Tableau des fichiers d'entrée
+	int input_count;   // Nombre de fichiers d'entrée
+
+	//  IMPORTANT: Redirections de sortie (>)
+	char **output_file; // Tableau des fichiers de sortie
+	int output_count;   // Nombre de fichiers de sortie
+
+	//  IMPORTANT: Redirections append (>>)
+	char **append_file; // Tableau des fichiers append
+	int append_count;   // Nombre de fichiers append
+
+	//  IMPORTANT: Heredocs (<<)
+	char **heredoc_delim; // Tableau des délimiteurs heredoc
+	int heredoc_count;    // Nombre de heredocs
+}					t_parsed_cmd;
+
+// CLEMENT :  STRUCTURE PRINCIPALE POUR L'EXÉCUTION
+// C'est ici que tu trouveras toutes les infos pour chaque commande du pipeline
+typedef struct s_pip
+{
+	char *cmd_pipe;            // Commande brute pour ce pipe
+	t_parsed_cmd *redirection; //  Toutes les redirections pour cette commande
+	struct s_pip *next;        //  Commande suivante dans le pipeline
+	struct s_pip *prev;        // Commande précédente
+	int pip_count;             // Nombre total de pipes
+}					t_pip;
+
+// CLEMENT : Pour accéder aux informations :
+// 1. Tu reçois un t_sep *cell
+// 2. Tu accèdes à la liste des pipes avec cell->pipcell
+// 3. Pour chaque pipe (t_pip):
+//    - Tu as la commande dans cmd_pipe
+//    - Tu as toutes les redirections dans redirection
+//    - Tu passes au pipe suivant avec next
+//
+// Exemple de parcours :
+// t_pip *current = cell->pipcell;
+// while (current)
+// {
+//     // Traiter les redirections avec current->redirection
+//     // Exécuter la commande
+//     current = current->next;
+// }
+
+// env :
+void				print_env_vars(t_tools *tools);
+char				**get_env_paths(char **env, char *var_name);
+
+// parsing :
+t_parsed_cmd		*parse_redir(char *input);
+void				parsing_line(char *user_input, t_tools *tools);
+void				free_parsed_cmd(t_parsed_cmd *cmd);
+void				print_parsed_command(t_parsed_cmd *cmd);
+void				parse_pipes(t_sep *cell);
+void				loop_prompt(t_tools *tools, char **env);
+t_sep				*add_cell(t_sep *list, char *cmd_sep, int pos);
+t_sep				*create_cell(char *cmd_sep);
+void				setup_signals(void);
+void				handle_signal(int sig);
+char				*get_user_input(void);
+void				free_str_array(char **array);
+int					ft_isspace(int c);
+int					check_invalid_chars(const char *cmd);
+char				*clean_quotes(char *str);
+void				free_cell(t_sep *cell);
+int					count_args(char *str);
+void				print_pipe_command(t_pip *pipe_cmd, int pipe_num);
+
+t_cmd_args			*parse_command_args(char *cmd_str);
+void				print_cmd_args(t_cmd_args *cmd_args);
+void				free_cmd_args(t_cmd_args *cmd_args);
+
+#endif/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   tools.h                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/29 10:31:04 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/01/30 14:47:40 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef TOOLS_H
+# define TOOLS_H
+
+# include "../libft/includes/libft.h"
+# include "../includes/minishell.h"
+# include "../includes/execution.h"
+
+char	*ft_strjoin_free(char *s1, char *s2, int free_s1, int free_s2);
+char	*ft_charjoin(char *str, char c);
+void	sort_string_array(char **array);
+void	free_tools(t_tools *tools);
+
+#endif

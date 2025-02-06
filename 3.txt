@@ -1,0 +1,522 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   cd.c                                               :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/04 20:10:00 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/04 21:09:03 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/builtins.h"
+
+static char	*get_home_directory(t_env_manager *env_mgr)
+{
+	char	*home;
+
+	if (!env_mgr || !env_mgr->tools || !env_mgr->tools->env)
+		return (NULL);
+	home = get_env_var("HOME", env_mgr);
+	if (!home)
+	{
+		ft_putendl_fd("cd: HOME not set", STDERR_FILENO);
+		return (NULL);
+	}
+	return (ft_strdup(home));
+}
+
+static int	update_pwd_vars(t_env_manager *env_mgr, char *old_pwd)
+{
+	char	*new_pwd;
+	char	*oldpwd_env;
+	char	*pwd_env;
+	int		ret;
+
+	new_pwd = getcwd(NULL, 0);
+	if (!new_pwd)
+	{
+		free(old_pwd);
+		perror("cd: getcwd failed");
+		return (ERR_GETCWD_FAILED);
+	}
+	oldpwd_env = ft_strjoin("OLDPWD=", old_pwd);
+	pwd_env = ft_strjoin("PWD=", new_pwd);
+	if (!oldpwd_env || !pwd_env)
+	{
+		free(old_pwd);
+		free(new_pwd);
+		free(oldpwd_env);
+		free(pwd_env);
+		ft_putendl_fd("cd: memory allocation failed", STDERR_FILENO);
+		return (ERR_MALLOC_FAILURE);
+	}
+	ret = add_env_var(oldpwd_env, env_mgr);
+	if (ret == SUCCESS)
+		ret = add_env_var(pwd_env, env_mgr);
+	free(old_pwd);
+	free(new_pwd);
+	free(oldpwd_env);
+	free(pwd_env);
+	if (ret != SUCCESS)
+	{
+		ft_putendl_fd("cd: failed to update environment variables",
+			STDERR_FILENO);
+		return (ERR_MALLOC_FAILURE);
+	}
+	return (SUCCESS);
+}
+
+int	builtin_cd(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
+{
+	char	*path;
+	char	*old_pwd;
+	char	**args;
+
+	if (!cmd || !tools || !tools->env)
+	{
+		ft_putendl_fd("cd: invalid command structure", STDERR_FILENO);
+		return (ERR_INVALID_CMD);
+	}
+	args = ft_split(cmd->full_cmd, ' ');
+	if (!args)
+		return (ERR_MALLOC_FAILURE);
+	if (!args[1])
+	{
+		path = get_home_directory(env_mgr);
+		if (!path)
+		{
+			free_str_array(args);
+			return (ERR_INVALID_CMD);
+		}
+	}
+	else
+	{
+		path = ft_strdup(args[1]);
+		free_str_array(args);
+		if (!path)
+		{
+			ft_putendl_fd("cd: memory allocation failed", STDERR_FILENO);
+			return (ERR_MALLOC_FAILURE);
+		}
+	}
+	old_pwd = getcwd(NULL, 0);
+	if (!old_pwd)
+	{
+		free(path);
+		perror("cd: getcwd failed");
+		return (ERR_GETCWD_FAILED);
+	}
+	if (chdir(path) == -1)
+	{
+		free(path);
+		free(old_pwd);
+		perror("cd");
+		return (ERR_CHDIR_FAILED);
+	}
+	free(path);
+	return (update_pwd_vars(env_mgr, old_pwd));
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   echo.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/27 11:43:16 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/05 17:01:46 by jmaizel          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/builtins.h"
+
+static int	is_option_n(const char *arg)
+{
+	int	i;
+
+	if (!arg || arg[0] != '-')
+		return (0);
+	i = 1;
+	while (arg[i])
+	{
+		if (arg[i] != 'n')
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+static void	print_arguments(char **args, int i)
+{
+	while (args[i])
+	{
+		ft_putstr_fd(args[i], STDOUT_FILENO);
+		if (args[i + 1])
+			ft_putchar_fd(' ', STDOUT_FILENO);
+		i++;
+	}
+}
+
+int	builtin_echo(t_parsed_cmd *cmd)
+{
+	char	**args;
+	int		i;
+	int		newline;
+
+	args = ft_split(cmd->full_cmd, ' ');
+
+	if (!args)
+		return (1);
+	i = 1;
+	newline = 1;
+	while (args[i] && is_option_n(args[i]))
+	{
+		newline = 0;
+		i++;
+	}
+	print_arguments(args, i);
+	if (newline)
+		ft_putchar_fd('\n', STDOUT_FILENO);
+	free_str_array(args);
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   env.c                                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/31 13:52:26 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/04 20:54:40 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/builtins.h"
+
+static int	handle_env_errors(t_parsed_cmd *cmd, t_env_manager *env_mgr)
+{
+	char	**args;
+
+	if (!cmd || !env_mgr || !env_mgr->tools || !env_mgr->tools->env)
+		return (ERR_INVALID_CMD);
+	args = ft_split(cmd->full_cmd, ' ');
+	if (!args)
+		return (ERR_MALLOC_FAILURE);
+	if (args[1])
+	{
+		free_str_array(args);
+		ft_putendl_fd("env: too many arguments", STDERR_FILENO);
+		return (ERR_INVALID_CMD);
+	}
+	free_str_array(args);
+	if (!env_mgr->tools->env)
+	{
+		ft_putendl_fd("env: environment is empty", STDERR_FILENO);
+		return (ERR_INVALID_CMD);
+	}
+	return (SUCCESS);
+}
+
+int	builtin_env(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
+{
+	int	i;
+	int	ret;
+
+	(void)tools;
+	ret = handle_env_errors(cmd, env_mgr);
+	if (ret != SUCCESS)
+		return (ret);
+	i = 0;
+	while (env_mgr->tools->env[i])
+	{
+		ft_putendl_fd(env_mgr->tools->env[i], STDOUT_FILENO);
+		i++;
+	}
+	return (SUCCESS);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exit.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/04 21:10:00 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/04 21:10:17 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/builtins.h"
+
+static int	is_numeric(const char *str)
+{
+	int	i;
+
+	i = 0;
+	if (!str || !str[i])
+		return (0);
+	if (str[i] == '-' || str[i] == '+')
+		i++;
+	while (str[i])
+	{
+		if (!ft_isdigit(str[i]))
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+int	builtin_exit(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
+{
+	int		exit_code;
+	char	**args;
+
+	ft_putendl_fd("exit", STDOUT_FILENO);
+	args = ft_split(cmd->full_cmd, ' ');
+	if (!args)
+	{
+		exit(GENERAL_ERROR);
+	}
+	if (args[1] != NULL && !is_numeric(args[1]))
+	{
+		ft_putstr_fd("minishell: exit: ", STDERR_FILENO);
+		ft_putstr_fd(args[1], STDERR_FILENO);
+		ft_putendl_fd(": numeric argument required", STDERR_FILENO);
+		free_str_array(args);
+		exit(255);
+	}
+	if (args[1] != NULL && args[2] != NULL)
+	{
+		ft_putendl_fd("minishell: exit: too many arguments", STDERR_FILENO);
+		free_str_array(args);
+		return (GENERAL_ERROR);
+	}
+	if (args[1] != NULL)
+	{
+		exit_code = ft_atoi(args[1]);
+	}
+	else
+	{
+		exit_code = tools->exit_code;
+	}
+	free_str_array(args);
+	free_env(env_mgr->tools->env);
+	exit(exit_code);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   export.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/04 20:30:00 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/04 21:08:37 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/builtins.h"
+
+static int	is_valid_var_name(const char *var)
+{
+	int	i;
+
+	if (!var || (!ft_isalpha(var[0]) && var[0] != '_'))
+		return (0);
+	i = 1;
+	while (var[i] && var[i] != '=')
+	{
+		if (!ft_isalnum(var[i]) && var[i] != '_')
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+static void	print_sorted_env(t_env_manager *env_mgr)
+{
+	char	**sorted_env;
+	int		i;
+
+	if (!env_mgr || !env_mgr->tools || !env_mgr->tools->env)
+		return ;
+	sorted_env = duplicate_env(env_mgr);
+	if (!sorted_env)
+		return ;
+	sort_string_array(sorted_env);
+	i = 0;
+	while (sorted_env[i])
+	{
+		ft_putstr_fd("declare -x ", STDOUT_FILENO);
+		ft_putendl_fd(sorted_env[i], STDOUT_FILENO);
+		i++;
+	}
+	free_str_array_exec(sorted_env);
+}
+
+static int	add_or_update_var(const char *arg, t_env_manager *env_mgr)
+{
+	if (ft_strchr(arg, '='))
+		return (add_env_var((char *)arg, env_mgr));
+	if (get_env_var(arg, env_mgr))
+		return (SUCCESS);
+	return (add_env_var((char *)arg, env_mgr));
+}
+
+int	builtin_export(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
+{
+	char	**args;
+	int		i;
+	int		ret;
+
+	if (!cmd || !tools || !env_mgr || !env_mgr->tools || !env_mgr->tools->env)
+		return (ERR_INVALID_CMD);
+	args = ft_split(cmd->full_cmd, ' ');
+	if (!args)
+		return (ERR_MALLOC_FAILURE);
+	if (!args[1])
+	{
+		print_sorted_env(env_mgr);
+		free_str_array_exec(args);
+		return (SUCCESS);
+	}
+	i = 1;
+	ret = SUCCESS;
+	while (args[i])
+	{
+		if (is_valid_var_name(args[i]))
+		{
+			if (add_or_update_var(args[i], env_mgr) != SUCCESS)
+				ret = ERR_MALLOC_FAILURE;
+		}
+		else
+		{
+			ft_putstr_fd("export: `", STDERR_FILENO);
+			ft_putstr_fd(args[i], STDERR_FILENO);
+			ft_putendl_fd("': not a valid identifier", STDERR_FILENO);
+			ret = ERR_INVALID_CMD;
+		}
+		i++;
+	}
+	free_str_array_exec(args);
+	return (ret);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   pwd.c                                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/28 14:05:25 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/02 19:41:20 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/builtins.h"
+
+static int	handle_pwd_errors(t_parsed_cmd *cmd)
+{
+	char	**args;
+
+	if (!cmd)
+		return (ERR_INVALID_CMD);
+	args = ft_split(cmd->full_cmd, ' ');
+	if (!args)
+		return (ERR_MALLOC_FAILURE);
+	if (args[1])
+	{
+		ft_putendl_fd("pwd: too many arguments", STDERR_FILENO);
+		free_str_array(args);
+		return (ERR_INVALID_CMD);
+	}
+	free_str_array(args);
+	return (SUCCESS);
+}
+
+int	builtin_pwd(t_parsed_cmd *cmd, t_tools *tools)
+{
+	char	*pwd;
+	int		ret;
+
+	(void)tools;
+	ret = handle_pwd_errors(cmd);
+	if (ret != SUCCESS)
+		return (ret);
+	pwd = getcwd(NULL, 0);
+	if (!pwd)
+	{
+		perror("pwd");
+		return (ERR_GETCWD_FAILED);
+	}
+	ft_putendl_fd(pwd, STDOUT_FILENO);
+	free(pwd);
+	return (SUCCESS);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   unset.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/04 20:45:00 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/04 21:08:05 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/builtins.h"
+
+static int	is_valid_identifier(const char *var)
+{
+	int	i;
+
+	if (!var || (!ft_isalpha(var[0]) && var[0] != '_'))
+		return (0);
+	i = 1;
+	while (var[i])
+	{
+		if (!ft_isalnum(var[i]) && var[i] != '_')
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+int	builtin_unset(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
+{
+	char	**args;
+	int		i;
+	int		ret;
+
+	if (!cmd || !tools || !env_mgr || !env_mgr->tools || !env_mgr->tools->env)
+		return (ERR_INVALID_CMD);
+	args = ft_split(cmd->full_cmd, ' ');
+	if (!args)
+		return (ERR_MALLOC_FAILURE);
+	if (!args[1])
+	{
+		free_str_array(args);
+		return (SUCCESS);
+	}
+	i = 1;
+	ret = SUCCESS;
+	while (args[i])
+	{
+		if (!is_valid_identifier(args[i]))
+		{
+			ft_putstr_fd("unset: `", STDERR_FILENO);
+			ft_putstr_fd(args[i], STDERR_FILENO);
+			ft_putendl_fd("': not a valid identifier", STDERR_FILENO);
+			ret = ERR_INVALID_CMD;
+		}
+		else
+			remove_env_var(args[i], env_mgr);
+		i++;
+	}
+	free_str_array(args);
+	return (ret);
+}

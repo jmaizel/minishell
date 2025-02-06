@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   parsing_line.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 13:30:33 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/03 12:54:28 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/06 16:29:41 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
+#include "../includes/execution.h"
 
 void	print_parsed_command(t_parsed_cmd *cmd)
 {
@@ -100,24 +101,32 @@ void	free_parsed_cmd(t_parsed_cmd *cmd)
 	free(cmd->heredoc_delim);
 	free(cmd);
 }
+void	execute_commands(t_sep *cell, t_tools *tools)
+{
+	t_env_manager	env_mgr;
+
+	env_mgr.tools = tools;
+	if (count_pipes(cell->pipcell) > 0)
+		execute_pipeline(cell, tools, &env_mgr);
+	else if (cell->pipcell && cell->pipcell->redirection)
+		execute_simple_command(cell->pipcell, tools, &env_mgr);
+}
 
 void	parsing_line(char *user_input, t_tools *tools)
 {
-	t_sep *cell;
-	t_pip *current;
-	t_cmd_args *cmd_args;
-	t_parsed_cmd *parsed_cmd;
+	t_sep			*cell;
+	t_pip			*current;
+	t_cmd_args		*cmd_args;
+	t_parsed_cmd	*parsed_cmd;
 
 	if (!user_input || check_invalid_chars(user_input))
 	{
 		ft_printf("Error: Invalid input\n");
 		return ;
 	}
-	(void)tools;
 	cell = create_cell(ft_strdup(user_input));
 	if (!cell)
 		return ;
-
 	parse_pipes(cell);
 	current = cell->pipcell;
 	while (current && current->cmd_pipe)
@@ -125,19 +134,16 @@ void	parsing_line(char *user_input, t_tools *tools)
 		parsed_cmd = parse_redir(current->cmd_pipe);
 		if (parsed_cmd)
 		{
-			print_parsed_command(parsed_cmd);
 			if (parsed_cmd->cmd)
 			{
 				cmd_args = parse_command_args(parsed_cmd->cmd);
 				if (cmd_args)
-				{
-					print_cmd_args(cmd_args);
 					free_cmd_args(cmd_args);
-				}
 			}
 			free_parsed_cmd(parsed_cmd);
 		}
 		current = current->next;
 	}
+	execute_commands(cell, tools);
 	free_cell(cell);
 }
