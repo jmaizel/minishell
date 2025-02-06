@@ -2,7 +2,6 @@ NAME = minishell
 TEST_NAME = tests
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -I$(INCLUDES_DIR) -I$(LIBFT_DIR) $(READLINE_INC)
-CFLAGS = -Wall -Wextra -Werror -I$(INCLUDES_DIR) -I$(LIBFT_DIR) $(READLINE_INC)
 
 # Directory structure
 LIBFT_DIR = ./libft
@@ -14,6 +13,7 @@ MAIN_DIR = ./srcs/main
 ENV_DIR = ./srcs/env
 BUILTINS_DIR = ./srcs/builtins
 TOOLS_DIR = ./srcs/tools
+EXPANSION_DIR = ./srcs/expansion
 TESTS_DIR = ./srcs/tests
 
 # Readline paths
@@ -31,6 +31,7 @@ MAIN_FILES = main.c
 ENV_FILES =
 BUILTINS_FILES = echo.c cd.c pwd.c env.c export.c unset.c exit.c
 TOOLS_FILES = utils.c
+EXPANSION_DIR = expansion.c
 TEST_FILES = tests.c
 
 # Create full source paths
@@ -83,6 +84,7 @@ $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)/env
 	@mkdir -p $(OBJ_DIR)/builtins
 	@mkdir -p $(OBJ_DIR)/tools
+	@mkdir -p $(OBJ_DIR)/expansion
 	@mkdir -p $(OBJ_DIR)/tests
 
 $(LIBFT):

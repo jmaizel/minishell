@@ -6,15 +6,18 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 21:00:00 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/06 20:27:10 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/06 21:35:24 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/execution.h"
 #include "../includes/builtins.h"
+/* On inclut maintenant le header du dossier expansion
+   où est déclarée 'expand_variables' : */
+#include "../includes/expansion.h"
 
 /**
- * Détermine si une commande donnée est un builtin.
+ * Détermine si une commande est un builtin.
  */
 static int	is_builtin(const char *cmd)
 {
@@ -29,11 +32,8 @@ static int	is_builtin(const char *cmd)
 }
 
 /**
- * Exécute la commande builtin correspondante (cd, echo, pwd, etc.).
- * @param cmd      Structure de commande parsée (t_parsed_cmd).
- * @param tools    Contexte global (environnement, exit_code, etc.).
- * @param env_mgr  Gestionnaire d'environnement (pour export, unset, etc.).
- * @return         1 si c'était un builtin reconnu, 0 sinon.
+ * Exécute un builtin (cd, echo, etc.) sans passer par un fork.
+ * @return 1 si c'était un builtin valide, 0 sinon.
  */
 static int	execute_builtin(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env_mgr)
 {
@@ -62,23 +62,23 @@ static int	execute_builtin(t_parsed_cmd *cmd, t_tools *tools, t_env_manager *env
 	else
 		return (0);
 
-	tools->exit_code = ret; 
+	tools->exit_code = ret;
 	return (1);
 }
 
 /**
- * Exécute une commande externe (non-builtin).
- * @param pip      Contient la commande (dans pip->redirection) et ses redirections.
- * @param tools    Contexte global.
- * @param env_mgr  Gestion de l'environnement.
+ * Exécute une commande externe via fork + execve.
+ * On parse d'abord la commande (sans la modifier), 
+ * puis on expanse chaque argument avant execve.
  */
 void	execute_external_command(t_pip *pip, t_tools *tools, t_env_manager *env_mgr)
 {
-	char			*path;
 	pid_t			pid;
 	int				status;
-	t_parsed_cmd	*cmd;
+	char			*path;
 	t_cmd_args		*args;
+	t_parsed_cmd	*parsed;
+	int				i;
 
 	if (!pip || !pip->redirection || !tools || !env_mgr)
 	{
@@ -86,14 +86,39 @@ void	execute_external_command(t_pip *pip, t_tools *tools, t_env_manager *env_mgr
 		tools->exit_code = ERR_INVALID_CMD;
 		return;
 	}
-	cmd = pip->redirection;
-	args = parse_command_args(cmd->cmd); // On parse la ligne de commande
+	parsed = pip->redirection;
 
+	/* On utilise la fonction de parsing fournie par ton collègue */
+	args = parse_command_args(parsed->cmd);
 	if (!args)
 	{
 		tools->exit_code = ERR_MALLOC_FAILURE;
 		return;
 	}
+
+	/*
+	 * Expansion manuelle de chaque argument,
+	 * vu que parse_command_args n'intègre pas encore 'expand_variables'.
+	 */
+	i = 0;
+	while (args->argv && args->argv[i])
+	{
+		char *expanded = expand_variables(args->argv[i], env_mgr);
+		if (expanded)
+		{
+			free(args->argv[i]);
+			args->argv[i] = expanded;
+		}
+		i++;
+	}
+	/* Met à jour args->cmd (le premier argument) si besoin */
+	if (args->argc > 0)
+	{
+		free(args->cmd);
+		args->cmd = ft_strdup(args->argv[0]);
+	}
+
+	/* Recherche de l'exécutable dans le PATH */
 	path = find_executable(args->cmd, env_mgr);
 	if (!path)
 	{
@@ -126,18 +151,17 @@ void	execute_external_command(t_pip *pip, t_tools *tools, t_env_manager *env_mgr
 		perror("fork failed");
 		tools->exit_code = ERR_EXEC_FAILURE;
 	}
-
 	free_cmd_args(args);
 	free(path);
 }
 
 /**
- * Exécute une commande simple (un seul t_pip), 
- * détecte si c'est un builtin ou une commande externe.
+ * Exécute une commande simple : builtin ou commande externe.
+ * @note pas de fork pour builtin => 'cd' modifie vraiment le parent.
  */
 void	execute_simple_command(t_pip *pip, t_tools *tools, t_env_manager *env_mgr)
 {
-	t_parsed_cmd	*cmd;
+	t_parsed_cmd *cmd;
 
 	if (!pip || !pip->redirection || !tools || !env_mgr)
 	{
@@ -150,10 +174,9 @@ void	execute_simple_command(t_pip *pip, t_tools *tools, t_env_manager *env_mgr)
 		ft_putendl_fd("Empty command", STDERR_FILENO);
 		return;
 	}
-	// Si c'est un builtin, on l'exécute dans le processus parent
+	/* Test si builtin */
 	if (is_builtin(cmd->cmd))
 		execute_builtin(cmd, tools, env_mgr);
 	else
-		// Sinon, c'est un externe => fork + execve
 		execute_external_command(pip, tools, env_mgr);
 }
