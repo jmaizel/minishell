@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/08 10:42:12 by cberganz          #+#    #+#             */
-/*   Updated: 2025/02/08 12:42:56 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/02/08 17:44:16 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/08 17:44:18 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,10 +34,9 @@ int	exec_commands(t_sep *cell, t_tools *tools)
 	init_exec_struct(&exec, tools);
 	exec.pipe_count = count_pipes(cell->pipcell);
 
-	// S'il y a des pipes, utiliser exec_pipeline
 	if (exec.pipe_count > 0)
 		ret = exec_pipeline(cell->pipcell, &exec);
-	else // Sinon, exécuter une commande simple
+	else
 	{
 		if (!cell->pipcell->redirection)
 			cell->pipcell->redirection = parse_redir(cell->pipcell->cmd_pipe);

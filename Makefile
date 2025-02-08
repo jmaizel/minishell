@@ -22,7 +22,7 @@ PARSING_FILES = env.c parse_command_args.c parsing_line.c parsing_pipe.c \
 				count_args.c
 
 EXECUTION_FILES = exec.c exec_cmd.c exec_pipe.c exec_redir.c exec_utils.c \
-				 exec_signals.c exec_error.c
+				 exec_signals.c exec_error.c exec_heredoc.c exec_path.c
 
 MAIN_FILES = main.c
 
@@ -47,7 +47,6 @@ all: $(NAME)
 
 $(NAME): $(OBJS) $(LIBFT)
 	@$(CC) $(CFLAGS) -o $(NAME) $(OBJS) $(LIBS)
-	@echo "\nCompilation complete!"
 
 $(OBJ_DIR)/%.o: ./srcs/%.c | $(OBJ_DIR)
 	@mkdir -p $(dir $@)
@@ -65,12 +64,10 @@ $(LIBFT):
 clean:
 	@rm -rf $(OBJ_DIR)
 	@make clean --no-print-directory -C $(LIBFT_DIR)
-	@echo "Clean complete!"
 
 fclean: clean
 	@rm -f $(NAME)
 	@make fclean --no-print-directory -C $(LIBFT_DIR)
-	@echo "Full clean complete!"
 
 re: fclean all
 

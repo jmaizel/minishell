@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/08 10:42:12 by cberganz          #+#    #+#             */
-/*   Updated: 2025/02/08 14:26:03 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/08 17:42:25 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,6 @@ int		exec_commands(t_sep *cell, t_tools *tools);
 
 /* exec_cmd.c */
 int		exec_simple_cmd(t_pip *cmd, t_exec *exec);
-char	*get_cmd_path(char *cmd, char **cmd_paths);
 
 /* exec_pipe.c */
 int		exec_pipeline(t_pip *pipeline, t_exec *exec);
@@ -57,9 +56,16 @@ void	restore_redirections(t_process *process);
 /* exec_heredoc.c */
 int		handle_heredoc(char *delimiter);
 
+/* exec_signals.c */
+void	setup_parent_signals(void);
+void	setup_child_signals(void);
+
 /* exec_utils.c */
 int		count_pipes(t_pip *pipeline);
 void	close_pipe(int pipe_fd[2]);
 void	wait_all_processes(t_exec *exec, int process_count);
+
+/* exec_path.c */
+char	*get_cmd_path(char *cmd, char **cmd_paths);
 
 #endif

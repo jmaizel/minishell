@@ -1,3 +1,14 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:44:53 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/08 17:44:55 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "../../includes/minishell.h"
 #include "../../includes/execution.h"
@@ -21,32 +32,21 @@ static int	handle_execution(t_tools *tools, char *user_input)
 {
 	t_sep	*cell;
 
-	// Vérification de l'entrée
 	if (!user_input || check_invalid_chars(user_input))
 	{
 		ft_printf("Error: Invalid input\n");
 		return (1);
 	}
-
-	// Créer la cellule pour le parsing
 	cell = create_cell(ft_strdup(user_input));
 	if (!cell)
 		return (1);
-
-	// Parser la ligne
 	parse_pipes(cell);
 
-	// Si le parsing a réussi, exécuter la commande
 	if (cell && cell->pipcell)
 	{
-		// Laisser le parsing afficher ses informations
 		parsing_line(user_input, tools);
-
-		// En parallèle, exécuter la commande
 		exec_commands(cell, tools);
 	}
-
-	// Nettoyer la mémoire
 	free_cell(cell);
 	return (0);
 }

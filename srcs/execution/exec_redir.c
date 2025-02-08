@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/08 10:42:12 by cberganz          #+#    #+#             */
-/*   Updated: 2025/02/08 14:25:45 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/02/08 17:43:39 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/08 17:43:41 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,62 @@ static int	handle_input_redir(t_parsed_cmd *cmd, t_process *process)
 		if (i == cmd->input_count - 1)
 		{
 			process->stdin_backup = dup(STDIN_FILENO);
-			dup2(fd, STDIN_FILENO);
+			if (dup2(fd, STDIN_FILENO) == -1)
+				return (-1);
+		}
+		close(fd);
+		i++;
+	}
+	return (0);
+}
+
+static int	handle_output_redir(t_parsed_cmd *cmd, t_process *process)
+{
+	int	fd;
+	int	i;
+
+	i = 0;
+	while (i < cmd->output_count)
+	{
+		fd = open(cmd->output_file[i], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (fd == -1)
+		{
+			ft_printf("minishell: %s: Permission denied\n",
+				cmd->output_file[i]);
+			return (-1);
+		}
+		if (i == cmd->output_count - 1)
+		{
+			process->stdout_backup = dup(STDOUT_FILENO);
+			if (dup2(fd, STDOUT_FILENO) == -1)
+				return (-1);
+		}
+		close(fd);
+		i++;
+	}
+	return (0);
+}
+
+static int	handle_append_redir(t_parsed_cmd *cmd, t_process *process)
+{
+	int	fd;
+	int	i;
+
+	i = 0;
+	while (i < cmd->append_count)
+	{
+		fd = open(cmd->append_file[i], O_WRONLY | O_CREAT | O_APPEND, 0644);
+		if (fd == -1)
+		{
+			ft_printf("minishell: %s: Permission denied\n",
+				cmd->append_file[i]);
+			return (-1);
+		}
+		if (i == cmd->append_count - 1)
+		{
+			process->stdout_backup = dup(STDOUT_FILENO);
+			if (dup2(fd, STDOUT_FILENO) == -1)
+				return (-1);
 		}
 		close(fd);
 		i++;
@@ -40,18 +95,11 @@ static int	handle_input_redir(t_parsed_cmd *cmd, t_process *process)
 
 static int	handle_heredocs(t_parsed_cmd *cmd, t_process *process)
 {
-	int	i;
-
 	if (cmd->heredoc_count <= 0)
 		return (0);
-
 	process->stdin_backup = dup(STDIN_FILENO);
-	
-	// Gérer le dernier heredoc (les précédents sont ignorés comme dans bash)
-	i = cmd->heredoc_count - 1;
-	if (handle_heredoc(cmd->heredoc_delim[i]) == -1)
+	if (handle_heredoc(cmd->heredoc_delim[cmd->heredoc_count - 1]) == -1)
 		return (-1);
-
 	return (0);
 }
 
@@ -59,19 +107,14 @@ int	setup_redirections(t_parsed_cmd *cmd, t_process *process)
 {
 	if (!cmd)
 		return (0);
-
-	// Gérer les heredocs en premier (comme bash)
 	if (cmd->heredoc_count && handle_heredocs(cmd, process) == -1)
 		return (-1);
-
-	// Gérer les redirections normales
 	if (cmd->input_count && handle_input_redir(cmd, process) == -1)
 		return (-1);
 	if (cmd->output_count && handle_output_redir(cmd, process) == -1)
 		return (-1);
-	if (cmd->append_count && handle_append_redir(cmd) == -1)
+	if (cmd->append_count && handle_append_redir(cmd, process) == -1)
 		return (-1);
-
 	return (0);
 }
 

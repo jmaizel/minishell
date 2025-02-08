@@ -1,19 +1,26 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_signals.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:43:51 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/08 17:43:54 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../../includes/execution.h"
 
-static void	handle_sigint(int sig)
+static void	signal_handler(int sig)
 {
-	(void)sig;
-	write(STDERR_FILENO, "\n", 1);
-	rl_on_new_line();
-	rl_replace_line("", 0);
-	rl_redisplay();
-}
-
-static void	handle_sigint_heredoc(int sig)
-{
-	(void)sig;
-	write(STDERR_FILENO, "\n", 1);
-	exit(130);
+	if (sig == SIGINT)
+	{
+		ft_putchar_fd('\n', STDERR_FILENO);
+		rl_on_new_line();
+		rl_replace_line("", 0);
+		rl_redisplay();
+	}
 }
 
 void	setup_parent_signals(void)
@@ -21,10 +28,12 @@ void	setup_parent_signals(void)
 	struct sigaction	sa;
 
 	ft_memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = &handle_sigint;
+	sa.sa_handler = &signal_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	
 	sigaction(SIGINT, &sa, NULL);
-	sa.sa_handler = SIG_IGN;
-	sigaction(SIGQUIT, &sa, NULL);
+	signal(SIGQUIT, SIG_IGN);      
 }
 
 void	setup_child_signals(void)
@@ -33,17 +42,9 @@ void	setup_child_signals(void)
 
 	ft_memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGQUIT, &sa, NULL);
-}
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
 
-void	setup_heredoc_signals(void)
-{
-	struct sigaction	sa;
-
-	ft_memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = &handle_sigint_heredoc;
-	sigaction(SIGINT, &sa, NULL);
-	sa.sa_handler = SIG_IGN;
-	sigaction(SIGQUIT, &sa, NULL);
+	sigaction(SIGINT, &sa, NULL);   
+	sigaction(SIGQUIT, &sa, NULL);  
 }
