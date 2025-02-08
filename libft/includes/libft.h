@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/08 15:30:29 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/01/31 15:35:11 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/08 12:04:48 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,5 +73,6 @@ t_list			*ft_lstmap(t_list *lst, void *(*f)(void *),
 					void (*del)(void *));
 
 char			**ft_split_pipes(const char *s, char delimiter);
+int				ft_strcmp(const char *s1, const char *s2);
 
 #endif

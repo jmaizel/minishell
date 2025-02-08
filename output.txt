@@ -1,0 +1,9 @@
+Makefile
+README.md
+includes
+libft
+minishell
+objs
+output.txt
+srcs
+test
