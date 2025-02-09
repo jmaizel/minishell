@@ -1,0 +1,80 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_cmd.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:42:30 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/08 17:42:32 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+static void	execute_cmd(t_pip *cmd, t_exec *exec, char *cmd_path)
+{
+	t_cmd_args	*args;
+
+	setup_child_signals();
+
+	if (cmd->redirection)
+	{
+		if (setup_redirections(cmd->redirection, &exec->process) == -1)
+			exit(1);
+	}
+
+	args = parse_command_args(cmd->redirection ? cmd->redirection->cmd
+			: cmd->cmd_pipe);
+	if (!args || !args->argv[0])
+	{
+		if (args)
+			free_cmd_args(args);
+		exit(1);
+	}
+
+	execve(cmd_path, args->argv, exec->tools->env);
+	ft_printf("minishell: %s: command not found\n", args->cmd);
+	free_cmd_args(args);
+	exit(127);
+}
+
+int	exec_simple_cmd(t_pip *cmd, t_exec *exec)
+{
+	char		*cmd_path;
+	int			status;
+	t_cmd_args	*args;
+
+	if (!cmd || (!cmd->cmd_pipe && !cmd->redirection))
+		return (1);
+
+	args = parse_command_args(cmd->redirection ? cmd->redirection->cmd
+			: cmd->cmd_pipe);
+	if (!args || !args->argv[0])
+	{
+		if (args)
+			free_cmd_args(args);
+		return (1);
+	}
+
+	cmd_path = get_cmd_path(args->argv[0], exec->cmd_paths);
+	free_cmd_args(args);
+	if (!cmd_path)
+		return (127);
+
+	exec->process.pid = fork();
+	if (exec->process.pid == -1)
+		return (free(cmd_path), 1);
+
+	if (exec->process.pid == 0)
+		execute_cmd(cmd, exec, cmd_path);
+
+	waitpid(exec->process.pid, &status, 0);
+	free(cmd_path);
+
+	if (WIFEXITED(status))
+		return (WEXITSTATUS(status));
+	if (WIFSIGNALED(status))
+		return (128 + WTERMSIG(status));
+	return (1);
+}

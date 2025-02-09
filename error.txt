@@ -1,0 +1,5 @@
+<infile.txt grep hello | wc -l >outfile1>outfile2
+
+cat << EOF | wc -l
+
+
