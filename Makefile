@@ -23,11 +23,11 @@ PARSING_FILES = env.c parse_command_args.c parsing_line.c parsing_pipe.c \
 				count_args.c
 
 EXECUTION_FILES = exec.c exec_cmd.c exec_pipe.c exec_redir.c exec_utils.c \
-				 exec_signals.c exec_error.c exec_heredoc.c exec_path.c
+				 exec_signals.c exec_error.c exec_heredoc.c exec_path.c exec_builtins.c
 
 MAIN_FILES = main.c
 
-BUILTINS_FILES = 
+BUILTINS_FILES = env.c
 
 SRC_FILES = $(addprefix $(MAIN_DIR)/, $(MAIN_FILES)) \
 			$(addprefix $(PARSING_DIR)/, $(PARSING_FILES)) \
