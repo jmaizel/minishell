@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   sep.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 15:17:10 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/02/03 12:23:51 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/09 14:12:29 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ t_sep	*add_cell(t_sep *list, char *cmd_sep, int pos)
 	return (list);
 }
 
-void	free_cell(t_sep *cell)
+/* void	free_cell(t_sep *cell)
 {
 	t_pip	*current;
 	t_pip	*next;
@@ -83,7 +83,7 @@ void	free_cell(t_sep *cell)
 	if (cell->cmd_sep)
 		free(cell->cmd_sep);
 	free(cell);
-}
+} */
 
 static int	is_invalid_char(char c)
 {
