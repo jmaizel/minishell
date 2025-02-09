@@ -2,4 +2,4 @@
 
 cat << EOF | wc -l
 
-
+Message error command not found
