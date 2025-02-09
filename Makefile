@@ -13,6 +13,7 @@ OBJ_DIR = objs
 PARSING_DIR = ./srcs/parsing
 EXEC_DIR = ./srcs/execution
 MAIN_DIR = ./srcs/main
+BUILTINS_DIR = ./srcs/builtins
 
 LIBS = $(READLINE_LIB) -lreadline -L$(LIBFT_DIR) -lft
 LIBFT = $(LIBFT_DIR)/libft.a
@@ -26,9 +27,12 @@ EXECUTION_FILES = exec.c exec_cmd.c exec_pipe.c exec_redir.c exec_utils.c \
 
 MAIN_FILES = main.c
 
+BUILTINS_FILES = 
+
 SRC_FILES = $(addprefix $(MAIN_DIR)/, $(MAIN_FILES)) \
 			$(addprefix $(PARSING_DIR)/, $(PARSING_FILES)) \
-			$(addprefix $(EXEC_DIR)/, $(EXECUTION_FILES))
+			$(addprefix $(EXEC_DIR)/, $(EXECUTION_FILES)) \
+			$(addprefix $(BUILTINS_DIR)/, $(BUILTINS_FILES))
 
 OBJS = $(SRC_FILES:./srcs/%.c=$(OBJ_DIR)/%.o)
 
@@ -57,6 +61,7 @@ $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)/parsing
 	@mkdir -p $(OBJ_DIR)/execution
 	@mkdir -p $(OBJ_DIR)/main
+	@mkdir -p $(OBJ_DIR)/builtins
 
 $(LIBFT):
 	@make --no-print-directory -C $(LIBFT_DIR)
