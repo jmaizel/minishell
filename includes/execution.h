@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/08 17:42:25 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/09 18:33:01 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,5 +67,10 @@ void	wait_all_processes(t_exec *exec, int process_count);
 
 /* exec_path.c */
 char	*get_cmd_path(char *cmd, char **cmd_paths);
+
+/* exec_builtins.c */
+int		is_builtin(char *cmd);
+int		handle_builtin(t_pip *cmd, t_exec *exec);
+int		execute_builtin(t_cmd_args *args, t_exec *exec);
 
 #endif
