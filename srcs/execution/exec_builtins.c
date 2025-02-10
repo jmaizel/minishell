@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 18:25:25 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/09 18:55:00 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/10 20:00:55 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,8 @@ int	is_builtin(char *cmd)
 {
 	if (!cmd)
 		return (0);
-	if (ft_strcmp(cmd, "env") == 0)
+	if (ft_strcmp(cmd, "env") == 0 || ft_strcmp(cmd, "export") == 0)
 		return (1);
-	else if (ft_strcmp(cmd, "export") == 0)
-		return (1);
-	// Ajoutez d'autres builtins ici
 	return (0);
 }
 
@@ -29,13 +26,10 @@ int	execute_builtin(t_cmd_args *args, t_exec *exec)
 {
 	if (!args || !args->argv[0])
 		return (1);
-
 	if (ft_strcmp(args->argv[0], "env") == 0)
 		return (builtin_env(exec->tools, args->argv));
 	if (ft_strcmp(args->argv[0], "export") == 0)
-   		return (builtin_export(exec->tools, args->argv));
-	// Ajoutez d'autres builtins ici
-
+		return (builtin_export(exec->tools, args->argv));
 	return (1);
 }
 
@@ -44,10 +38,15 @@ int	handle_builtin(t_pip *cmd, t_exec *exec)
 	t_cmd_args	*args;
 	int			ret;
 
-	args = parse_command_args(cmd->redirection ? cmd->redirection->cmd 
-		: cmd->cmd_pipe);
-	if (!args || !args->argv[0])
+	args = parse_command_args(cmd->redirection
+			? cmd->redirection->cmd : cmd->cmd_pipe);
+	if (!args)
 		return (1);
+	if (!args->argv[0])
+	{
+		free_cmd_args(args);
+		return (1);
+	}
 	if (!is_builtin(args->argv[0]))
 	{
 		free_cmd_args(args);

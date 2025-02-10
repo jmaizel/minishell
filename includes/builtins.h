@@ -6,12 +6,12 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 15:26:11 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/10 19:09:19 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/10 20:05:54 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef BUILTINS_H
- #define BUILTINS_H
+# define BUILTINS_H
 
 # include "minishell.h"
 

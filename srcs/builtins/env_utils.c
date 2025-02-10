@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 18:51:19 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/10 19:09:36 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/10 20:04:40 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,64 +44,74 @@ static char	*create_env_string(const char *name, const char *value)
 {
 	char	*new_var;
 	size_t	name_len;
-	size_t	value_len;
+	size_t	val_len;
 	size_t	total_len;
 
 	if (!name || !value)
 		return (NULL);
 	name_len = ft_strlen(name);
-	value_len = ft_strlen(value);
-	total_len = name_len + value_len + 2;
-
+	val_len = ft_strlen(value);
+	total_len = name_len + val_len + 2;
 	new_var = malloc(total_len);
 	if (!new_var)
 		return (NULL);
-
 	ft_strlcpy(new_var, name, name_len + 1);
 	new_var[name_len] = '=';
-	ft_strlcpy(new_var + name_len + 1, value, value_len + 1);
-
+	ft_strlcpy(new_var + name_len + 1, value, val_len + 1);
 	return (new_var);
 }
 
-char	**update_env(char **env, const char *name, const char *value)
+static char	**replace_env_var(char **env, int index,
+		const char *name, const char *value)
 {
-	int		index;
-	int		count;
 	char	*new_var;
+
+	new_var = create_env_string(name, value);
+	if (!new_var)
+		return (env);
+	free(env[index]);
+	env[index] = new_var;
+	return (env);
+}
+
+static char	**append_env_var(char **env, const char *name, const char *value)
+{
 	char	**new_env;
-
-	if (!env || !name || !value)
-		return (env);
-
-	index = find_env_var(env, name);
-	if (index >= 0)
-	{
-		new_var = create_env_string(name, value);
-		if (!new_var)
-			return (env);
-		free(env[index]);
-		env[index] = new_var;
-		return (env);
-	}
+	char	*new_var;
+	int		count;
+	int		i;
 
 	count = count_env_vars(env);
 	new_env = malloc(sizeof(char *) * (count + 2));
 	if (!new_env)
 		return (env);
-
-	ft_memcpy(new_env, env, sizeof(char *) * count);
+	i = 0;
+	while (i < count)
+	{
+		new_env[i] = env[i];
+		i++;
+	}
 	new_var = create_env_string(name, value);
 	if (!new_var)
 	{
 		free(new_env);
 		return (env);
 	}
-
 	new_env[count] = new_var;
 	new_env[count + 1] = NULL;
-	free(env);
 	return (new_env);
+}
+
+char	**update_env(char **env, const char *name, const char *value)
+{
+	int	index;
+
+	if (!env || !name || !value)
+		return (env);
+	index = find_env_var(env, name);
+	if (index >= 0)
+		return (replace_env_var(env, index, name, value));
+	return (append_env_var(env, name, value));
 }
 
 char	*get_env_name(const char *var)

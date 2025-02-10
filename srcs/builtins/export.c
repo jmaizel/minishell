@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 01:30:47 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/10 19:08:47 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/10 20:07:06 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,10 @@ static void	print_sorted_env(char **env)
 	int		j;
 	char	**sorted;
 	char	*tmp;
+	int		count;
 
-	sorted = malloc(sizeof(char *) * (count_env_vars(env) + 1));
+	count = count_env_vars(env);
+	sorted = malloc(sizeof(char *) * (count + 1));
 	if (!sorted)
 		return ;
 	i = -1;
@@ -79,7 +81,6 @@ int	builtin_export(t_tools *tools, char **argv)
 		print_sorted_env(tools->env);
 		return (0);
 	}
-
 	i = 1;
 	while (argv[i])
 	{
@@ -91,7 +92,8 @@ int	builtin_export(t_tools *tools, char **argv)
 		}
 		if (!is_valid_identifier(name))
 		{
-			ft_printf("minishell: export: `%s': not a valid identifier\n", argv[i]);
+			ft_printf("minishell: export: '%s': not a valid identifier\n",
+				argv[i]);
 			free(name);
 			ret = 1;
 			i++;
