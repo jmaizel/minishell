@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 15:26:11 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/09 18:25:48 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/10 19:09:19 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,15 @@
 
 # include "minishell.h"
 
-int	builtin_env(t_tools *tools, char **argv);
+/* Builtins */
+int		builtin_env(t_tools *tools, char **argv);
+int		builtin_export(t_tools *tools, char **argv);
+
+/* Environment utilities */
+int		find_env_var(char **env, const char *name);
+char	**update_env(char **env, const char *name, const char *value);
+char	*get_env_name(const char *var);
+char	*get_env_value(const char *var);
+int		count_env_vars(char **env);
 
 #endif
