@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:44:53 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/08 17:44:55 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/11 21:46:12 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ static void	init_minishell(t_tools *tools, char **env)
 	tools->cmds = NULL;
 }
 
-static void	cleanup_minishell(t_tools *tools)
+void	cleanup_minishell(t_tools *tools)
 {
 	(void)tools;
 	rl_clear_history();

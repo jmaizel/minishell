@@ -123,5 +123,6 @@ void				print_pipe_command(t_pip *pipe_cmd, int pipe_num);
 t_cmd_args			*parse_command_args(char *cmd_str);
 void				print_cmd_args(t_cmd_args *cmd_args);
 void				free_cmd_args(t_cmd_args *cmd_args);
+void				cleanup_minishell(t_tools *tools);
 
 #endif
