@@ -92,6 +92,7 @@ minishell/
   - `env`
   - `export`
   - `unset`
+  - `pwd`
 - **Signaux** :
   - Gestion de `Ctrl+C`, `Ctrl+D`, et `Ctrl+Z`.
 - **Gestion des erreurs** :
