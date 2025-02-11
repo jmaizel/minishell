@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 15:26:11 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/10 20:05:54 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/10 20:17:56 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 /* Builtins */
 int		builtin_env(t_tools *tools, char **argv);
 int		builtin_export(t_tools *tools, char **argv);
+int		builtin_unset(t_tools *tools, char **argv);
 
 /* Environment utilities */
 int		find_env_var(char **env, const char *name);

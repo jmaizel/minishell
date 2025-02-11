@@ -27,7 +27,7 @@ EXECUTION_FILES = exec.c exec_cmd.c exec_pipe.c exec_redir.c exec_utils.c \
 
 MAIN_FILES = main.c
 
-BUILTINS_FILES = env.c export.c env_utils.c
+BUILTINS_FILES = env.c export.c env_utils.c unset.c
 
 SRC_FILES = $(addprefix $(MAIN_DIR)/, $(MAIN_FILES)) \
 			$(addprefix $(PARSING_DIR)/, $(PARSING_FILES)) \
