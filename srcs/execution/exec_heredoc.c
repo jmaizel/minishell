@@ -6,18 +6,16 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:45 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/09 15:20:26 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/12 21:13:54 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/execution.h"
 
-static volatile sig_atomic_t	g_heredoc_signal = 0;
-
 static void	handle_child_signal(int sig)
 {
 	(void)sig;
-	g_heredoc_signal = 1;
+	g_signal_received = 1;
 	write(STDOUT_FILENO, "\n", 1);
 }
 
@@ -50,23 +48,11 @@ static void	setup_parent_heredoc_signals(void)
 	signal(SIGQUIT, SIG_IGN);
 }
 
-static void	restore_signals(void)
-{
-	struct sigaction	sa;
-
-	ft_memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = SIG_DFL;
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGQUIT, &sa, NULL);
-}
-
 static int	write_heredoc_content(int fd, char *delimiter)
 {
 	char	*line;
 
-	while (!g_heredoc_signal)
+	while (!g_signal_received)
 	{
 		line = readline("heredoc> ");
 		if (!line)
@@ -95,6 +81,7 @@ int	handle_heredoc(char *delimiter)
 
 	if (pipe(pipe_fd) == -1)
 		return (-1);
+	g_signal_received = 0;
 	setup_parent_heredoc_signals();
 	pid = fork();
 	if (pid == -1)

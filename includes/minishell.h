@@ -17,6 +17,8 @@
 # include <sys/wait.h>
 # include <unistd.h>
 
+extern int g_signal_received;
+
 typedef struct s_tools
 {
 	char			**env;
@@ -109,8 +111,6 @@ void				parse_pipes(t_sep *cell);
 void				loop_prompt(t_tools *tools, char **env);
 t_sep				*add_cell(t_sep *list, char *cmd_sep, int pos);
 t_sep				*create_cell(char *cmd_sep);
-void				setup_signals(void);
-void				handle_signal(int sig);
 char				*get_user_input(void);
 void				free_str_array(char **array);
 int					ft_isspace(int c);
@@ -124,5 +124,10 @@ t_cmd_args			*parse_command_args(char *cmd_str);
 void				print_cmd_args(t_cmd_args *cmd_args);
 void				free_cmd_args(t_cmd_args *cmd_args);
 void				cleanup_minishell(t_tools *tools);
+
+void				setup_interactive_signals(void);
+void				setup_exec_signals(void);
+void				restore_signals(void);
+char				*get_user_input(void);
 
 #endif
