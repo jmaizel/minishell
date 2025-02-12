@@ -6,7 +6,7 @@
 /*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 18:25:25 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/10 10:34:14 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/12 13:54:11 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@ int	is_builtin(char *cmd)
 		return (1);
 	if (ft_strcmp(cmd, "cd") == 0)
 		return (1);
+		if (ft_strcmp(cmd, "echo") == 0)
+		return (1);
 	// Ajoutez d'autres builtins ici
 	return (0);
 }
@@ -31,6 +33,10 @@ int	execute_builtin(t_cmd_args *args, t_exec *exec)
 		return (1);
 	if (ft_strcmp(args->argv[0], "env") == 0)
 		return (builtin_env(exec->tools, args->argv));
+		if (ft_strcmp(args->argv[0], "cd") == 0)
+		return (builtin_cd(exec->tools, args->argv));
+	if (ft_strcmp(args->argv[0], "echo") == 0)
+		return (builtin_echo(exec->tools, args->argv));
 	// Ajoutez d'autres builtins ici
 	return (1);
 }
