@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 21:12:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/11 21:31:04 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/12 08:24:16 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 static int	is_numeric(const char *str)
 {
-	int i;
+	int	i;
 
 	if (!str || !str[0])
 		return (0);
