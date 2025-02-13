@@ -1,0 +1,2946 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   builtins.h                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/09 15:26:11 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/11 21:27:50 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef BUILTINS_H
+# define BUILTINS_H
+
+# include "minishell.h"
+
+/* Builtins */
+int		builtin_env(t_tools *tools, char **argv);
+int		builtin_export(t_tools *tools, char **argv);
+int		builtin_unset(t_tools *tools, char **argv);
+int		builtin_exit(t_tools *tools, char **argv);
+int   builtin_env(t_tools *tools, char **argv);
+int   builtin_cd(t_tools *tools, char **args);
+int   builtin_echo(t_tools *tools, char **args);
+int   builtin_pwd(t_tools *tools, char **args);
+
+/* Environment utilities */
+int		find_env_var(char **env, const char *name);
+char	**update_env(char **env, const char *name, const char *value);
+char	*get_env_name(const char *var);
+char	*get_env_value(const char *var);
+int		count_env_vars(char **env);
+
+#endif/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   execution.h                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/09 18:33:01 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef EXECUTION_H
+# define EXECUTION_H
+
+# include "minishell.h"
+# include <signal.h>
+# include <sys/wait.h>
+# include <sys/stat.h>
+# include <fcntl.h>
+
+# define PIPE_READ 0
+# define PIPE_WRITE 1
+
+typedef struct s_process
+{
+	pid_t	pid;
+	int		pipe_fd[2];
+	int		stdin_backup;
+	int		stdout_backup;
+}	t_process;
+
+typedef struct s_exec
+{
+	t_tools		*tools;
+	t_process	process;
+	int			exit_status;
+	int			pipe_count;
+	char		**cmd_paths;
+}	t_exec;
+
+/* exec.c */
+void	init_exec_struct(t_exec *exec, t_tools *tools);
+int		exec_commands(t_sep *cell, t_tools *tools);
+
+/* exec_cmd.c */
+int		exec_simple_cmd(t_pip *cmd, t_exec *exec);
+
+/* exec_pipe.c */
+int		exec_pipeline(t_pip *pipeline, t_exec *exec);
+
+/* exec_redir.c */
+int		setup_redirections(t_parsed_cmd *cmd, t_process *process);
+void	restore_redirections(t_process *process);
+
+/* exec_heredoc.c */
+int		handle_heredoc(char *delimiter);
+
+/* exec_signals.c */
+void	setup_parent_signals(void);
+void	setup_child_signals(void);
+
+/* exec_utils.c */
+int		count_pipes(t_pip *pipeline);
+void	close_pipe(int pipe_fd[2]);
+void	wait_all_processes(t_exec *exec, int process_count);
+
+/* exec_path.c */
+char	*get_cmd_path(char *cmd, char **cmd_paths);
+
+/* exec_builtins.c */
+int		is_builtin(char *cmd);
+int		handle_builtin(t_pip *cmd, t_exec *exec);
+int		execute_builtin(t_cmd_args *args, t_exec *exec);
+
+#endif/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   minishell.h                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/13 12:08:50 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/13 15:12:38 by jmaizel          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef MINISHELL_H
+# define MINISHELL_H
+
+# include "../libft/includes/ft_printf.h"
+# include "../libft/includes/libft.h"
+# include <dirent.h>
+# include <errno.h>
+# include <fcntl.h>
+# include <limits.h>
+# include <stdio.h>
+# include <readline/history.h>
+# include <readline/readline.h>
+# include <signal.h>
+# include <stdbool.h>
+# include <stdlib.h>
+# include <string.h>
+# include <sys/wait.h>
+# include <unistd.h>
+
+#define PATH_MAX 4096
+
+extern int	g_signal_received;
+
+typedef struct s_tools
+{
+	char					**env;
+	int						exit_code;
+	struct s_simple_cmds	*cmds;
+	struct s_tokens			*tokens;
+}				t_tools;
+
+typedef struct s_sep
+{
+	char			*cmd_sep;
+	struct s_sep	*prev;
+	struct s_sep	*next;
+	struct s_pip	*pipcell;
+}				t_sep;
+
+typedef struct s_cmd_args
+{
+	char			**argv;
+	int				argc;
+	char			*cmd;
+}				t_cmd_args;
+
+typedef struct s_parsed_cmd
+{
+	char			*full_cmd;
+	char			*cmd;
+	char			**input_file;
+	int				input_count;
+	char			**output_file;
+	int				output_count;
+	char			**append_file;
+	int				append_count;
+	char			**heredoc_delim;
+	int				heredoc_count;
+}				t_parsed_cmd;
+
+typedef struct s_pip
+{
+	char			*cmd_pipe;
+	t_parsed_cmd	*redirection;
+	struct s_pip	*next;
+	struct s_pip	*prev;
+	int				pip_count;
+}				t_pip;
+
+/*
+** Environment functions
+*/
+void			print_env_vars(t_tools *tools);
+char			**get_env_paths(char **env, char *var_name);
+
+/*
+** Parsing functions
+*/
+t_parsed_cmd	*parse_redir(char *input);
+void			parsing_line(char *user_input, t_tools *tools);
+void			free_parsed_cmd(t_parsed_cmd *cmd);
+void			print_parsed_command(t_parsed_cmd *cmd);
+void			parse_pipes(t_sep *cell);
+void			loop_prompt(t_tools *tools, char **env);
+t_sep			*add_cell(t_sep *list, char *cmd_sep, int pos);
+t_sep			*create_cell(char *cmd_sep);
+char			*get_user_input(void);
+void			free_str_array(char **array);
+int				ft_isspace(int c);
+int				check_invalid_chars(const char *cmd);
+char			*clean_quotes(char *str);
+void			free_cell(t_sep *cell);
+int				count_args(char *str);
+void			print_pipe_command(t_pip *pipe_cmd, int pipe_num);
+
+t_cmd_args		*parse_command_args(char *cmd_str);
+void			print_cmd_args(t_cmd_args *cmd_args);
+void			free_cmd_args(t_cmd_args *cmd_args);
+
+/*
+** Cleanup and signal functions
+*/
+void			cleanup_minishell(t_tools *tools);
+void			setup_interactive_signals(void);
+void			setup_exec_signals(void);
+void			restore_signals(void);
+
+/*
+**expansion
+*/
+char    *expand_str(const char *str, t_tools *tools);
+char    *get_var_value(const char *var_name, char **env);
+char    *expand_exit_status(int exit_code);
+
+#endif/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_builtins.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/09 18:25:25 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/12 14:04:45 by jacobmaizel      ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/builtins.h"
+#include "../../includes/execution.h"
+
+int	is_builtin(char *cmd)
+{
+	if (!cmd)
+		return (0);
+	if (ft_strcmp(cmd, "env") == 0)
+    return (1);
+  if (ft_strcmp(cmd, "export") == 0)
+    return (0);
+	if (ft_strcmp(cmd, "unset") == 0)
+    return (0);
+  if (ft_strcmp(cmd, "exit") == 0)
+		return (1);
+	if (ft_strcmp(cmd, "cd") == 0)
+		return (1);
+	if (ft_strcmp(cmd, "echo") == 0)
+		return (1);
+	if (ft_strcmp(cmd, "pwd") == 0)
+		return (1);
+	return (0);
+}
+
+int	execute_builtin(t_cmd_args *args, t_exec *exec)
+{
+	if (!args || !args->argv[0])
+		return (1);
+	if (ft_strcmp(args->argv[0], "env") == 0)
+		return (builtin_env(exec->tools, args->argv));
+	if (ft_strcmp(args->argv[0], "export") == 0)
+		return (builtin_export(exec->tools, args->argv));
+	if (ft_strcmp(args->argv[0], "unset") == 0)
+		return (builtin_unset(exec->tools, args->argv));
+	if (!ft_strcmp(args->argv[0], "exit"))
+		return (builtin_exit(exec->tools, args->argv));
+	if (ft_strcmp(args->argv[0], "cd") == 0)
+		return (builtin_cd(exec->tools, args->argv));
+	if (ft_strcmp(args->argv[0], "echo") == 0)
+		return (builtin_echo(exec->tools, args->argv));
+	if (ft_strcmp(args->argv[0], "pwd") == 0)
+		return (builtin_pwd(exec->tools, args->argv));
+	return (1);
+}
+
+int	handle_builtin(t_pip *cmd, t_exec *exec)
+{
+	t_cmd_args	*args;
+	int			ret;
+
+	args = parse_command_args(cmd->redirection
+			? cmd->redirection->cmd : cmd->cmd_pipe);
+	if (!args)
+		return (1);
+	if (!args->argv[0])
+	{
+		free_cmd_args(args);
+		return (1);
+	}
+	if (!is_builtin(args->argv[0]))
+	{
+		free_cmd_args(args);
+		return (-1);
+	}
+	if (cmd->redirection)
+	{
+		if (setup_redirections(cmd->redirection, &exec->process) == -1)
+		{
+			free_cmd_args(args);
+			return (1);
+		}
+	}
+	ret = execute_builtin(args, exec);
+	if (cmd->redirection)
+		restore_redirections(&exec->process);
+	free_cmd_args(args);
+	return (ret);
+}/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:44:16 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/13 15:42:20 by jmaizel          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+void	init_exec_struct(t_exec *exec, t_tools *tools)
+{
+	exec->tools = tools;
+	exec->exit_status = 0;
+	exec->pipe_count = 0;
+	exec->process.stdin_backup = -1;
+	exec->process.stdout_backup = -1;
+	exec->process.pid = -1;
+	exec->cmd_paths = get_env_paths(tools->env, "PATH");
+}
+
+int	exec_commands(t_sep *cell, t_tools *tools)
+{
+	t_exec	exec;
+	int		ret;
+	char	*expanded_cmd;
+
+	if (!cell || !cell->pipcell)
+		return (1);
+	expanded_cmd = expand_str(cell->pipcell->cmd_pipe, tools);
+	if (expanded_cmd)
+	{
+		free(cell->pipcell->cmd_pipe);
+		cell->pipcell->cmd_pipe = expanded_cmd;
+	}
+	init_exec_struct(&exec, tools);
+	exec.pipe_count = count_pipes(cell->pipcell);
+	if (exec.pipe_count > 0)
+		ret = exec_pipeline(cell->pipcell, &exec);
+	else
+	{
+		if (!cell->pipcell->redirection)
+			cell->pipcell->redirection = parse_redir(cell->pipcell->cmd_pipe);
+		if (cell->pipcell->redirection && cell->pipcell->redirection->cmd)
+		{
+			expanded_cmd = expand_str(cell->pipcell->redirection->cmd, tools);
+			if (expanded_cmd)
+			{
+				free(cell->pipcell->redirection->cmd);
+				cell->pipcell->redirection->cmd = expanded_cmd;
+			}
+		}
+		ret = exec_simple_cmd(cell->pipcell, &exec);
+	}
+	if (exec.cmd_paths)
+		free_str_array(exec.cmd_paths);
+	return (ret);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_cmd.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:42:30 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/13 15:43:51 by jmaizel          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+
+static void    execute_cmd(t_pip *cmd, t_exec *exec, char *cmd_path)
+{
+    t_cmd_args  *args;
+    char        *expanded_cmd;
+
+    setup_child_signals();
+    if (cmd->redirection)
+    {
+        if (setup_redirections(cmd->redirection, &exec->process) == -1)
+            exit(1);
+    }
+
+    if (cmd->redirection)
+        expanded_cmd = expand_str(cmd->redirection->cmd, exec->tools);
+    else
+        expanded_cmd = expand_str(cmd->cmd_pipe, exec->tools);
+
+    if (!expanded_cmd)
+        exit(1);
+
+    args = parse_command_args(expanded_cmd);
+    free(expanded_cmd);
+
+    if (!args || !args->argv[0])
+    {
+        if (args)
+            free_cmd_args(args);
+        exit(1);
+    }
+
+    execve(cmd_path, args->argv, exec->tools->env);
+    ft_printf("minishell: %s: command not found\n", args->cmd);
+    free_cmd_args(args);
+    exit(127);
+}
+
+int    exec_simple_cmd(t_pip *cmd, t_exec *exec)
+{
+    char        *cmd_path;
+    int         status;
+    t_cmd_args  *args;
+    int         builtin_ret;
+    char        *expanded_cmd;
+
+    if (!cmd || (!cmd->cmd_pipe && !cmd->redirection))
+        return (1);
+
+    builtin_ret = handle_builtin(cmd, exec);
+    if (builtin_ret != -1)
+        return (builtin_ret);
+
+    if (cmd->redirection)
+        expanded_cmd = expand_str(cmd->redirection->cmd, exec->tools);
+    else
+        expanded_cmd = expand_str(cmd->cmd_pipe, exec->tools);
+
+    if (!expanded_cmd)
+        return (1);
+
+    args = parse_command_args(expanded_cmd);
+    free(expanded_cmd);
+
+    if (!args || !args->argv[0])
+    {
+        if (args)
+            free_cmd_args(args);
+        return (1);
+    }
+
+    cmd_path = get_cmd_path(args->argv[0], exec->cmd_paths);
+    free_cmd_args(args);
+
+    if (!cmd_path)
+        return (127);
+
+    exec->process.pid = fork();
+    if (exec->process.pid == -1)
+        return (free(cmd_path), 1);
+
+    if (exec->process.pid == 0)
+        execute_cmd(cmd, exec, cmd_path);
+
+    g_signal_received = 0;
+    setup_parent_signals();
+    waitpid(exec->process.pid, &status, 0);
+    restore_signals();
+    free(cmd_path);
+
+    if (WIFSIGNALED(status))
+    {
+        if (WTERMSIG(status) == SIGINT)
+        {
+            ft_putchar_fd('\n', STDERR_FILENO);
+            return (130);
+        }
+        if (WTERMSIG(status) == SIGQUIT)
+        {
+            ft_putstr_fd("Quit (core dumped)\n", STDERR_FILENO);
+            return (131);
+        }
+        return (128 + WTERMSIG(status));
+    }
+    if (WIFEXITED(status))
+        return (WEXITSTATUS(status));
+    return (1);
+}/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_error.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:42:37 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/08 17:42:40 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+void	print_error(char *cmd, char *arg, char *message)
+{
+	ft_putstr_fd("minishell: ", 2);
+	if (cmd)
+	{
+		ft_putstr_fd(cmd, 2);
+		ft_putstr_fd(": ", 2);
+	}
+	if (arg)
+	{
+		ft_putstr_fd(arg, 2);
+		ft_putstr_fd(": ", 2);
+	}
+	if (message)
+		ft_putstr_fd(message, 2);
+	ft_putstr_fd("\n", 2);
+}
+
+int	handle_cmd_error(char *cmd, char *error)
+{
+	print_error(cmd, NULL, error);
+	return (127);
+}
+
+int	handle_file_error(char *cmd, char *file, char *error)
+{
+	print_error(cmd, file, error);
+	return (1);
+}
+
+int	handle_pipe_error(void)
+{
+	print_error(NULL, NULL, "pipe error");
+	return (1);
+}
+
+int	handle_fork_error(void)
+{
+	print_error(NULL, NULL, "fork error");
+	return (1);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_heredoc.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:42:45 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/13 12:35:15 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+static void	handle_child_signal(int sig)
+{
+	(void)sig;
+	g_signal_received = 1;
+}
+
+static void	handle_parent_signal(int sig)
+{
+	(void)sig;
+}
+
+static void	setup_child_heredoc_signals(void)
+{
+	struct sigaction	sa;
+
+	ft_memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = handle_child_signal;
+	sa.sa_flags = 0;
+	sigemptyset(&sa.sa_mask);
+	sigaction(SIGINT, &sa, NULL);
+	signal(SIGQUIT, SIG_IGN);
+}
+
+static void	setup_parent_heredoc_signals(void)
+{
+	struct sigaction	sa;
+
+	ft_memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = handle_parent_signal;
+	sa.sa_flags = 0;
+	sigemptyset(&sa.sa_mask);
+	sigaction(SIGINT, &sa, NULL);
+	signal(SIGQUIT, SIG_IGN);
+}
+
+static char	*append_to_buffer(char *buffer, const char *line)
+{
+	char	*temp;
+	char	*new_buffer;
+
+	temp = ft_strjoin(buffer, line);
+	if (!temp)
+	{
+		free(buffer);
+		return (NULL);
+	}
+	new_buffer = ft_strjoin(temp, "\n");
+	free(temp);
+	if (!new_buffer)
+	{
+		free(buffer);
+		return (NULL);
+	}
+	free(buffer);
+	return (new_buffer);
+}
+
+static int	write_heredoc_content(int fd, char *delimiter)
+{
+	char	*line;
+	char	*buffer;
+
+	buffer = ft_strdup("");
+	if (!buffer)
+		return (-1);
+	while (!g_signal_received)
+	{
+		line = readline("heredoc> ");
+		if (!line || g_signal_received)
+		{
+			free(buffer);
+			free(line);
+			return (-1);
+		}
+		if (ft_strcmp(line, delimiter) == 0)
+		{
+			write(fd, buffer, ft_strlen(buffer));
+			free(line);
+			free(buffer);
+			return (0);
+		}
+		buffer = append_to_buffer(buffer, line);
+		free(line);
+		if (!buffer)
+			return (-1);
+	}
+	free(buffer);
+	return (-1);
+}
+
+int	handle_heredoc(char *delimiter)
+{
+	int		pipe_fd[2];
+	pid_t	pid;
+	int		status;
+
+	if (pipe(pipe_fd) == -1)
+		return (-1);
+	g_signal_received = 0;
+	setup_parent_heredoc_signals();
+	pid = fork();
+	if (pid == -1)
+	{
+		close(pipe_fd[0]);
+		close(pipe_fd[1]);
+		return (-1);
+	}
+	if (pid == 0)
+	{
+		setup_child_heredoc_signals();
+		close(pipe_fd[0]);
+		status = write_heredoc_content(pipe_fd[1], delimiter);
+		close(pipe_fd[1]);
+		if (g_signal_received)
+			ft_putchar_fd('\n', STDERR_FILENO);
+		exit((status == -1) ? 1 : 0);
+	}
+	close(pipe_fd[1]);
+	waitpid(pid, &status, 0);
+	g_signal_received = 0;
+	setup_interactive_signals();
+	if (WIFSIGNALED(status) && WTERMSIG(status) == SIGINT)
+	{
+		close(pipe_fd[0]);
+		g_signal_received = 1;
+		return (-1);
+	}
+	if (WIFSIGNALED(status) || WEXITSTATUS(status) != 0)
+	{
+		close(pipe_fd[0]);
+		return (-1);
+	}
+	dup2(pipe_fd[0], STDIN_FILENO);
+	close(pipe_fd[0]);
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_path.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:43:13 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/08 17:43:15 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+char	*get_cmd_path(char *cmd, char **cmd_paths)
+{
+	char	*temp;
+	char	*cmd_path;
+	int		i;
+
+	if (!cmd || !cmd_paths)
+		return (NULL);
+	if (cmd[0] == '/' || cmd[0] == '.' || cmd[0] == '~')
+	{
+		if (access(cmd, X_OK) == 0)
+			return (ft_strdup(cmd));
+		return (NULL);
+	}
+	i = 0;
+	while (cmd_paths[i])
+	{
+		temp = ft_strjoin(cmd_paths[i], "/");
+		cmd_path = ft_strjoin(temp, cmd);
+		free(temp);
+		if (access(cmd_path, X_OK) == 0)
+			return (cmd_path);
+		free(cmd_path);
+		i++;
+	}
+	return (NULL);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_pipe.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:43:28 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/13 13:55:15 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+static void	close_all_pipes(int pipes[][2], int count)
+{
+	int	i;
+
+	i = 0;
+	while (i < count)
+	{
+		if (pipes[i][0] != -1)
+			close(pipes[i][0]);
+		if (pipes[i][1] != -1)
+			close(pipes[i][1]);
+		i++;
+	}
+}
+
+static void	init_pipes(int pipes[][2], int count)
+{
+	int	i;
+
+	i = 0;
+	while (i < count)
+	{
+		pipes[i][0] = -1;
+		pipes[i][1] = -1;
+		i++;
+	}
+}
+
+static int	setup_pipes(int pipes[][2], int count)
+{
+	int	i;
+
+	init_pipes(pipes, count);
+	i = 0;
+	while (i < count)
+	{
+		if (pipe(pipes[i]) == -1)
+		{
+			close_all_pipes(pipes, i);
+			return (-1);
+		}
+		i++;
+	}
+	return (0);
+}
+
+static void	setup_child_io(int i, int pipes[][2], int pipe_count)
+{
+	if (i > 0)
+	{
+		if (dup2(pipes[i - 1][0], STDIN_FILENO) == -1)
+			exit(1);
+	}
+	if (i < pipe_count)
+	{
+		if (dup2(pipes[i][1], STDOUT_FILENO) == -1)
+			exit(1);
+	}
+	close_all_pipes(pipes, pipe_count);
+}
+
+static void	execute_command(t_pip *cmd, t_exec *exec)
+{
+	t_cmd_args	*args;
+	char		*cmd_path;
+	char		*cmd_to_parse;
+
+	if (!cmd->redirection)
+		cmd->redirection = parse_redir(cmd->cmd_pipe);
+	if (cmd->redirection &&
+		setup_redirections(cmd->redirection, &exec->process) == -1)
+		exit(1);
+	if (cmd->redirection)
+		cmd_to_parse = cmd->redirection->cmd;
+	else
+		cmd_to_parse = cmd->cmd_pipe;
+	args = parse_command_args(cmd_to_parse);
+	if (!args || !args->argv[0])
+	{
+		if (args)
+			free_cmd_args(args);
+		exit(1);
+	}
+	cmd_path = get_cmd_path(args->argv[0], exec->cmd_paths);
+	if (!cmd_path)
+	{
+		ft_printf("minishell: %s: command not found\n", args->argv[0]);
+		free_cmd_args(args);
+		exit(127);
+	}
+	execve(cmd_path, args->argv, exec->tools->env);
+	free(cmd_path);
+	free_cmd_args(args);
+	exit(127);
+}
+
+static int	fork_and_execute(t_pip *cmd, t_exec *exec, int i, int pipes[][2])
+{
+	pid_t	pid;
+
+	pid = fork();
+	if (pid == -1)
+		return (-1);
+	if (pid == 0)
+	{
+		setup_child_signals();
+		setup_child_io(i, pipes, exec->pipe_count);
+		execute_command(cmd, exec);
+	}
+	return (pid);
+}
+
+int	exec_pipeline(t_pip *pipeline, t_exec *exec)
+{
+	int		pipes[1024][2];
+	t_pip	*current;
+	pid_t	*pids;
+	int		i;
+
+	exec->pipe_count = count_pipes(pipeline);
+	if (setup_pipes(pipes, exec->pipe_count) == -1)
+		return (1);
+	pids = malloc(sizeof(pid_t) * (exec->pipe_count + 1));
+	if (!pids)
+	{
+		close_all_pipes(pipes, exec->pipe_count);
+		return (1);
+	}
+	current = pipeline;
+	i = 0;
+	while (current)
+	{
+		pids[i] = fork_and_execute(current, exec, i, pipes);
+		if (pids[i] == -1)
+		{
+			free(pids);
+			close_all_pipes(pipes, exec->pipe_count);
+			return (1);
+		}
+		current = current->next;
+		i++;
+	}
+	close_all_pipes(pipes, exec->pipe_count);
+	wait_all_processes(exec, exec->pipe_count + 1);
+	free(pids);
+	setup_parent_signals();
+	return (exec->exit_status);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_redir.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:43:39 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/13 13:54:04 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+static int	handle_output_redir(char *file, int append)
+{
+	int		fd;
+	int		flags;
+
+	flags = O_WRONLY | O_CREAT;
+	if (append)
+		flags |= O_APPEND;
+	else
+		flags |= O_TRUNC;
+	fd = open(file, flags, 0644);
+	if (fd == -1)
+	{
+		ft_printf("minishell: %s: Permission denied\n", file);
+		return (-1);
+	}
+	if (dup2(fd, STDOUT_FILENO) == -1)
+	{
+		close(fd);
+		return (-1);
+	}
+	close(fd);
+	return (0);
+}
+
+static int	setup_input(t_parsed_cmd *cmd, t_process *process)
+{
+	int	fd;
+
+	if (cmd->heredoc_count > 0)
+	{
+		if (handle_heredoc(cmd->heredoc_delim[cmd->heredoc_count - 1]) == -1)
+			return (-1);
+		process->stdin_backup = dup(STDIN_FILENO);
+	}
+	else if (cmd->input_count > 0)
+	{
+		fd = open(cmd->input_file[cmd->input_count - 1], O_RDONLY);
+		if (fd == -1)
+		{
+			ft_printf("minishell: %s: No such file or directory\n",
+				cmd->input_file[cmd->input_count - 1]);
+			return (-1);
+		}
+		process->stdin_backup = dup(STDIN_FILENO);
+		if (dup2(fd, STDIN_FILENO) == -1)
+		{
+			close(fd);
+			return (-1);
+		}
+		close(fd);
+	}
+	return (0);
+}
+
+int	setup_redirections(t_parsed_cmd *cmd, t_process *process)
+{
+	if (!cmd)
+		return (0);
+	process->stdin_backup = -1;
+	process->stdout_backup = -1;
+	if (setup_input(cmd, process) == -1)
+		return (-1);
+	if (cmd->append_count > 0 || cmd->output_count > 0)
+	{
+		process->stdout_backup = dup(STDOUT_FILENO);
+		if (cmd->append_count > 0)
+		{
+			if (handle_output_redir(cmd->append_file[cmd->append_count - 1], 1)
+				== -1)
+				return (-1);
+		}
+		else
+		{
+			if (handle_output_redir(cmd->output_file[cmd->output_count - 1], 0)
+				== -1)
+				return (-1);
+		}
+	}
+	return (0);
+}
+
+void	restore_redirections(t_process *process)
+{
+	if (process->stdin_backup != -1)
+	{
+		dup2(process->stdin_backup, STDIN_FILENO);
+		close(process->stdin_backup);
+		process->stdin_backup = -1;
+	}
+	if (process->stdout_backup != -1)
+	{
+		dup2(process->stdout_backup, STDOUT_FILENO);
+		close(process->stdout_backup);
+		process->stdout_backup = -1;
+	}
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_signals.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:43:51 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/13 13:57:06 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+static void	signal_handler(int sig)
+{
+	if (sig == SIGINT)
+	{
+		ft_putchar_fd('\n', STDERR_FILENO);
+		rl_on_new_line();
+		rl_replace_line("", 0);
+		rl_redisplay();
+	}
+}
+
+void	setup_parent_signals(void)
+{
+	struct sigaction	sa;
+
+	ft_memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = signal_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	sigaction(SIGINT, &sa, NULL);
+	signal(SIGQUIT, SIG_IGN);
+}
+
+void	setup_child_signals(void)
+{
+	struct sigaction	sa;
+
+	ft_memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = SIG_DFL;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_utils.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:44:02 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/08 17:44:04 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+int	count_pipes(t_pip *pipeline)
+{
+	int		count;
+	t_pip	*current;
+
+	count = 0;
+	current = pipeline;
+	while (current && current->next)
+	{
+		count++;
+		current = current->next;
+	}
+	return (count);
+}
+
+void	close_pipe(int pipe_fd[2])
+{
+	if (pipe_fd[PIPE_READ] != -1)
+		close(pipe_fd[PIPE_READ]);
+	if (pipe_fd[PIPE_WRITE] != -1)
+		close(pipe_fd[PIPE_WRITE]);
+}
+
+void	wait_all_processes(t_exec *exec, int process_count)
+{
+	int	i;
+	int	status;
+
+	i = 0;
+	while (i < process_count)
+	{
+		if (wait(&status) == exec->process.pid)
+		{
+			if (WIFEXITED(status))
+				exec->exit_status = WEXITSTATUS(status);
+			else if (WIFSIGNALED(status))
+				exec->exit_status = WTERMSIG(status) + 128;
+		}
+		i++;
+	}
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   cd.c                                               :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/10 10:04:22 by jacobmaizel       #+#    #+#             */
+/*   Updated: 2025/02/13 15:05:37 by jmaizel          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/builtins.h"
+#include "../includes/minishell.h"
+
+static char	*expand_home_path(char *path)
+{
+	char	*home;
+
+	if (!path || path[0] != '~')
+		return (ft_strdup(path));
+	home = getenv("HOME");
+	if (!home)
+		return (ft_strdup(path));
+	if (path[1] == '\0')
+		return (ft_strdup(home));
+	else if (path[1] == '/')
+		return (ft_strjoin(home, path + 1));
+	return (ft_strdup(path));
+}
+static void	update_pwd_vars(t_tools *tools)
+{
+	char	current_pwd[PATH_MAX];
+	char	*new_pwd;
+	int		pwd_idx;
+
+	pwd_idx = find_env_var(tools->env, "PWD");
+	if (pwd_idx != -1 && getcwd(current_pwd, PATH_MAX))
+	{
+		new_pwd = ft_strjoin("PWD=", current_pwd);
+		if (new_pwd)
+		{
+			tools->env[pwd_idx] = new_pwd;
+		}
+	}
+}
+
+int	builtin_cd(t_tools *tools, char **args)
+{
+	char	*path;
+	char	*expanded_path;
+	int		ret;
+
+	if (!args[1])
+	{
+		path = getenv("HOME");
+		if (!path)
+			return (ft_printf("minishell: cd: HOME not set\n"), 1);
+		expanded_path = ft_strdup(path);
+	}
+	else
+		expanded_path = expand_home_path(args[1]);
+	if (!expanded_path)
+		return (1);
+	ret = chdir(expanded_path);
+	if (ret == -1)
+	{
+		ft_printf("minishell: cd: %s: %s\n", expanded_path, strerror(errno));
+		free(expanded_path);
+		return (1);
+	}
+	free(expanded_path);
+	update_pwd_vars(tools);
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   echo.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/12 13:45:41 by jacobmaizel       #+#    #+#             */
+/*   Updated: 2025/02/12 13:55:02 by jacobmaizel      ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/builtins.h"
+#include "../includes/minishell.h"
+
+static int	is_valid_n_option(char *str)
+{
+	int	i;
+
+	if (!str || str[0] != '-' || str[1] != 'n')
+		return (0);
+	i = 2;
+	while (str[i])
+	{
+		while (str[i] == 'n')
+			i++;
+		if (str[i] == 'e')
+		{
+			while (str[i] == 'e')
+				i++;
+		}
+	}
+	return (1);
+}
+int	builtin_echo(t_tools *tools, char **args)
+{
+	int i;
+	int n_flag;
+
+	(void)tools;
+	n_flag = 0;
+	i = 1;
+
+	// on verifife si il ya le -n ou -nn ou - nnn etc
+	while (args[i] && is_valid_n_option(args[i]))
+	{
+		n_flag = 1;
+		i++;
+	}
+	// affichage des arguments
+	while (args[i])
+	{
+		ft_printf("%s", args[i]);
+		if (args[i + 1])
+			ft_printf(" ");
+		i++;
+	}
+	// on ajoute un retour a la ligne sauf si -n est present
+	if (!n_flag)
+		ft_printf("\n");
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   env.c                                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/09 18:20:19 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/10 20:06:47 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/minishell.h"
+
+int	builtin_env(t_tools *tools, char **argv)
+{
+	int	i;
+
+	if (argv[1] != NULL)
+	{
+		ft_putstr_fd("env: no options or arguments are supported\n", 2);
+		return (1);
+	}
+	i = 0;
+	while (tools->env && tools->env[i])
+	{
+		ft_putendl_fd(tools->env[i], 1);
+		i++;
+	}
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   env_utils.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/09 18:51:19 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/10 20:04:40 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+int	count_env_vars(char **env)
+{
+	int	i;
+
+	i = 0;
+	while (env && env[i])
+		i++;
+	return (i);
+}
+
+int	find_env_var(char **env, const char *name)
+{
+	int		i;
+	size_t	len;
+
+	if (!env || !name)
+		return (-1);
+	len = ft_strlen(name);
+	i = 0;
+	while (env[i])
+	{
+		if (ft_strncmp(env[i], name, len) == 0 && env[i][len] == '=')
+			return (i);
+		i++;
+	}
+	return (-1);
+}
+
+static char	*create_env_string(const char *name, const char *value)
+{
+	char	*new_var;
+	size_t	name_len;
+	size_t	val_len;
+	size_t	total_len;
+
+	if (!name || !value)
+		return (NULL);
+	name_len = ft_strlen(name);
+	val_len = ft_strlen(value);
+	total_len = name_len + val_len + 2;
+	new_var = malloc(total_len);
+	if (!new_var)
+		return (NULL);
+	ft_strlcpy(new_var, name, name_len + 1);
+	new_var[name_len] = '=';
+	ft_strlcpy(new_var + name_len + 1, value, val_len + 1);
+	return (new_var);
+}
+
+static char	**replace_env_var(char **env, int index,
+		const char *name, const char *value)
+{
+	char	*new_var;
+
+	new_var = create_env_string(name, value);
+	if (!new_var)
+		return (env);
+	free(env[index]);
+	env[index] = new_var;
+	return (env);
+}
+
+static char	**append_env_var(char **env, const char *name, const char *value)
+{
+	char	**new_env;
+	char	*new_var;
+	int		count;
+	int		i;
+
+	count = count_env_vars(env);
+	new_env = malloc(sizeof(char *) * (count + 2));
+	if (!new_env)
+		return (env);
+	i = 0;
+	while (i < count)
+	{
+		new_env[i] = env[i];
+		i++;
+	}
+	new_var = create_env_string(name, value);
+	if (!new_var)
+	{
+		free(new_env);
+		return (env);
+	}
+	new_env[count] = new_var;
+	new_env[count + 1] = NULL;
+	return (new_env);
+}
+
+char	**update_env(char **env, const char *name, const char *value)
+{
+	int	index;
+
+	if (!env || !name || !value)
+		return (env);
+	index = find_env_var(env, name);
+	if (index >= 0)
+		return (replace_env_var(env, index, name, value));
+	return (append_env_var(env, name, value));
+}
+
+char	*get_env_name(const char *var)
+{
+	char	*eq_pos;
+
+	if (!var)
+		return (NULL);
+	eq_pos = ft_strchr(var, '=');
+	if (!eq_pos)
+		return (ft_strdup(var));
+	return (ft_substr(var, 0, eq_pos - var));
+}
+
+char	*get_env_value(const char *var)
+{
+	char	*eq_pos;
+
+	if (!var)
+		return (NULL);
+	eq_pos = ft_strchr(var, '=');
+	if (!eq_pos)
+		return (NULL);
+	return (ft_strdup(eq_pos + 1));
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exit.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/11 21:12:12 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/12 08:24:16 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/builtins.h"
+
+static int	is_numeric(const char *str)
+{
+	int	i;
+
+	if (!str || !str[0])
+		return (0);
+	i = 0;
+	if (str[i] == '+' || str[i] == '-')
+		i++;
+	while (str[i])
+	{
+		if (!ft_isdigit(str[i]))
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+int	builtin_exit(t_tools *tools, char **argv)
+{
+	int	exit_status;
+
+	ft_putendl_fd("exit", 1);
+	if (argv[1])
+	{
+		if (!is_numeric(argv[1]))
+		{
+			ft_putstr_fd("exit: ", 2);
+			ft_putstr_fd(argv[1], 2);
+			ft_putendl_fd(": numeric argument required", 2);
+			exit_status = 2;
+		}
+		else
+		{
+			exit_status = ft_atoi(argv[1]);
+			if (argv[2])
+			{
+				ft_putendl_fd("exit: too many arguments", 2);
+				return (1);
+			}
+		}
+	}
+	else
+		exit_status = tools->exit_code;
+	cleanup_minishell(tools);
+	exit(exit_status);
+	return (exit_status);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   export.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/09 01:30:47 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/10 20:18:39 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/minishell.h"
+#include "../../includes/builtins.h"
+
+static int	is_valid_identifier(const char *str)
+{
+	int	i;
+
+	if (!str || !*str || ft_isdigit(*str))
+		return (0);
+	i = 0;
+	while (str[i] && str[i] != '=')
+	{
+		if (!ft_isalnum(str[i]) && str[i] != '_')
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+static void	print_sorted_env(char **env)
+{
+	int		i;
+	int		j;
+	char	**sorted;
+	char	*tmp;
+	int		count;
+
+	count = count_env_vars(env);
+	sorted = malloc(sizeof(char *) * (count + 1));
+	if (!sorted)
+		return ;
+	i = -1;
+	while (env[++i])
+		sorted[i] = ft_strdup(env[i]);
+	sorted[i] = NULL;
+	i = -1;
+	while (sorted[++i] && sorted[i + 1])
+	{
+		j = i;
+		while (sorted[++j])
+		{
+			if (ft_strcmp(sorted[i], sorted[j]) > 0)
+			{
+				tmp = sorted[i];
+				sorted[i] = sorted[j];
+				sorted[j] = tmp;
+			}
+		}
+	}
+	i = -1;
+	while (sorted[++i])
+	{
+		ft_printf("declare -x %s\n", sorted[i]);
+		free(sorted[i]);
+	}
+	free(sorted);
+}
+
+int	builtin_export(t_tools *tools, char **argv)
+{
+	int		i;
+	char	*name;
+	char	*value;
+	int		ret;
+
+	ret = 0;
+	if (!argv[1])
+	{
+		print_sorted_env(tools->env);
+		return (0);
+	}
+	i = 1;
+	while (argv[i])
+	{
+		name = get_env_name(argv[i]);
+		if (!name)
+		{
+			i++;
+			continue ;
+		}
+		if (!is_valid_identifier(name))
+		{
+			ft_printf("minishell: export: '%s': not a valid identifier\n",
+				argv[i]);
+			free(name);
+			ret = 1;
+			i++;
+			continue ;
+		}
+		value = get_env_value(argv[i]);
+		if (value)
+		{
+			tools->env = update_env(tools->env, name, value);
+			free(value);
+		}
+		free(name);
+		i++;
+	}
+	return (ret);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   pwd.c                                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/12 13:59:46 by jacobmaizel       #+#    #+#             */
+/*   Updated: 2025/02/12 14:09:13 by jacobmaizel      ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/builtins.h"
+#include "../includes/minishell.h"
+
+// fonction pour gerer pwd :
+// 1. PATH_MAX est une constante systeme qui definit la longueur maximale
+// d un chemin (generalement 4096)
+// 2. getcwd est une fonction systeme qui stock le chemin et renvoie NULL en
+// cas d erreur
+// 3.strerror(errno) converti le code d erreur en message
+int	builtin_pwd(t_tools *tools, char **args)
+{
+	char	current_pwd[PATH_MAX];
+
+	(void)args;
+	(void)tools;
+	if (!getcwd(current_pwd, PATH_MAX))
+	{
+		ft_printf("pwd: %s\n", strerror(errno));
+		return (1);
+	}
+	ft_printf("%s\n", current_pwd);
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   unset.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/10 20:18:28 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/10 20:31:46 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/builtins.h"
+
+static int	is_invalid_identifier(const char *str)
+{
+	int	i;
+
+	if (!str || (!ft_isalpha(str[0]) && str[0] != '_'))
+		return (1);
+	i = 1;
+	while (str[i])
+	{
+		if (!ft_isalnum(str[i]) && str[i] != '_')
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
+static void	remove_env_var(char **env, int index)
+{
+	free(env[index]);
+	while (env[index + 1])
+	{
+		env[index] = env[index + 1];
+		index++;
+	}
+	env[index] = NULL;
+}
+
+int	builtin_unset(t_tools *tools, char **argv)
+{
+	int		i;
+	int		env_idx;
+
+	i = 1;
+	while (argv[i])
+	{
+		if (is_invalid_identifier(argv[i]))
+		{
+			ft_putstr_fd("minishell: unset: `", 2);
+			ft_putstr_fd(argv[i], 2);
+			ft_putstr_fd("': not a valid identifier\n", 2);
+		}
+		else
+		{
+			env_idx = find_env_var(tools->env, argv[i]);
+			if (env_idx >= 0)
+				remove_env_var(tools->env, env_idx);
+		}
+		i++;
+	}
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:44:53 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/13 13:58:06 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/minishell.h"
+#include "../../includes/execution.h"
+
+static void	init_minishell(t_tools *tools, char **env)
+{
+	ft_memset(tools, 0, sizeof(t_tools));
+	tools->env = env;
+	tools->exit_code = 0;
+	tools->tokens = NULL;
+	tools->cmds = NULL;
+}
+
+void	cleanup_minishell(t_tools *tools)
+{
+	(void)tools;
+	rl_clear_history();
+}
+
+static int	handle_execution(t_tools *tools, char *user_input)
+{
+	t_sep	*cell;
+
+	if (!user_input || check_invalid_chars(user_input))
+	{
+		ft_printf("Error: Invalid input\n");
+		return (1);
+	}
+	cell = create_cell(ft_strdup(user_input));
+	if (!cell)
+		return (1);
+	parse_pipes(cell);
+	if (cell && cell->pipcell)
+	{
+		setup_exec_signals();
+		parsing_line(user_input, tools);
+		exec_commands(cell, tools);
+		restore_signals();
+	}
+	free_cell(cell);
+	return (0);
+}
+
+int	main(int argc, char **argv, char **env)
+{
+	t_tools	tools;
+	char	*user_input;
+
+	(void)argc;
+	(void)argv;
+	init_minishell(&tools, env);
+	setup_interactive_signals();
+	while (1)
+	{
+		g_signal_received = 0;
+		user_input = get_user_input();
+		if (!user_input || !ft_strncmp(user_input, "exit", 5))
+		{
+			if (user_input)
+				free(user_input);
+			break ;
+		}
+		if (user_input[0] != '\0')
+			handle_execution(&tools, user_input);
+		free(user_input);
+	}
+	cleanup_minishell(&tools);
+	return (tools.exit_code);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   count_args.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/03 12:07:09 by jacobmaizel       #+#    #+#             */
+/*   Updated: 2025/02/04 10:40:47 by jmaizel          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/minishell.h"
+
+int	count_args(char *str)
+{
+	int		count;
+	int		i;
+	int		in_quotes;
+	char	quote_type;
+	int		in_word;
+
+	count = 0;
+	i = 0;
+	in_quotes = 0;
+	in_word = 0;
+	while (str[i])
+	{
+		if (!in_quotes && (str[i] == '"' || str[i] == '\''))
+		{
+			quote_type = str[i];
+			in_quotes = 1;
+			if (!in_word)
+			{
+				count++;
+				in_word = 1;
+			}
+		}
+		else if (in_quotes && str[i] == quote_type)
+			in_quotes = 0;
+		else if (!in_quotes && ft_isspace(str[i]))
+			in_word = 0;
+		else if (!in_word)
+		{
+			count++;
+			in_word = 1;
+		}
+		i++;
+	}
+	return (count);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   env.c                                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/16 13:06:11 by jacobmaizel       #+#    #+#             */
+/*   Updated: 2025/01/20 11:24:09 by jacobmaizel      ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "minishell.h"
+
+void	print_env_vars(t_tools *tools)
+{
+	char	**current_env;
+
+	current_env = tools->env;
+	while (*current_env)
+	{
+		ft_printf("%s\n", *current_env);
+		current_env++;
+	}
+}
+
+char	**get_env_paths(char **env, char *var_name)
+{
+	int		i;
+	char	*value;
+	char	**paths;
+
+	i = 0;
+	while (env[i])
+	{
+		if (ft_strncmp(env[i], var_name, ft_strlen(var_name)) == 0)
+		{
+			value = env[i] + ft_strlen(var_name) + 1;
+			paths = ft_split(value, ':');
+			return (paths);
+		}
+		i++;
+	}
+	return (NULL);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   expansion.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/13 13:47:02 by jmaizel           #+#    #+#             */
+/*   Updated: 2025/02/13 15:36:37 by jmaizel          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/minishell.h"
+
+static int  get_var_length(const char *str)
+{
+    int i;
+
+    if (!str || !*str)
+        return (0);
+
+    i = 0;
+    if (str[i] == '?')
+        return (1);
+
+    // Premier caractère doit être une lettre ou underscore
+    if (!ft_isalpha(str[i]) && str[i] != '_')
+        return (0);
+    i++;
+
+    // Caractères suivants peuvent être alphanumérique ou underscore
+    while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
+        i++;
+
+    return (i);
+}
+
+char    *get_var_value(const char *var_name, char **env)
+{
+    int     i;
+    size_t  len;
+
+    if (!var_name || !env)
+        return (ft_strdup(""));  // Retourne une chaîne vide si entrée invalide
+
+    len = ft_strlen(var_name);
+    if (len == 0)
+        return (ft_strdup(""));
+
+    i = 0;
+    while (env[i])
+    {
+        if (ft_strncmp(env[i], var_name, len) == 0 && env[i][len] == '=')
+        {
+            char *value = env[i] + len + 1;
+            if (!value)
+                return (ft_strdup(""));
+            return (ft_strdup(value));
+        }
+        i++;
+    }
+    return (ft_strdup(""));
+}
+char	*expand_exit_status(int exit_code)
+{
+	char	*result;
+	int		i;
+
+	char temp[12]; // assez grand pour un int
+	i = 0;
+	if (exit_code == 0)
+		temp[i++] = '0';
+	else
+	{
+		while (exit_code > 0)
+		{
+			temp[i++] = (exit_code % 10) + '0';
+			exit_code /= 10;
+		}
+	}
+	temp[i] = '\0';
+	result = ft_strdup(temp);
+	return (result);
+}
+char    *expand_str(const char *str, t_tools *tools)
+{
+    char    *result;
+    int     i;
+    int     j;
+    int     in_quotes;
+
+    if (!str || !tools || !tools->env)
+        return (ft_strdup(""));  // Retourne une chaîne vide si entrée invalide
+
+    result = malloc(sizeof(char) * (ft_strlen(str) * 2 + 1));
+    if (!result)
+        return (NULL);
+
+    i = 0;
+    j = 0;
+    in_quotes = 0;
+
+    while (str[i])
+    {
+        // Pour les simples quotes
+        if (str[i] == '\'' && !in_quotes)
+            in_quotes = 1;
+        else if (str[i] == '\'' && in_quotes)
+            in_quotes = 0;
+        // Pour l'expansion
+        else if (str[i] == '$' && !in_quotes)
+        {
+            if (!str[i + 1])  // Si $ est le dernier caractère
+            {
+                result[j++] = str[i++];
+                continue;
+            }
+            i++;  // Skip the $
+            
+            // Pour $?
+            if (str[i] == '?')
+            {
+                char *exit_str = expand_exit_status(tools->exit_code);
+                if (exit_str)
+                {
+                    size_t len = ft_strlen(exit_str);
+                    ft_memcpy(&result[j], exit_str, len);
+                    j += len;
+                    free(exit_str);
+                }
+                i++;
+            }
+            // Pour les variables d'environnement
+            else if (ft_isalpha(str[i]) || str[i] == '_')
+            {
+                int var_len = get_var_length(&str[i]);
+                if (var_len > 0)
+                {
+                    char *var_name = ft_substr(str, i, var_len);
+                    if (var_name)
+                    {
+                        char *value = get_var_value(var_name, tools->env);
+                        if (value)
+                        {
+                            size_t len = ft_strlen(value);
+                            ft_memcpy(&result[j], value, len);
+                            j += len;
+                            free(value);
+                        }
+                        free(var_name);
+                    }
+                    i += var_len;
+                }
+                else
+                    i++;
+            }
+            else
+                result[j++] = '$';
+        }
+        else
+            result[j++] = str[i++];
+    }
+    result[j] = '\0';
+    return (result);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parse_command_args.c                               :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/31 11:38:29 by jmaizel           #+#    #+#             */
+/*   Updated: 2025/02/09 14:16:54 by jmaizel          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/minishell.h"
+
+t_cmd_args	*parse_command_args(char *cmd_str)
+{
+	t_cmd_args	*cmd_args;
+	int			i;
+	int			j;
+	int			start;
+	int			in_quotes;
+	char		quote_type;
+	char		**args;
+
+	if (!cmd_str)
+		return (NULL);
+	cmd_args = malloc(sizeof(t_cmd_args));
+	if (!cmd_args)
+		return (NULL);
+	args = malloc(sizeof(char *) * (count_args(cmd_str) + 1));
+	if (!args)
+	{
+		free(cmd_args);
+		return (NULL);
+	}
+	i = 0;
+	j = 0;
+	while (cmd_str[i])
+	{
+		while (ft_isspace(cmd_str[i]))
+			i++;
+		if (!cmd_str[i])
+			break ;
+		start = i;
+		in_quotes = 0;
+		while (cmd_str[i])
+		{
+			if (!in_quotes && (cmd_str[i] == '"' || cmd_str[i] == '\''))
+			{
+				quote_type = cmd_str[i];
+				in_quotes = 1;
+				i++;
+				continue ;
+			}
+			if (in_quotes && cmd_str[i] == quote_type)
+			{
+				in_quotes = 0;
+				i++;
+				continue ;
+			}
+			if (!in_quotes && ft_isspace(cmd_str[i]))
+				break ;
+			i++;
+		}
+		args[j++] = clean_quotes(ft_substr(cmd_str, start, i - start));
+	}
+	args[j] = NULL;
+	cmd_args->argv = args;
+	cmd_args->cmd = ft_strdup(args[0]);
+	cmd_args->argc = j;
+	return (cmd_args);
+}
+
+void	print_cmd_args(t_cmd_args *cmd_args)
+{
+	int	i;
+
+	printf("Command: [%s]\n", cmd_args->cmd);
+	printf("Arguments:\n");
+	i = 0;
+	while (i < cmd_args->argc)
+	{
+		printf(" %d: [%s]\n", i, cmd_args->argv[i]);
+		i++;
+	}
+}
+
+void	free_cmd_args(t_cmd_args *cmd_args)
+{
+	if (!cmd_args)
+	{
+		return ;
+	}
+
+	if (cmd_args->cmd)
+		free(cmd_args->cmd);
+
+	if (cmd_args->argv)
+	{
+		int i = 0;
+		while (i < cmd_args->argc)
+		{
+			if (cmd_args->argv[i])
+			{
+				free(cmd_args->argv[i]);
+			}
+			i++;
+		}
+		free(cmd_args->argv);
+	}
+
+	free(cmd_args);
+}/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parsing_line.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/30 13:30:33 by jmaizel           #+#    #+#             */
+/*   Updated: 2025/02/13 15:22:22 by jmaizel          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/minishell.h"
+
+void	print_parsed_command(t_parsed_cmd *cmd)
+{
+	int	j;
+	int	k;
+	int	l;
+	int	i;
+
+	printf(" parsing results:\n");
+	printf(" Full command: [%s]\n", cmd->full_cmd);
+	if (cmd->input_count > 0)
+	{
+		printf(" Input File:\n");
+		j = 0;
+		while (j < cmd->input_count)
+		{
+			printf(" %d: [%s]\n", j + 1, cmd->input_file[j]);
+			j++;
+		}
+	}
+	if (cmd->output_count > 0)
+	{
+		printf(" Output File:\n");
+		k = 0;
+		while (k < cmd->output_count)
+		{
+			printf(" %d: [%s]\n", k + 1, cmd->output_file[k]);
+			k++;
+		}
+	}
+	if (cmd->append_count > 0)
+	{
+		printf(" Append File:\n");
+		l = 0;
+		while (l < cmd->append_count)
+		{
+			printf(" %d: [%s]\n", l + 1, cmd->append_file[l]);
+			l++;
+		}
+	}
+	if (cmd->heredoc_count > 0)
+	{
+		printf(" Heredoc Delimiters:\n");
+		i = 0;
+		while (i < cmd->heredoc_count)
+		{
+			printf(" %d: [%s]\n", i + 1, cmd->heredoc_delim[i]);
+			i++;
+		}
+	}
+}
+
+void	free_parsed_cmd(t_parsed_cmd *cmd)
+{
+	int	i;
+
+	if (!cmd)
+		return ;
+	free(cmd->full_cmd);
+	free(cmd->cmd);
+	i = 0;
+	while (i < cmd->input_count)
+	{
+		free(cmd->input_file[i]);
+		i++;
+	}
+	free(cmd->input_file);
+	i = 0;
+	while (i < cmd->output_count)
+	{
+		free(cmd->output_file[i]);
+		i++;
+	}
+	free(cmd->output_file);
+	i = 0;
+	while (i < cmd->append_count)
+	{
+		free(cmd->append_file[i]);
+		i++;
+	}
+	free(cmd->append_file);
+	i = 0;
+	while (i < cmd->heredoc_count)
+	{
+		free(cmd->heredoc_delim[i]);
+		i++;
+	}
+	free(cmd->heredoc_delim);
+	free(cmd);
+}
+
+void	free_cell(t_sep *cell)
+{
+	t_pip	*current;
+	t_pip	*next;
+
+	if (!cell)
+	{
+		return ;
+	}
+	current = cell->pipcell;
+	while (current)
+	{
+		next = current->next;
+		if (current->cmd_pipe)
+			free(current->cmd_pipe);
+		free(current);
+		current = next;
+	}
+	if (cell->cmd_sep)
+		free(cell->cmd_sep);
+	free(cell);
+}
+void    parsing_line(char *user_input, t_tools *tools)
+{
+    t_sep           *cell;
+    t_pip           *current;
+    t_cmd_args      *cmd_args;
+    t_parsed_cmd    *parsed_cmd;
+
+    if (!user_input || check_invalid_chars(user_input))
+        return ;
+    (void)tools;
+
+    cell = create_cell(ft_strdup(user_input));
+    if (!cell)
+        return ;
+
+    parse_pipes(cell);
+    current = cell->pipcell;
+    while (current && current->cmd_pipe)
+    {
+        parsed_cmd = parse_redir(current->cmd_pipe);
+        if (parsed_cmd)
+        {
+            print_parsed_command(parsed_cmd);
+            if (parsed_cmd->cmd && *(parsed_cmd->cmd) != '\0')
+            {
+                cmd_args = parse_command_args(parsed_cmd->cmd);
+                if (cmd_args)
+                {
+                    print_cmd_args(cmd_args);
+                    free_cmd_args(cmd_args);
+                }
+            }
+            free_parsed_cmd(parsed_cmd);
+        }
+        current = current->next;
+    }
+    free_cell(cell);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parsing_pipe.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/27 13:04:29 by jmaizel           #+#    #+#             */
+/*   Updated: 2025/02/03 12:52:47 by jacobmaizel      ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "minishell.h"
+
+// fonction qui va parser les pipes :
+// 1. fait un split pour separer les commandes par pipes
+// 2. ensuite on parcours ces commandes et on creer une cellule pour chaque commande
+// 3. on parser les redirections
+// 4. on finit par stcoker la liste des pipes dans la cellule
+void	parse_pipes(t_sep *cell)
+{
+	char	**pipe_commands;
+	t_pip	*current;
+	int		i;
+	t_pip	*new_pipe;
+
+	if (!cell || !cell->cmd_sep)
+		return ;
+	pipe_commands = ft_split_pipes(cell->cmd_sep, '|');
+	if (!pipe_commands)
+		return ;
+	i = 0;
+	cell->pipcell = NULL;
+	while (pipe_commands[i])
+	{
+		new_pipe = malloc(sizeof(t_pip));
+		if (!new_pipe)
+		{
+			free_str_array(pipe_commands);
+			return ;
+		}
+		new_pipe->cmd_pipe = ft_strdup(pipe_commands[i]);
+		new_pipe->redirection = NULL;
+		new_pipe->next = NULL;
+		new_pipe->prev = NULL;
+		if (!cell->pipcell)
+			cell->pipcell = new_pipe;
+		else
+		{
+			current = cell->pipcell;
+			while (current->next)
+				current = current->next;
+			current->next = new_pipe;
+			new_pipe->prev = current;
+		}
+		i++;
+	}
+	free_str_array(pipe_commands);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parsing_redir.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/30 13:23:51 by jmaizel           #+#    #+#             */
+/*   Updated: 2025/02/09 14:23:25 by jmaizel          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/minishell.h"
+
+static char *find_file_end(char *ptr)
+{
+    int     in_quotes;
+    char    quote_type;
+    char    *file_end;
+
+    in_quotes = 0;
+    file_end = ptr;
+    while (*file_end && (in_quotes || (!ft_isspace(*file_end) && *file_end != '<' && *file_end != '>')))
+    {
+        if (!in_quotes && (*file_end == '"' || *file_end == '\''))
+        {
+            quote_type = *file_end;
+            in_quotes = 1;
+        }
+        else if (in_quotes && *file_end == quote_type)
+            in_quotes = 0;
+        file_end++;
+    }
+    return (file_end);
+}
+t_parsed_cmd    *parse_redir(char *input)
+{
+    t_parsed_cmd    *result;
+    char            *ptr;
+    int             in_quotes;
+    char            quote_type;
+    char            *cmd_buffer;
+    char            *cmd_ptr;
+    char            *file_end;
+
+    if (!input)
+        return (NULL);
+    result = malloc(sizeof(t_parsed_cmd));
+    if (!result)
+        return (NULL);
+    ft_memset(result, 0, sizeof(t_parsed_cmd));
+    result->heredoc_delim = malloc(sizeof(char *) * 10);
+    result->input_file = malloc(sizeof(char *) * 10);
+    result->output_file = malloc(sizeof(char *) * 10);
+    result->append_file = malloc(sizeof(char *) * 10);
+    if (!result->heredoc_delim || !result->input_file || !result->output_file || !result->append_file)
+        return (NULL);
+    result->heredoc_count = 0;
+    result->input_count = 0;
+    result->output_count = 0;
+    result->append_count = 0;
+    cmd_buffer = malloc(ft_strlen(input) + 1);
+    if (!cmd_buffer)
+        return (NULL);
+    cmd_ptr = cmd_buffer;
+    result->full_cmd = ft_strdup(input);
+    ptr = input;
+    in_quotes = 0;
+    while (*ptr)
+    {
+        if (!in_quotes && (*ptr == '\'' || *ptr == '"'))
+        {
+            in_quotes = 1;
+            quote_type = *ptr;
+            *cmd_ptr++ = *ptr;
+        }
+        else if (in_quotes && *ptr == quote_type)
+        {
+            in_quotes = 0;
+            *cmd_ptr++ = *ptr;
+        }
+        else if (!in_quotes)
+        {
+            if (strncmp(ptr, "<<", 2) == 0)
+            {
+                ptr += 2;
+                while (ft_isspace(*ptr))
+                    ptr++;
+                file_end = find_file_end(ptr);
+                result->heredoc_delim[result->heredoc_count++] = ft_substr(ptr, 0, file_end - ptr);
+                ptr = file_end - 1;
+            }
+            else if (strncmp(ptr, ">>", 2) == 0)
+            {
+                ptr += 2;
+                while (ft_isspace(*ptr))
+                    ptr++;
+                file_end = find_file_end(ptr);
+                result->append_file[result->append_count++] = ft_substr(ptr, 0, file_end - ptr);
+                ptr = file_end - 1;
+            }
+            else if (*ptr == '<')
+            {
+                ptr++;
+                while (ft_isspace(*ptr))
+                    ptr++;
+                file_end = find_file_end(ptr);
+                result->input_file[result->input_count++] = ft_substr(ptr, 0, file_end - ptr);
+                ptr = file_end - 1;
+            }
+            else if (*ptr == '>')
+            {
+                ptr++;
+                while (ft_isspace(*ptr))
+                    ptr++;
+                file_end = find_file_end(ptr);
+                result->output_file[result->output_count++] = ft_substr(ptr, 0, file_end - ptr);
+                ptr = file_end - 1;
+            }
+            else
+                *cmd_ptr++ = *ptr;
+        }
+        else
+            *cmd_ptr++ = *ptr;
+        ptr++;
+    }
+    *cmd_ptr = '\0';
+    result->cmd = ft_strtrim(cmd_buffer, " \t");
+    free(cmd_buffer);
+    result->heredoc_delim[result->heredoc_count] = NULL;
+    result->input_file[result->input_count] = NULL;
+    result->output_file[result->output_count] = NULL;
+    result->append_file[result->append_count] = NULL;
+    return (result);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   print_pipe_command.c                               :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/03 12:52:58 by jacobmaizel       #+#    #+#             */
+/*   Updated: 2025/02/03 12:53:23 by jacobmaizel      ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/minishell.h"
+
+static void	print_input_files(t_parsed_cmd *cmd)
+{
+	int	i;
+
+	if (cmd->input_count <= 0)
+		return ;
+	ft_printf("Input files:\n");
+	i = 0;
+	while (i < cmd->input_count)
+	{
+		ft_printf(" - [%s]\n", cmd->input_file[i]);
+		i++;
+	}
+}
+
+static void	print_output_files(t_parsed_cmd *cmd)
+{
+	int	i;
+
+	if (cmd->output_count <= 0)
+		return ;
+	ft_printf("Output files:\n");
+	i = 0;
+	while (i < cmd->output_count)
+	{
+		ft_printf(" - [%s]\n", cmd->output_file[i]);
+		i++;
+	}
+}
+
+static void	print_heredoc_delims(t_parsed_cmd *cmd)
+{
+	int	i;
+
+	if (cmd->heredoc_count <= 0)
+		return ;
+	ft_printf("Heredoc delimiters:\n");
+	i = 0;
+	while (i < cmd->heredoc_count)
+	{
+		ft_printf(" - [%s]\n", cmd->heredoc_delim[i]);
+		i++;
+	}
+}
+
+static void	print_append_files(t_parsed_cmd *cmd)
+{
+	int	i;
+
+	if (cmd->append_count <= 0)
+		return ;
+	ft_printf("Append files:\n");
+	i = 0;
+	while (i < cmd->append_count)
+	{
+		ft_printf(" - [%s]\n", cmd->append_file[i]);
+		i++;
+	}
+}
+
+void	print_pipe_command(t_pip *pipe_cmd, int pipe_num)
+{
+	if (!pipe_cmd || !pipe_cmd->redirection)
+		return ;
+	ft_printf("\n=== Pipe command %d ===\n", pipe_num);
+	ft_printf("Command: [%s]\n", pipe_cmd->cmd_pipe);
+	print_input_files(pipe_cmd->redirection);
+	print_output_files(pipe_cmd->redirection);
+	print_heredoc_delims(pipe_cmd->redirection);
+	print_append_files(pipe_cmd->redirection);
+}/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   prompt.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/16 13:58:10 by jacobmaizel       #+#    #+#             */
+/*   Updated: 2025/02/12 21:10:54 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/minishell.h"
+
+// but de cette fonction :
+// 1. recuperer les chemins a partir de PATH au demarrage
+// 2. on setup les signaux (comme crl-C qui interrpomt la commande en cours et affiche une nouvelle ligne de promopt)
+// 3. gestion du ctrl-D(signale la fin de l entree utilisateur ,
+//	c est pour quitter le programme)
+// 4. on ignore les lignes vides
+// 5. si la commande n est pas vide on l ajoute a lhistorique
+// 7 traitement des autres commandes
+// 8. on libere la memoire et on nettoie lhistoique
+void	loop_prompt(t_tools *tools, char **env)
+{
+	char	*user_input;
+	char	**paths;
+
+	paths = get_env_paths(env, "PATH");
+	if (!paths)
+	{
+		ft_printf("Erreur : PATH non trouvé.\n");
+		return ;
+	}
+	setup_interactive_signals();
+	while (1)
+	{
+		user_input = get_user_input();
+		if (!user_input)
+		{
+			ft_printf("\nExit\n");
+			break ;
+		}
+		if (user_input[0] == '\0')
+		{
+			free(user_input);
+			continue ;
+		}
+		parsing_line(user_input, tools);
+		free(user_input);
+	}
+	rl_clear_history();
+	free_str_array(paths);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   quotes.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/03 12:04:34 by jacobmaizel       #+#    #+#             */
+/*   Updated: 2025/02/04 10:40:57 by jmaizel          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/minishell.h"
+
+char	*clean_quotes(char *str)
+{
+	char *result;
+	int i;
+	int j;
+	int in_quotes;
+	char quote_type;
+
+	if (!str)
+		return (NULL);
+	result = malloc(sizeof(char) * (ft_strlen(str) + 1));
+	if (!result)
+		return (NULL);
+	i = 0;
+	j = 0;
+	in_quotes = 0;
+	while (str[i])
+	{
+		if (!in_quotes && (str[i] == '"' || str[i] == '\''))
+		{
+			quote_type = str[i];
+			in_quotes = 1;
+		}
+		else if (in_quotes && str[i] == quote_type)
+			in_quotes = 0;
+		else
+			result[j++] = str[i];
+		i++;
+	}
+	result[j] = '\0';
+	return (result);
+}/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   sep.c                                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/16 15:17:10 by jacobmaizel       #+#    #+#             */
+/*   Updated: 2025/02/09 14:12:29 by jmaizel          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "minishell.h"
+
+// fonction qui creer une cellule de la liste chainnee
+t_sep	*create_cell(char *cmd_sep)
+{
+	t_sep	*cell;
+
+	cell = malloc(sizeof(t_sep));
+	if (!cell)
+		return (NULL);
+	cell->prev = NULL;
+	cell->next = NULL;
+	cell->pipcell = NULL;
+	cell->cmd_sep = cmd_sep;
+	return (cell);
+}
+
+// Cette fonction ajoutera une cellule dans la liste chaînée à la position spécifiée.
+// Si la liste est vide,
+// la nouvelle cellule sera simplement le premier élément de la liste.
+
+t_sep	*add_cell(t_sep *list, char *cmd_sep, int pos)
+{
+	t_sep	*prec;
+	t_sep	*cur;
+	t_sep	*cell;
+	int		i;
+
+	cell = create_cell(cmd_sep);
+	if (!list)
+		return (cell);
+	cur = list;
+	i = 0;
+	while (i < pos && cur != NULL)
+	{
+		prec = cur;
+		cur = cur->next;
+		i++;
+	}
+	if (prec != NULL)
+	{
+		prec->next = cell;
+		cell->prev = prec;
+	}
+	if (cur != NULL)
+	{
+		cell->next = cur;
+		cur->prev = cell;
+	}
+	return (list);
+}
+
+/* void	free_cell(t_sep *cell)
+{
+	t_pip	*current;
+	t_pip	*next;
+
+	if (!cell)
+		return ;
+	current = cell->pipcell;
+	while (current)
+	{
+		next = current->next;
+		if (current->cmd_pipe)
+			free(current->cmd_pipe);
+		// Ne pas libérer current->redirection ici
+		// car il sera libéré dans free_cmd_args
+		free(current);
+		current = next;
+	}
+	if (cell->cmd_sep)
+		free(cell->cmd_sep);
+	free(cell);
+} */
+
+static int	is_invalid_char(char c)
+{
+	return (c == '\\' || c == ';');
+}
+
+/*
+** check_invalid_chars: Vérifie les caractères invalides dans la commande
+** Retourne 1 si un caractère invalide est trouvé hors guillemets
+** Retourne 0 si la commande est valide
+*/
+
+int	check_invalid_chars(const char *cmd)
+{
+	int		i;
+	int		in_quotes;
+	char	quote_type;
+
+	if (!cmd)
+		return (1);
+	i = 0;
+	in_quotes = 0;
+	quote_type = 0;
+	while (cmd[i])
+	{
+		if (!in_quotes && (cmd[i] == '\'' || cmd[i] == '"'))
+		{
+			in_quotes = 1;
+			quote_type = cmd[i];
+		}
+		else if (in_quotes && cmd[i] == quote_type)
+			in_quotes = 0;
+		else if (!in_quotes && is_invalid_char(cmd[i]))
+			return (1);
+		i++;
+	}
+	if (in_quotes)
+		return (1);
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   signals.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/27 11:58:53 by jmaizel           #+#    #+#             */
+/*   Updated: 2025/02/13 14:00:15 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/minishell.h"
+
+int	g_signal_received = 0;
+
+static void	handle_interactive_signal(int sig)
+{
+	if (sig == SIGINT)
+	{
+		g_signal_received = 1;
+		ft_putchar_fd('\n', STDERR_FILENO);
+		rl_on_new_line();
+		rl_replace_line("", 0);
+		rl_redisplay();
+	}
+}
+
+void	setup_interactive_signals(void)
+{
+	struct sigaction	sa;
+
+	ft_memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = handle_interactive_signal;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	sigaction(SIGINT, &sa, NULL);
+	signal(SIGQUIT, SIG_IGN);
+}
+
+char	*get_user_input(void)
+{
+	char		*input;
+	static int	eof_count = 0;
+
+	if (g_signal_received)
+	{
+		eof_count = 0;
+		g_signal_received = 0;
+	}
+	input = readline("minishell$ ");
+	if (!input)
+	{
+		eof_count++;
+		if (eof_count >= 1)
+		{
+			ft_putstr_fd("exit\n", STDOUT_FILENO);
+			return (NULL);
+		}
+		return (ft_strdup(""));
+	}
+	eof_count = 0;
+	if (input[0] != '\0')
+		add_history(input);
+	return (input);
+}
+
+void	setup_exec_signals(void)
+{
+	struct sigaction	sa;
+
+	ft_memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = SIG_DFL;
+	sigemptyset(&sa.sa_mask);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+}
+
+void	restore_signals(void)
+{
+	setup_interactive_signals();
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/20 11:25:48 by jacobmaizel       #+#    #+#             */
+/*   Updated: 2025/02/11 21:42:50 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "minishell.h"
+
+void	free_str_array(char **array)
+{
+	int	i;
+
+	if (!array)
+		return ;
+	i = 0;
+	while (array[i])
+	{
+		free(array[i]);
+		i++;
+	}
+	free(array);
+}
+
+int	ft_isspace(int c)
+{
+	if (c == 32)
+		return (1);
+	return (0);
+}
