@@ -3,18 +3,21 @@
 /*                                                        :::      ::::::::   */
 /*   builtins.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 15:26:11 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/09 18:25:48 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/12 14:04:50 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef BUILTINS_H
- #define BUILTINS_H
+# define BUILTINS_H
 
 # include "minishell.h"
 
 int	builtin_env(t_tools *tools, char **argv);
+int	builtin_cd(t_tools *tools, char **args);
+int	builtin_echo(t_tools *tools, char **args);
+int	builtin_pwd(t_tools *tools, char **args);
 
 #endif
