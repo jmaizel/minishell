@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:39 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/09 10:30:00 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/13 13:54:04 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 
 static int	handle_output_redir(char *file, int append)
 {
-	int	fd;
-	int	flags;
+	int		fd;
+	int		flags;
 
 	flags = O_WRONLY | O_CREAT;
 	if (append)
@@ -39,6 +39,8 @@ static int	handle_output_redir(char *file, int append)
 
 static int	setup_input(t_parsed_cmd *cmd, t_process *process)
 {
+	int	fd;
+
 	if (cmd->heredoc_count > 0)
 	{
 		if (handle_heredoc(cmd->heredoc_delim[cmd->heredoc_count - 1]) == -1)
@@ -47,7 +49,7 @@ static int	setup_input(t_parsed_cmd *cmd, t_process *process)
 	}
 	else if (cmd->input_count > 0)
 	{
-		int fd = open(cmd->input_file[cmd->input_count - 1], O_RDONLY);
+		fd = open(cmd->input_file[cmd->input_count - 1], O_RDONLY);
 		if (fd == -1)
 		{
 			ft_printf("minishell: %s: No such file or directory\n",
@@ -71,21 +73,21 @@ int	setup_redirections(t_parsed_cmd *cmd, t_process *process)
 		return (0);
 	process->stdin_backup = -1;
 	process->stdout_backup = -1;
-	
 	if (setup_input(cmd, process) == -1)
 		return (-1);
-	
 	if (cmd->append_count > 0 || cmd->output_count > 0)
 	{
 		process->stdout_backup = dup(STDOUT_FILENO);
 		if (cmd->append_count > 0)
 		{
-			if (handle_output_redir(cmd->append_file[cmd->append_count - 1], 1) == -1)
+			if (handle_output_redir(cmd->append_file[cmd->append_count - 1], 1)
+				== -1)
 				return (-1);
 		}
 		else
 		{
-			if (handle_output_redir(cmd->output_file[cmd->output_count - 1], 0) == -1)
+			if (handle_output_redir(cmd->output_file[cmd->output_count - 1], 0)
+				== -1)
 				return (-1);
 		}
 	}

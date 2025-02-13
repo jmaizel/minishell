@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:51 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/08 17:43:54 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/13 13:57:06 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,12 +28,11 @@ void	setup_parent_signals(void)
 	struct sigaction	sa;
 
 	ft_memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = &signal_handler;
+	sa.sa_handler = signal_handler;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART;
-	
 	sigaction(SIGINT, &sa, NULL);
-	signal(SIGQUIT, SIG_IGN);      
+	signal(SIGQUIT, SIG_IGN);
 }
 
 void	setup_child_signals(void)
@@ -44,7 +43,6 @@ void	setup_child_signals(void)
 	sa.sa_handler = SIG_DFL;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART;
-
-	sigaction(SIGINT, &sa, NULL);   
-	sigaction(SIGQUIT, &sa, NULL);  
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
 }
