@@ -17,23 +17,18 @@ static int	is_valid_n_option(char *str)
 {
 	int	i;
 
-
 	if (!str || str[0] != '-' || str[1] != 'n')
 		return (0);
 	i = 2;
 	while (str[i])
 	{
-		if (str[i] != 'n')
-			return (0);
 		while (str[i] == 'n')
-		{
 			i++;
-		}
 		if (str[i] == 'e')
-			{
-				while (str[i] == 'e')
-					i++;
-			}
+		{
+			while (str[i] == 'e')
+				i++;
+		}
 	}
 	return (1);
 }
