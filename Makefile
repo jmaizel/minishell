@@ -20,7 +20,7 @@ LIBFT = $(LIBFT_DIR)/libft.a
 
 PARSING_FILES = env.c parse_command_args.c parsing_line.c parsing_pipe.c \
 				prompt.c sep.c signals.c parsing_redir.c utils.c quotes.c \
-				count_args.c
+				count_args.c expansion.c
 
 EXECUTION_FILES = exec.c exec_cmd.c exec_pipe.c exec_redir.c exec_utils.c \
 				 exec_signals.c exec_error.c exec_heredoc.c exec_path.c exec_builtins.c
