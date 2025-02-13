@@ -25,7 +25,15 @@ static int	is_valid_n_option(char *str)
 	{
 		if (str[i] != 'n')
 			return (0);
-		i++;
+		while (str[i] == 'n')
+		{
+			i++;
+		}
+		if (str[i] == 'e')
+			{
+				while (str[i] == 'e')
+					i++;
+			}
 	}
 	return (1);
 }
