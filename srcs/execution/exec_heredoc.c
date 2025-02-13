@@ -5,68 +5,66 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/08 17:42:45 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/13 12:35:15 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/02/13 20:45:12 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/13 20:38:56 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/execution.h"
 
-static void	handle_child_signal(int sig)
+static void	setup_heredoc_signals(void)
 {
-	(void)sig;
-	g_signal_received = 1;
+	struct sigaction	sa_int;
+	struct sigaction	sa_quit;
+
+	ft_memset(&sa_int, 0, sizeof(sa_int));
+	ft_memset(&sa_quit, 0, sizeof(sa_quit));
+	sa_int.sa_handler = SIG_DFL;
+	sa_quit.sa_handler = SIG_IGN;
+	sigaction(SIGINT, &sa_int, NULL);
+	sigaction(SIGQUIT, &sa_quit, NULL);
 }
 
-static void	handle_parent_signal(int sig)
+static void	restore_heredoc_signals(void)
 {
-	(void)sig;
+	struct sigaction	sa_int;
+	struct sigaction	sa_quit;
+
+	ft_memset(&sa_int, 0, sizeof(sa_int));
+	ft_memset(&sa_quit, 0, sizeof(sa_quit));
+	sa_int.sa_handler = SIG_IGN;
+	sa_quit.sa_handler = SIG_IGN;
+	sigaction(SIGINT, &sa_int, NULL);
+	sigaction(SIGQUIT, &sa_quit, NULL);
 }
 
-static void	setup_child_heredoc_signals(void)
+static char	*handle_heredoc_line(char *buffer, char *line)
 {
-	struct sigaction	sa;
-
-	ft_memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = handle_child_signal;
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	sigaction(SIGINT, &sa, NULL);
-	signal(SIGQUIT, SIG_IGN);
-}
-
-static void	setup_parent_heredoc_signals(void)
-{
-	struct sigaction	sa;
-
-	ft_memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = handle_parent_signal;
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	sigaction(SIGINT, &sa, NULL);
-	signal(SIGQUIT, SIG_IGN);
-}
-
-static char	*append_to_buffer(char *buffer, const char *line)
-{
-	char	*temp;
 	char	*new_buffer;
+	size_t	total_len;
 
-	temp = ft_strjoin(buffer, line);
-	if (!temp)
+	if (!line)
+		return (NULL);
+	total_len = ft_strlen(buffer) + ft_strlen(line) + 2;
+	if (total_len > HEREDOC_MAX_SIZE)
 	{
+		ft_putstr_fd("minishell: heredoc: maximum size exceeded\n", 2);
 		free(buffer);
+		free(line);
 		return (NULL);
 	}
-	new_buffer = ft_strjoin(temp, "\n");
-	free(temp);
+	new_buffer = ft_strjoin(buffer, line);
 	if (!new_buffer)
 	{
 		free(buffer);
+		free(line);
 		return (NULL);
 	}
 	free(buffer);
-	return (new_buffer);
+	free(line);
+	buffer = ft_strjoin(new_buffer, "\n");
+	free(new_buffer);
+	return (buffer);
 }
 
 static int	write_heredoc_content(int fd, char *delimiter)
@@ -77,29 +75,26 @@ static int	write_heredoc_content(int fd, char *delimiter)
 	buffer = ft_strdup("");
 	if (!buffer)
 		return (-1);
-	while (!g_signal_received)
+	while (1)
 	{
 		line = readline("heredoc> ");
-		if (!line || g_signal_received)
+		if (!line)
 		{
-			free(buffer);
-			free(line);
-			return (-1);
-		}
-		if (ft_strcmp(line, delimiter) == 0)
-		{
-			write(fd, buffer, ft_strlen(buffer));
-			free(line);
 			free(buffer);
 			return (0);
 		}
-		buffer = append_to_buffer(buffer, line);
-		free(line);
+		if (ft_strcmp(line, delimiter) == 0)
+		{
+			free(line);
+			write(fd, buffer, ft_strlen(buffer));
+			free(buffer);
+			return (0);
+		}
+		buffer = handle_heredoc_line(buffer, line);
 		if (!buffer)
 			return (-1);
 	}
-	free(buffer);
-	return (-1);
+	return (0);
 }
 
 int	handle_heredoc(char *delimiter)
@@ -110,8 +105,7 @@ int	handle_heredoc(char *delimiter)
 
 	if (pipe(pipe_fd) == -1)
 		return (-1);
-	g_signal_received = 0;
-	setup_parent_heredoc_signals();
+	restore_heredoc_signals();
 	pid = fork();
 	if (pid == -1)
 	{
@@ -121,30 +115,30 @@ int	handle_heredoc(char *delimiter)
 	}
 	if (pid == 0)
 	{
-		setup_child_heredoc_signals();
+		setup_heredoc_signals();
 		close(pipe_fd[0]);
 		status = write_heredoc_content(pipe_fd[1], delimiter);
 		close(pipe_fd[1]);
-		if (g_signal_received)
-			ft_putchar_fd('\n', STDERR_FILENO);
-		exit((status == -1) ? 1 : 0);
+		exit(status == -1);
 	}
 	close(pipe_fd[1]);
 	waitpid(pid, &status, 0);
-	g_signal_received = 0;
-	setup_interactive_signals();
-	if (WIFSIGNALED(status) && WTERMSIG(status) == SIGINT)
+	if (WIFSIGNALED(status))
 	{
 		close(pipe_fd[0]);
 		g_signal_received = 1;
 		return (-1);
 	}
-	if (WIFSIGNALED(status) || WEXITSTATUS(status) != 0)
+	if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
 	{
 		close(pipe_fd[0]);
 		return (-1);
 	}
-	dup2(pipe_fd[0], STDIN_FILENO);
+	if (dup2(pipe_fd[0], STDIN_FILENO) == -1)
+	{
+		close(pipe_fd[0]);
+		return (-1);
+	}
 	close(pipe_fd[0]);
 	return (0);
 }

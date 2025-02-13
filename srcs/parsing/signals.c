@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:58:53 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/13 14:00:15 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/13 19:49:37 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ void	setup_interactive_signals(void)
 
 char	*get_user_input(void)
 {
-	char		*input;
+	char	*input;
 	static int	eof_count = 0;
 
 	if (g_signal_received)

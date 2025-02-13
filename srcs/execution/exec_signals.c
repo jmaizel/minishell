@@ -5,44 +5,64 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/08 17:43:51 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/13 13:57:06 by cdedessu         ###   ########.fr       */
+/*   Created: 2025/02/13 17:15:45 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/13 19:48:12 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../includes/execution.h"
+#include "minishell.h"
+#include "execution.h"
 
-static void	signal_handler(int sig)
+static void	handle_parent_sigint(int sig)
 {
-	if (sig == SIGINT)
-	{
-		ft_putchar_fd('\n', STDERR_FILENO);
-		rl_on_new_line();
-		rl_replace_line("", 0);
-		rl_redisplay();
-	}
+	(void)sig;
+	g_signal_received = 130;
+}
+
+static void	handle_parent_sigquit(int sig)
+{
+	(void)sig;
+}
+
+static void	handle_child_sigint(int sig)
+{
+	(void)sig;
+	write(STDERR_FILENO, "\n", 1);
+	g_signal_received = 130;
+}
+
+static void	handle_child_sigquit(int sig)
+{
+	(void)sig;
+	g_signal_received = 131;
 }
 
 void	setup_parent_signals(void)
 {
-	struct sigaction	sa;
+	struct sigaction	sa_int;
+	struct sigaction	sa_quit;
 
-	ft_memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = signal_handler;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
-	sigaction(SIGINT, &sa, NULL);
-	signal(SIGQUIT, SIG_IGN);
+	ft_memset(&sa_int, 0, sizeof(sa_int));
+	ft_memset(&sa_quit, 0, sizeof(sa_quit));
+	sa_int.sa_handler = handle_parent_sigint;
+	sa_quit.sa_handler = handle_parent_sigquit;
+	sa_int.sa_flags = 0;
+	sa_quit.sa_flags = 0;
+	sigaction(SIGINT, &sa_int, NULL);
+	sigaction(SIGQUIT, &sa_quit, NULL);
 }
 
 void	setup_child_signals(void)
 {
-	struct sigaction	sa;
+	struct sigaction	sa_int;
+	struct sigaction	sa_quit;
 
-	ft_memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = SIG_DFL;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGQUIT, &sa, NULL);
+	ft_memset(&sa_int, 0, sizeof(sa_int));
+	ft_memset(&sa_quit, 0, sizeof(sa_quit));
+	sa_int.sa_handler = handle_child_sigint;
+	sa_quit.sa_handler = handle_child_sigquit;
+	sa_int.sa_flags = 0;
+	sa_quit.sa_flags = 0;
+	sigaction(SIGINT, &sa_int, NULL);
+	sigaction(SIGQUIT, &sa_quit, NULL);
 }

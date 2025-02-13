@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/09 18:33:01 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/13 20:57:35 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 
 # define PIPE_READ 0
 # define PIPE_WRITE 1
+# define HEREDOC_MAX_SIZE 4096
+# define MAX_PIPES 4096
 
 typedef struct s_process
 {

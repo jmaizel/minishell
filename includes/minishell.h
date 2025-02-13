@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 12:08:50 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/13 12:12:18 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/13 21:29:49 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@
 # include <string.h>
 # include <sys/wait.h>
 # include <unistd.h>
+
+# define MAX_REDIR 10
 
 extern int	g_signal_received;
 

@@ -3,33 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   cd.c                                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 10:04:22 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/02/10 10:54:52 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/13 21:04:43 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/builtins.h"
 #include "../includes/minishell.h"
 
-static int	find_env_var(char **env, const char *var)
-{
-	int		i;
-	size_t	len;
-
-	i = 0;
-	len = ft_strlen(var);
-	while (env[i])
-	{
-		if (ft_strncmp(env[i], var, len) == 0 && env[i][len] == '=')
-		{
-			return (i);
-		}
-		i++;
-	}
-	return (-1);
-}
 static char	*expand_home_path(char *path)
 {
 	char	*home;
@@ -45,6 +28,7 @@ static char	*expand_home_path(char *path)
 		return (ft_strjoin(home, path + 1));
 	return (ft_strdup(path));
 }
+
 static void	update_pwd_vars(t_tools *tools)
 {
 	char	current_pwd[PATH_MAX];
