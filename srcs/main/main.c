@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:44:53 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/08 17:44:55 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/13 13:58:06 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ static void	init_minishell(t_tools *tools, char **env)
 	tools->cmds = NULL;
 }
 
-static void	cleanup_minishell(t_tools *tools)
+void	cleanup_minishell(t_tools *tools)
 {
 	(void)tools;
 	rl_clear_history();
@@ -41,11 +41,12 @@ static int	handle_execution(t_tools *tools, char *user_input)
 	if (!cell)
 		return (1);
 	parse_pipes(cell);
-
 	if (cell && cell->pipcell)
 	{
+		setup_exec_signals();
 		parsing_line(user_input, tools);
 		exec_commands(cell, tools);
+		restore_signals();
 	}
 	free_cell(cell);
 	return (0);
@@ -59,21 +60,21 @@ int	main(int argc, char **argv, char **env)
 	(void)argc;
 	(void)argv;
 	init_minishell(&tools, env);
-	setup_parent_signals();
-
+	setup_interactive_signals();
 	while (1)
 	{
+		g_signal_received = 0;
 		user_input = get_user_input();
-		if (!user_input)
+		if (!user_input || !ft_strncmp(user_input, "exit", 5))
 		{
-			ft_printf("\nExit\n");
+			if (user_input)
+				free(user_input);
 			break ;
 		}
 		if (user_input[0] != '\0')
 			handle_execution(&tools, user_input);
 		free(user_input);
 	}
-
 	cleanup_minishell(&tools);
 	return (tools.exit_code);
 }

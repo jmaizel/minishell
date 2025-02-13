@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   prompt.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 13:58:10 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/01/31 11:20:51 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/12 21:10:54 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ void	loop_prompt(t_tools *tools, char **env)
 		ft_printf("Erreur : PATH non trouvé.\n");
 		return ;
 	}
-	setup_signals();
+	setup_interactive_signals();
 	while (1)
 	{
 		user_input = get_user_input();

@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:28 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/09 10:49:48 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/13 13:55:15 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,12 +77,18 @@ static void	execute_command(t_pip *cmd, t_exec *exec)
 {
 	t_cmd_args	*args;
 	char		*cmd_path;
+	char		*cmd_to_parse;
 
 	if (!cmd->redirection)
 		cmd->redirection = parse_redir(cmd->cmd_pipe);
-	if (cmd->redirection && setup_redirections(cmd->redirection, &exec->process) == -1)
+	if (cmd->redirection &&
+		setup_redirections(cmd->redirection, &exec->process) == -1)
 		exit(1);
-	args = parse_command_args(cmd->redirection ? cmd->redirection->cmd : cmd->cmd_pipe);
+	if (cmd->redirection)
+		cmd_to_parse = cmd->redirection->cmd;
+	else
+		cmd_to_parse = cmd->cmd_pipe;
+	args = parse_command_args(cmd_to_parse);
 	if (!args || !args->argv[0])
 	{
 		if (args)
@@ -130,7 +136,10 @@ int	exec_pipeline(t_pip *pipeline, t_exec *exec)
 		return (1);
 	pids = malloc(sizeof(pid_t) * (exec->pipe_count + 1));
 	if (!pids)
-		return (close_all_pipes(pipes, exec->pipe_count), 1);
+	{
+		close_all_pipes(pipes, exec->pipe_count);
+		return (1);
+	}
 	current = pipeline;
 	i = 0;
 	while (current)

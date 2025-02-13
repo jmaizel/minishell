@@ -6,19 +6,16 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:45 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/09 15:20:26 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/13 12:35:15 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/execution.h"
 
-static volatile sig_atomic_t	g_heredoc_signal = 0;
-
 static void	handle_child_signal(int sig)
 {
 	(void)sig;
-	g_heredoc_signal = 1;
-	write(STDOUT_FILENO, "\n", 1);
+	g_signal_received = 1;
 }
 
 static void	handle_parent_signal(int sig)
@@ -50,40 +47,58 @@ static void	setup_parent_heredoc_signals(void)
 	signal(SIGQUIT, SIG_IGN);
 }
 
-static void	restore_signals(void)
+static char	*append_to_buffer(char *buffer, const char *line)
 {
-	struct sigaction	sa;
+	char	*temp;
+	char	*new_buffer;
 
-	ft_memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = SIG_DFL;
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGQUIT, &sa, NULL);
+	temp = ft_strjoin(buffer, line);
+	if (!temp)
+	{
+		free(buffer);
+		return (NULL);
+	}
+	new_buffer = ft_strjoin(temp, "\n");
+	free(temp);
+	if (!new_buffer)
+	{
+		free(buffer);
+		return (NULL);
+	}
+	free(buffer);
+	return (new_buffer);
 }
 
 static int	write_heredoc_content(int fd, char *delimiter)
 {
 	char	*line;
+	char	*buffer;
 
-	while (!g_heredoc_signal)
+	buffer = ft_strdup("");
+	if (!buffer)
+		return (-1);
+	while (!g_signal_received)
 	{
 		line = readline("heredoc> ");
-		if (!line)
+		if (!line || g_signal_received)
 		{
-			ft_printf("\nminishell: warning: here-document ");
-			ft_printf("delimited by end-of-file (wanted `%s')\n", delimiter);
-			return (0);
+			free(buffer);
+			free(line);
+			return (-1);
 		}
 		if (ft_strcmp(line, delimiter) == 0)
 		{
+			write(fd, buffer, ft_strlen(buffer));
 			free(line);
+			free(buffer);
 			return (0);
 		}
-		write(fd, line, ft_strlen(line));
-		write(fd, "\n", 1);
+		buffer = append_to_buffer(buffer, line);
 		free(line);
+		if (!buffer)
+			return (-1);
 	}
+	free(buffer);
 	return (-1);
 }
 
@@ -95,6 +110,7 @@ int	handle_heredoc(char *delimiter)
 
 	if (pipe(pipe_fd) == -1)
 		return (-1);
+	g_signal_received = 0;
 	setup_parent_heredoc_signals();
 	pid = fork();
 	if (pid == -1)
@@ -109,11 +125,20 @@ int	handle_heredoc(char *delimiter)
 		close(pipe_fd[0]);
 		status = write_heredoc_content(pipe_fd[1], delimiter);
 		close(pipe_fd[1]);
-		exit(status == -1 ? 1 : 0);
+		if (g_signal_received)
+			ft_putchar_fd('\n', STDERR_FILENO);
+		exit((status == -1) ? 1 : 0);
 	}
 	close(pipe_fd[1]);
 	waitpid(pid, &status, 0);
-	restore_signals();
+	g_signal_received = 0;
+	setup_interactive_signals();
+	if (WIFSIGNALED(status) && WTERMSIG(status) == SIGINT)
+	{
+		close(pipe_fd[0]);
+		g_signal_received = 1;
+		return (-1);
+	}
 	if (WIFSIGNALED(status) || WEXITSTATUS(status) != 0)
 	{
 		close(pipe_fd[0]);

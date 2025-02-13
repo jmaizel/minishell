@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:30 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/09 18:32:30 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/13 12:34:00 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,24 +15,25 @@
 static void	execute_cmd(t_pip *cmd, t_exec *exec, char *cmd_path)
 {
 	t_cmd_args	*args;
+	char		*cmd_to_parse;
 
-	setup_child_signals();
-
+	setup_exec_signals();
 	if (cmd->redirection)
 	{
 		if (setup_redirections(cmd->redirection, &exec->process) == -1)
 			exit(1);
 	}
-
-	args = parse_command_args(cmd->redirection ? cmd->redirection->cmd
-			: cmd->cmd_pipe);
+	if (cmd->redirection)
+		cmd_to_parse = cmd->redirection->cmd;
+	else
+		cmd_to_parse = cmd->cmd_pipe;
+	args = parse_command_args(cmd_to_parse);
 	if (!args || !args->argv[0])
 	{
 		if (args)
 			free_cmd_args(args);
 		exit(1);
 	}
-
 	execve(cmd_path, args->argv, exec->tools->env);
 	ft_printf("minishell: %s: command not found\n", args->cmd);
 	free_cmd_args(args);
@@ -45,14 +46,18 @@ int	exec_simple_cmd(t_pip *cmd, t_exec *exec)
 	int			status;
 	t_cmd_args	*args;
 	int			builtin_ret;
+	char		*cmd_to_parse;
 
 	if (!cmd || (!cmd->cmd_pipe && !cmd->redirection))
 		return (1);
 	builtin_ret = handle_builtin(cmd, exec);
 	if (builtin_ret != -1)
 		return (builtin_ret);
-	args = parse_command_args(cmd->redirection ? cmd->redirection->cmd
-			: cmd->cmd_pipe);
+	if (cmd->redirection)
+		cmd_to_parse = cmd->redirection->cmd;
+	else
+		cmd_to_parse = cmd->cmd_pipe;
+	args = parse_command_args(cmd_to_parse);
 	if (!args || !args->argv[0])
 	{
 		if (args)
@@ -68,11 +73,26 @@ int	exec_simple_cmd(t_pip *cmd, t_exec *exec)
 		return (free(cmd_path), 1);
 	if (exec->process.pid == 0)
 		execute_cmd(cmd, exec, cmd_path);
+	g_signal_received = 0;
+	setup_parent_signals();
 	waitpid(exec->process.pid, &status, 0);
+	restore_signals();
 	free(cmd_path);
+	if (WIFSIGNALED(status))
+	{
+		if (WTERMSIG(status) == SIGINT)
+		{
+			ft_putchar_fd('\n', STDERR_FILENO);
+			return (130);
+		}
+		if (WTERMSIG(status) == SIGQUIT)
+		{
+			ft_putstr_fd("Quit (core dumped)\n", STDERR_FILENO);
+			return (131);
+		}
+		return (128 + WTERMSIG(status));
+	}
 	if (WIFEXITED(status))
 		return (WEXITSTATUS(status));
-	if (WIFSIGNALED(status))
-		return (128 + WTERMSIG(status));
 	return (1);
 }

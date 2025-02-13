@@ -18,6 +18,12 @@ int	is_builtin(char *cmd)
 	if (!cmd)
 		return (0);
 	if (ft_strcmp(cmd, "env") == 0)
+    return (1);
+  if (ft_strcmp(cmd, "export") == 0)
+    return (0);
+	if (ft_strcmp(cmd, "unset") == 0)
+    return (0);
+  if (ft_strcmp(cmd, "exit") == 0)
 		return (1);
 	if (ft_strcmp(cmd, "cd") == 0)
 		return (1);
@@ -25,7 +31,6 @@ int	is_builtin(char *cmd)
 		return (1);
 	if (ft_strcmp(cmd, "pwd") == 0)
 		return (1);
-	// Ajoutez d'autres builtins ici
 	return (0);
 }
 
@@ -35,13 +40,18 @@ int	execute_builtin(t_cmd_args *args, t_exec *exec)
 		return (1);
 	if (ft_strcmp(args->argv[0], "env") == 0)
 		return (builtin_env(exec->tools, args->argv));
+	if (ft_strcmp(args->argv[0], "export") == 0)
+		return (builtin_export(exec->tools, args->argv));
+	if (ft_strcmp(args->argv[0], "unset") == 0)
+		return (builtin_unset(exec->tools, args->argv));
+	if (!ft_strcmp(args->argv[0], "exit"))
+		return (builtin_exit(exec->tools, args->argv));
 	if (ft_strcmp(args->argv[0], "cd") == 0)
 		return (builtin_cd(exec->tools, args->argv));
 	if (ft_strcmp(args->argv[0], "echo") == 0)
 		return (builtin_echo(exec->tools, args->argv));
 	if (ft_strcmp(args->argv[0], "pwd") == 0)
 		return (builtin_pwd(exec->tools, args->argv));
-	// Ajoutez d'autres builtins ici
 	return (1);
 }
 
@@ -50,11 +60,15 @@ int	handle_builtin(t_pip *cmd, t_exec *exec)
 	t_cmd_args	*args;
 	int			ret;
 
-	args = parse_command_args(cmd->redirection ? cmd->redirection->cmd : cmd->cmd_pipe);
-	if (!args || !args->argv[0])
+	args = parse_command_args(cmd->redirection
+			? cmd->redirection->cmd : cmd->cmd_pipe);
+	if (!args)
 		return (1);
-	// ft_printf("Debug: executing builtin: %s\n", args->argv[0]);
-	// Debug print avant le free
+	if (!args->argv[0])
+	{
+		free_cmd_args(args);
+		return (1);
+	}
 	if (!is_builtin(args->argv[0]))
 	{
 		free_cmd_args(args);
@@ -67,14 +81,6 @@ int	handle_builtin(t_pip *cmd, t_exec *exec)
 			free_cmd_args(args);
 			return (1);
 		}
-	}
-	if (ft_strcmp(args->argv[0], "cd") == 0)
-	{
-		ret = builtin_cd(exec->tools, args->argv);
-		free_cmd_args(args);
-		if (cmd->redirection)
-			restore_redirections(&exec->process);
-		return (ret);
 	}
 	ret = execute_builtin(args, exec);
 	if (cmd->redirection)
