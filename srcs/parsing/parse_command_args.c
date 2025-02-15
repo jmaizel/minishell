@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_command_args.c                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 11:38:29 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/09 14:16:54 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/15 10:18:30 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,14 @@ t_cmd_args	*parse_command_args(char *cmd_str)
 				break ;
 			i++;
 		}
-		args[j++] = clean_quotes(ft_substr(cmd_str, start, i - start));
+		args[j] = clean_quotes(ft_substr(cmd_str, start, i - start));
+		if (!args[j])
+		{
+			free_str_array(args);
+			free(cmd_args);
+			return (NULL);
+		}
+		j++;
 	}
 	args[j] = NULL;
 	cmd_args->argv = args;

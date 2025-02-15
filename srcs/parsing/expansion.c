@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   expansion.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 13:47:02 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/13 16:01:26 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/15 10:17:59 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,23 +33,6 @@ char	*expand_exit_status(int exit_code)
 	result = ft_strdup(temp);
 	return (result);
 }
-static int	get_var_length(const char *str)
-{
-	int	i;
-
-	if (!str || !*str)
-		return (0);
-	i = 0;
-	if (str[i] == '?')
-		return (1);
-	// Premier caractère doit être une lettre ou underscore
-	if (!ft_isalpha(str[i]) && str[i] != '_')
-		return (0);
-	// Continue tant que c'est un caractère valide
-	while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
-		i++;
-	return (i);
-}
 
 char	*get_var_value(const char *var_name, char **env)
 {
@@ -59,8 +42,6 @@ char	*get_var_value(const char *var_name, char **env)
 	if (!var_name || !env)
 		return (ft_strdup(""));
 	len = ft_strlen(var_name);
-	if (len == 0)
-		return (ft_strdup(""));
 	i = 0;
 	while (env[i])
 	{
@@ -70,21 +51,43 @@ char	*get_var_value(const char *var_name, char **env)
 	}
 	return (ft_strdup(""));
 }
+static char	*ft_realloc(char *ptr, size_t old_size, size_t new_size)
+{
+	char	*new_ptr;
+
+	if (!ptr)
+		return (malloc(new_size));
+	if (new_size <= old_size)
+		return (ptr);
+	new_ptr = malloc(new_size);
+	if (!new_ptr)
+	{
+		free(ptr);
+		return (NULL);
+	}
+	ft_memcpy(new_ptr, ptr, old_size);
+	free(ptr);
+	return (new_ptr);
+}
 
 char	*expand_str(const char *str, t_tools *tools)
 {
 	char	*result;
-	int		i;
-	int		j;
+	size_t	result_size;
+	size_t	i;
+	size_t	j;
 	int		in_single_quotes;
-	char	*exit_str;
-	int		var_len;
-	char	*var_name;
 	char	*value;
+	char	*new_result;
+	char	*var_name;
+	size_t	var_start;
+	size_t	val_len;
 
 	if (!str || !tools || !tools->env)
 		return (ft_strdup(""));
-	result = malloc(sizeof(char) * (ft_strlen(str) * 2 + 1));
+	// Préallouer une taille suffisante
+	result_size = 2048;
+	result = ft_calloc(result_size, sizeof(char));
 	if (!result)
 		return (NULL);
 	i = 0;
@@ -92,54 +95,79 @@ char	*expand_str(const char *str, t_tools *tools)
 	in_single_quotes = 0;
 	while (str[i])
 	{
-		if (str[i] == '\'' && !in_single_quotes)
-			in_single_quotes = 1;
-		else if (str[i] == '\'' && in_single_quotes)
-			in_single_quotes = 0;
-		else if (str[i] == '$' && !in_single_quotes)
+		// Gestion des guillemets simples
+		if (str[i] == '\'')
 		{
-			if (!str[i + 1])
-			{
-				result[j++] = str[i++];
-				continue ;
-			}
-			i++;
+			in_single_quotes = !in_single_quotes;
+			result[j++] = str[i++];
+			continue ;
+		}
+		// Traitement des variables d'environnement
+		if (str[i] == '$' && !in_single_quotes)
+		{
+			i++; // Passer le $
+			// Gérer le cas spécial $?
 			if (str[i] == '?')
 			{
-				exit_str = expand_exit_status(tools->exit_code);
-				if (exit_str)
-				{
-					ft_strlcpy(&result[j], exit_str, ft_strlen(exit_str) + 1);
-					j += ft_strlen(exit_str);
-					free(exit_str);
-				}
+				value = expand_exit_status(tools->exit_code);
 				i++;
 			}
+			// Gérer les variables normales
 			else if (ft_isalpha(str[i]) || str[i] == '_')
 			{
-				var_len = get_var_length(&str[i]);
-				if (var_len > 0)
-				{
-					var_name = ft_substr(str, i, var_len);
-					if (var_name)
-					{
-						value = get_var_value(var_name, tools->env);
-						if (value)
-						{
-							ft_strlcpy(&result[j], value, ft_strlen(value) + 1);
-							j += ft_strlen(value);
-							free(value);
-						}
-						free(var_name);
-					}
-					i += var_len;
-				}
+				var_start = i;
+				while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
+					i++;
+				var_name = ft_substr(str, var_start, i - var_start);
+				if (!var_name)
+					continue ;
+				value = get_var_value(var_name, tools->env);
+				free(var_name);
 			}
 			else
+			{
 				result[j++] = '$';
+				continue ;
+			}
+			// Copier la valeur dans le résultat
+			if (value)
+			{
+				val_len = ft_strlen(value);
+				// Vérifier s'il faut agrandir le buffer
+				if (j + val_len >= result_size)
+				{
+					new_result = ft_realloc(result, result_size, result_size
+							+ val_len + 1024);
+					if (!new_result)
+					{
+						free(result);
+						free(value);
+						return (NULL);
+					}
+					result = new_result;
+					result_size = result_size + val_len + 1024;
+				}
+				ft_strlcpy(result + j, value, result_size - j);
+				j += val_len;
+				free(value);
+			}
 		}
 		else
+		{
 			result[j++] = str[i++];
+		}
+		// Vérifier s'il faut agrandir le buffer
+		if (j >= result_size - 1)
+		{
+			new_result = ft_realloc(result, result_size, result_size + 1024);
+			if (!new_result)
+			{
+				free(result);
+				return (NULL);
+			}
+			result = new_result;
+			result_size += 1024;
+		}
 	}
 	result[j] = '\0';
 	return (result);
