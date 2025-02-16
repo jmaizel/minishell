@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 20:45:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/13 20:38:56 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/15 10:12:26 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,34 +67,35 @@ static char	*handle_heredoc_line(char *buffer, char *line)
 	return (buffer);
 }
 
-static int	write_heredoc_content(int fd, char *delimiter)
+static int    write_heredoc_content(int fd, char *delimiter)
 {
-	char	*line;
-	char	*buffer;
+    char    *line;
+    char    *buffer;
 
-	buffer = ft_strdup("");
-	if (!buffer)
-		return (-1);
-	while (1)
-	{
-		line = readline("heredoc> ");
-		if (!line)
-		{
-			free(buffer);
-			return (0);
-		}
-		if (ft_strcmp(line, delimiter) == 0)
-		{
-			free(line);
-			write(fd, buffer, ft_strlen(buffer));
-			free(buffer);
-			return (0);
-		}
-		buffer = handle_heredoc_line(buffer, line);
-		if (!buffer)
-			return (-1);
-	}
-	return (0);
+    buffer = ft_strdup("");
+    if (!buffer)
+        return (-1);
+    while (1)
+    {
+        ft_putstr_fd("heredoc> ", STDOUT_FILENO);
+        line = readline("");
+        if (!line)
+        {
+            free(buffer);
+            return (0);
+        }
+        if (ft_strcmp(line, delimiter) == 0)
+        {
+            write(fd, buffer, ft_strlen(buffer));
+            free(line);
+            free(buffer);
+            return (0);
+        }
+        buffer = handle_heredoc_line(buffer, line);
+        if (!buffer)
+            return (-1);
+    }
+    return (0);
 }
 
 int	handle_heredoc(char *delimiter)

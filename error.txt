@@ -1,0 +1,7 @@
+<infile.txt grep hello | wc -l >outfile1>outfile2
+
+cat << EOF | wc -l
+
+Message error command not found
+
+Il faut appuyer deux fois sur CTRL-D après un CTRL-C dans un heredoc

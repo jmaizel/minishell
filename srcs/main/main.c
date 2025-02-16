@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:44:53 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/13 13:58:06 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/15 09:31:41 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ void	cleanup_minishell(t_tools *tools)
 static int	handle_execution(t_tools *tools, char *user_input)
 {
 	t_sep	*cell;
+	t_pip	*current;
 
 	if (!user_input || check_invalid_chars(user_input))
 	{
@@ -43,8 +44,18 @@ static int	handle_execution(t_tools *tools, char *user_input)
 	parse_pipes(cell);
 	if (cell && cell->pipcell)
 	{
+		current = cell->pipcell;
+		while (current)
+		{
+			current->redirection = parse_redir(current->cmd_pipe);
+			if (!current->redirection)
+			{
+				free_cell(cell);
+				return (1);
+			}
+			current = current->next;
+		}
 		setup_exec_signals();
-		parsing_line(user_input, tools);
 		exec_commands(cell, tools);
 		restore_signals();
 	}

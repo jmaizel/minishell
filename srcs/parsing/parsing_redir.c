@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 13:23:51 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/13 21:58:20 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/15 09:52:58 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,30 +58,47 @@ static int	print_syntax_error(char c)
 	return (0);
 }
 
-static int	check_redir_syntax(char *input)
+static int    check_redir_syntax(char *input)
 {
-	int	i;
-	int	count;
+    int        i;
+    int        count;
+    char    has_word;
 
-	i = 0;
-	while (input[i])
-	{
-		if (input[i] == '<' || input[i] == '>')
-		{
-			count = count_consecutive_chars(input, i);
-			if (count > 2)
-				return (print_syntax_error(input[i]));
-			if (input[i] == '<' && input[i + count] == '>')
-			{
-				ft_putstr_fd("minishell: syntax error near unexpected token `>'\n",
-					2);
-				return (0);
-			}
-			i += count - 1;
-		}
-		i++;
-	}
-	return (1);
+    i = 0;
+    while (input[i])
+    {
+        if (input[i] == '<' || input[i] == '>')
+        {
+            count = count_consecutive_chars(input, i);
+            if (count > 2)
+                return (print_syntax_error(input[i]));
+            has_word = 0;
+            int j = i + count;
+            while (input[j])
+            {
+                if (!ft_isspace(input[j]))
+                {
+                    has_word = 1;
+                    break;
+                }
+                j++;
+            }
+            if (!has_word)
+            {
+                ft_putstr_fd("minishell: syntax error near unexpected token `newline'\n", 2);
+                return (0);
+            }
+            
+            if (input[i] == '<' && input[i + count] == '>')
+            {
+                ft_putstr_fd("minishell: syntax error near unexpected token `>'\n", 2);
+                return (0);
+            }
+            i += count - 1;
+        }
+        i++;
+    }
+    return (1);
 }
 
 static t_parsed_cmd	*init_parsed_cmd(char *input)

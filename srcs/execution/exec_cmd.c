@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 21:15:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/13 20:45:52 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/15 09:45:29 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,10 @@ static void	handle_cmd_execution(t_pip *cmd, t_exec *exec, char *cmd_path)
 	if (cmd->redirection && setup_redirections(cmd->redirection, &exec->process)
 		== -1)
 		exit(1);
-	args = parse_command_args(cmd->redirection ? cmd->redirection->cmd
-			: cmd->cmd_pipe);
+	// Vérifier si on a une redirection valide
+	args = parse_command_args(cmd->redirection ? 
+		(cmd->redirection->cmd ? cmd->redirection->cmd : cmd->cmd_pipe)
+		: cmd->cmd_pipe);
 	if (!args || !args->argv[0])
 	{
 		if (args)
@@ -61,8 +63,11 @@ static char	*prepare_command(t_pip *cmd, t_exec *exec, t_cmd_args **args)
 {
 	char	*cmd_path;
 	char	*cmd_to_parse;
+	
+	cmd_to_parse = cmd->redirection ? 
+		(cmd->redirection->cmd ? cmd->redirection->cmd : cmd->cmd_pipe)
+		: cmd->cmd_pipe;
 
-	cmd_to_parse = cmd->redirection ? cmd->redirection->cmd : cmd->cmd_pipe;
 	*args = parse_command_args(cmd_to_parse);
 	if (!*args || !(*args)->argv[0])
 	{
