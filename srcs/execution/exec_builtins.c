@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_builtins.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 18:25:25 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/12 14:04:45 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/16 20:42:47 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,12 +18,12 @@ int	is_builtin(char *cmd)
 	if (!cmd)
 		return (0);
 	if (ft_strcmp(cmd, "env") == 0)
-    return (1);
-  if (ft_strcmp(cmd, "export") == 0)
-    return (0);
+		return (1);
+	if (ft_strcmp(cmd, "export") == 0)
+		return (0);
 	if (ft_strcmp(cmd, "unset") == 0)
-    return (0);
-  if (ft_strcmp(cmd, "exit") == 0)
+		return (0);
+	if (ft_strcmp(cmd, "exit") == 0)
 		return (1);
 	if (ft_strcmp(cmd, "cd") == 0)
 		return (1);
@@ -60,8 +60,8 @@ int	handle_builtin(t_pip *cmd, t_exec *exec)
 	t_cmd_args	*args;
 	int			ret;
 
-	args = parse_command_args(cmd->redirection
-			? cmd->redirection->cmd : cmd->cmd_pipe);
+	args = parse_command_args(cmd->redirection ? cmd->redirection->cmd :
+			cmd->cmd_pipe);
 	if (!args)
 		return (1);
 	if (!args->argv[0])

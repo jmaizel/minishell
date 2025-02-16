@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   echo.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:45:41 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/02/12 13:55:02 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/16 20:40:14 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,22 +32,20 @@ static int	is_valid_n_option(char *str)
 	}
 	return (1);
 }
+
 int	builtin_echo(t_tools *tools, char **args)
 {
-	int i;
-	int n_flag;
+	int	i;
+	int	n_flag;
 
 	(void)tools;
 	n_flag = 0;
 	i = 1;
-
-	// on verifife si il ya le -n ou -nn ou - nnn etc
 	while (args[i] && is_valid_n_option(args[i]))
 	{
 		n_flag = 1;
 		i++;
 	}
-	// affichage des arguments
 	while (args[i])
 	{
 		ft_printf("%s", args[i]);
@@ -55,7 +53,6 @@ int	builtin_echo(t_tools *tools, char **args)
 			ft_printf(" ");
 		i++;
 	}
-	// on ajoute un retour a la ligne sauf si -n est present
 	if (!n_flag)
 		ft_printf("\n");
 	return (0);

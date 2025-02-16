@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:30 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/13 12:34:00 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/16 20:45:27 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,19 +15,22 @@
 static void	execute_cmd(t_pip *cmd, t_exec *exec, char *cmd_path)
 {
 	t_cmd_args	*args;
-	char		*cmd_to_parse;
+	char		*expanded_cmd;
 
-	setup_exec_signals();
+	setup_child_signals();
 	if (cmd->redirection)
 	{
 		if (setup_redirections(cmd->redirection, &exec->process) == -1)
 			exit(1);
 	}
 	if (cmd->redirection)
-		cmd_to_parse = cmd->redirection->cmd;
+		expanded_cmd = expand_str(cmd->redirection->cmd, exec->tools);
 	else
-		cmd_to_parse = cmd->cmd_pipe;
-	args = parse_command_args(cmd_to_parse);
+		expanded_cmd = expand_str(cmd->cmd_pipe, exec->tools);
+	if (!expanded_cmd)
+		exit(1);
+	args = parse_command_args(expanded_cmd);
+	free(expanded_cmd);
 	if (!args || !args->argv[0])
 	{
 		if (args)
@@ -46,7 +49,7 @@ int	exec_simple_cmd(t_pip *cmd, t_exec *exec)
 	int			status;
 	t_cmd_args	*args;
 	int			builtin_ret;
-	char		*cmd_to_parse;
+	char		*expanded_cmd;
 
 	if (!cmd || (!cmd->cmd_pipe && !cmd->redirection))
 		return (1);
@@ -54,10 +57,13 @@ int	exec_simple_cmd(t_pip *cmd, t_exec *exec)
 	if (builtin_ret != -1)
 		return (builtin_ret);
 	if (cmd->redirection)
-		cmd_to_parse = cmd->redirection->cmd;
+		expanded_cmd = expand_str(cmd->redirection->cmd, exec->tools);
 	else
-		cmd_to_parse = cmd->cmd_pipe;
-	args = parse_command_args(cmd_to_parse);
+		expanded_cmd = expand_str(cmd->cmd_pipe, exec->tools);
+	if (!expanded_cmd)
+		return (1);
+	args = parse_command_args(expanded_cmd);
+	free(expanded_cmd);
 	if (!args || !args->argv[0])
 	{
 		if (args)
