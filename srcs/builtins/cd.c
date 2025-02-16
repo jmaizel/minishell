@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cd.c                                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 10:04:22 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/02/13 15:05:37 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/16 20:39:59 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ static char	*expand_home_path(char *path)
 		return (ft_strjoin(home, path + 1));
 	return (ft_strdup(path));
 }
+
 static void	update_pwd_vars(t_tools *tools)
 {
 	char	current_pwd[PATH_MAX];

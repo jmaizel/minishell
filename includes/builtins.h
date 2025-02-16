@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtins.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 15:26:11 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/14 13:31:29 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/16 20:38:14 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,10 @@ int		builtin_env(t_tools *tools, char **argv);
 int		builtin_export(t_tools *tools, char **argv);
 int		builtin_unset(t_tools *tools, char **argv);
 int		builtin_exit(t_tools *tools, char **argv);
-int   builtin_env(t_tools *tools, char **argv);
-int   builtin_cd(t_tools *tools, char **args);
-int   builtin_echo(t_tools *tools, char **args);
-int   builtin_pwd(t_tools *tools, char **args);
+int		builtin_env(t_tools *tools, char **argv);
+int		builtin_cd(t_tools *tools, char **args);
+int		builtin_echo(t_tools *tools, char **args);
+int		builtin_pwd(t_tools *tools, char **args);
 
 /* Environment utilities */
 int		find_env_var(char **env, const char *name);

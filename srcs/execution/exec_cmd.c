@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_cmd.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:30 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/15 10:18:55 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/16 20:45:27 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,56 +45,45 @@ static void	execute_cmd(t_pip *cmd, t_exec *exec, char *cmd_path)
 
 int	exec_simple_cmd(t_pip *cmd, t_exec *exec)
 {
-	char *cmd_path;
-	int status;
-	t_cmd_args *args;
-	int builtin_ret;
-	char *expanded_cmd;
+	char		*cmd_path;
+	int			status;
+	t_cmd_args	*args;
+	int			builtin_ret;
+	char		*expanded_cmd;
 
 	if (!cmd || (!cmd->cmd_pipe && !cmd->redirection))
 		return (1);
-
 	builtin_ret = handle_builtin(cmd, exec);
 	if (builtin_ret != -1)
 		return (builtin_ret);
-
 	if (cmd->redirection)
 		expanded_cmd = expand_str(cmd->redirection->cmd, exec->tools);
 	else
 		expanded_cmd = expand_str(cmd->cmd_pipe, exec->tools);
-
 	if (!expanded_cmd)
 		return (1);
-
 	args = parse_command_args(expanded_cmd);
 	free(expanded_cmd);
-
 	if (!args || !args->argv[0])
 	{
 		if (args)
 			free_cmd_args(args);
 		return (1);
 	}
-
 	cmd_path = get_cmd_path(args->argv[0], exec->cmd_paths);
 	free_cmd_args(args);
-
 	if (!cmd_path)
 		return (127);
-
 	exec->process.pid = fork();
 	if (exec->process.pid == -1)
 		return (free(cmd_path), 1);
-
 	if (exec->process.pid == 0)
 		execute_cmd(cmd, exec, cmd_path);
-
 	g_signal_received = 0;
 	setup_parent_signals();
 	waitpid(exec->process.pid, &status, 0);
 	restore_signals();
 	free(cmd_path);
-
 	if (WIFSIGNALED(status))
 	{
 		if (WTERMSIG(status) == SIGINT)

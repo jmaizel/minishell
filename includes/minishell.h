@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 12:08:50 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/13 15:59:34 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/16 20:37:29 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,10 +116,10 @@ void			setup_exec_signals(void);
 void			restore_signals(void);
 
 /*
-**expansion
+** Expansion functions
 */
-char    *expand_str(const char *str, t_tools *tools);
-char    *get_var_value(const char *var_name, char **env);
-char    *expand_exit_status(int exit_code);
+char			*expand_str(const char *str, t_tools *tools);
+char			*get_var_value(const char *var_name, char **env);
+char			*expand_exit_status(int exit_code);
 
 #endif
