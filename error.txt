@@ -1,4 +1,4 @@
-<infile.txt grep hello | wc -l >outfile1>outfile2
+<infile.txt grep hello | wc -l >outfile1>outfile2 : corrigée
 
 cat << EOF | wc -l
 
@@ -6,6 +6,6 @@ Message error command not found
 
 Il faut appuyer deux fois sur CTRL-D après un CTRL-C dans un heredoc
 
-cd - NE MARCHE PAS
+cd - NE MARCHE PAS : corrigée
 
 VERIFIER LES SIGNAUX SUR UN LINUX CAR IMPOSSIBLE SUR MAC

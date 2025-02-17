@@ -1,0 +1,927 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:44:16 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/13 15:42:20 by jmaizel          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+void	init_exec_struct(t_exec *exec, t_tools *tools)
+{
+	exec->tools = tools;
+	exec->exit_status = 0;
+	exec->pipe_count = 0;
+	exec->process.stdin_backup = -1;
+	exec->process.stdout_backup = -1;
+	exec->process.pid = -1;
+	exec->cmd_paths = get_env_paths(tools->env, "PATH");
+}
+
+int	exec_commands(t_sep *cell, t_tools *tools)
+{
+	t_exec	exec;
+	int		ret;
+	char	*expanded_cmd;
+
+	if (!cell || !cell->pipcell)
+		return (1);
+	expanded_cmd = expand_str(cell->pipcell->cmd_pipe, tools);
+	if (expanded_cmd)
+	{
+		free(cell->pipcell->cmd_pipe);
+		cell->pipcell->cmd_pipe = expanded_cmd;
+	}
+	init_exec_struct(&exec, tools);
+	exec.pipe_count = count_pipes(cell->pipcell);
+	if (exec.pipe_count > 0)
+		ret = exec_pipeline(cell->pipcell, &exec);
+	else
+	{
+		if (!cell->pipcell->redirection)
+			cell->pipcell->redirection = parse_redir(cell->pipcell->cmd_pipe);
+		if (cell->pipcell->redirection && cell->pipcell->redirection->cmd)
+		{
+			expanded_cmd = expand_str(cell->pipcell->redirection->cmd, tools);
+			if (expanded_cmd)
+			{
+				free(cell->pipcell->redirection->cmd);
+				cell->pipcell->redirection->cmd = expanded_cmd;
+			}
+		}
+		ret = exec_simple_cmd(cell->pipcell, &exec);
+	}
+	if (exec.cmd_paths)
+		free_str_array(exec.cmd_paths);
+	return (ret);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_builtins.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/09 18:25:25 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/16 20:42:47 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/builtins.h"
+#include "../../includes/execution.h"
+
+int	is_builtin(char *cmd)
+{
+	if (!cmd)
+		return (0);
+	if (ft_strcmp(cmd, "env") == 0)
+		return (1);
+	if (ft_strcmp(cmd, "export") == 0)
+		return (0);
+	if (ft_strcmp(cmd, "unset") == 0)
+		return (0);
+	if (ft_strcmp(cmd, "exit") == 0)
+		return (1);
+	if (ft_strcmp(cmd, "cd") == 0)
+		return (1);
+	if (ft_strcmp(cmd, "echo") == 0)
+		return (1);
+	if (ft_strcmp(cmd, "pwd") == 0)
+		return (1);
+	return (0);
+}
+
+int	execute_builtin(t_cmd_args *args, t_exec *exec)
+{
+	if (!args || !args->argv[0])
+		return (1);
+	if (ft_strcmp(args->argv[0], "env") == 0)
+		return (builtin_env(exec->tools, args->argv));
+	if (ft_strcmp(args->argv[0], "export") == 0)
+		return (builtin_export(exec->tools, args->argv));
+	if (ft_strcmp(args->argv[0], "unset") == 0)
+		return (builtin_unset(exec->tools, args->argv));
+	if (!ft_strcmp(args->argv[0], "exit"))
+		return (builtin_exit(exec->tools, args->argv));
+	if (ft_strcmp(args->argv[0], "cd") == 0)
+		return (builtin_cd(exec->tools, args->argv));
+	if (ft_strcmp(args->argv[0], "echo") == 0)
+		return (builtin_echo(exec->tools, args->argv));
+	if (ft_strcmp(args->argv[0], "pwd") == 0)
+		return (builtin_pwd(exec->tools, args->argv));
+	return (1);
+}
+
+int	handle_builtin(t_pip *cmd, t_exec *exec)
+{
+	t_cmd_args	*args;
+	int			ret;
+
+	args = parse_command_args(cmd->redirection ? cmd->redirection->cmd :
+			cmd->cmd_pipe);
+	if (!args)
+		return (1);
+	if (!args->argv[0])
+	{
+		free_cmd_args(args);
+		return (1);
+	}
+	if (!is_builtin(args->argv[0]))
+	{
+		free_cmd_args(args);
+		return (-1);
+	}
+	if (cmd->redirection)
+	{
+		if (setup_redirections(cmd->redirection, &exec->process) == -1)
+		{
+			free_cmd_args(args);
+			return (1);
+		}
+	}
+	ret = execute_builtin(args, exec);
+	if (cmd->redirection)
+		restore_redirections(&exec->process);
+	free_cmd_args(args);
+	return (ret);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_cmd.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:42:30 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/17 16:41:09 by jacobmaizel      ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+static void	execute_cmd(t_pip *cmd, t_exec *exec, char *cmd_path)
+{
+	t_cmd_args	*args;
+	char		*expanded_cmd;
+
+	setup_child_signals();
+	if (cmd->redirection)
+	{
+		if (setup_redirections(cmd->redirection, &exec->process) == -1)
+			exit(1);
+	}
+	if (cmd->redirection)
+		expanded_cmd = expand_str(cmd->redirection->cmd, exec->tools);
+	else
+		expanded_cmd = expand_str(cmd->cmd_pipe, exec->tools);
+	if (!expanded_cmd)
+		exit(1);
+	args = parse_command_args(expanded_cmd);
+	free(expanded_cmd);
+	if (!args || !args->argv[0])
+	{
+		if (args)
+			free_cmd_args(args);
+		exit(1);
+	}
+	execve(cmd_path, args->argv, exec->tools->env);
+	ft_printf("minishell: %s: command not found\n", args->cmd);
+	free_cmd_args(args);
+	exit(127);
+}
+
+int	exec_simple_cmd(t_pip *cmd, t_exec *exec)
+{
+	char		*cmd_path;
+	int			status;
+	t_cmd_args	*args;
+	int			builtin_ret;
+	char		*expanded_cmd;
+	int			i;
+
+	if (!cmd || (!cmd->cmd_pipe && !cmd->redirection))
+		return (1);
+	
+	if (!cmd->redirection)
+		cmd->redirection = parse_redir(cmd->cmd_pipe);
+	
+	// Gérer les heredocs en séquence
+	if (cmd->redirection && cmd->redirection->heredoc_count > 0)
+	{
+		i = 0;
+		while (i < cmd->redirection->heredoc_count)
+		{
+			if (handle_heredoc(cmd->redirection->heredoc_delim[i]) == -1)
+				return (1);
+			i++;
+		}
+		if (!cmd->redirection->cmd || !*cmd->redirection->cmd)
+			return (0);
+	}
+
+	builtin_ret = handle_builtin(cmd, exec);
+	if (builtin_ret != -1)
+		return (builtin_ret);
+	if (cmd->redirection)
+		expanded_cmd = expand_str(cmd->redirection->cmd, exec->tools);
+	else
+		expanded_cmd = expand_str(cmd->cmd_pipe, exec->tools);
+	if (!expanded_cmd)
+		return (1);
+	args = parse_command_args(expanded_cmd);
+	free(expanded_cmd);
+	if (!args || !args->argv[0])
+	{
+		if (args)
+			free_cmd_args(args);
+		return (1);
+	}
+	cmd_path = get_cmd_path(args->argv[0], exec->cmd_paths);
+	free_cmd_args(args);
+	if (!cmd_path)
+		return (127);
+	exec->process.pid = fork();
+	if (exec->process.pid == -1)
+		return (free(cmd_path), 1);
+	if (exec->process.pid == 0)
+		execute_cmd(cmd, exec, cmd_path);
+	g_signal_received = 0;
+	setup_parent_signals();
+	waitpid(exec->process.pid, &status, 0);
+	restore_signals();
+	free(cmd_path);
+	if (WIFSIGNALED(status))
+	{
+		if (WTERMSIG(status) == SIGINT)
+		{
+			ft_putchar_fd('\n', STDERR_FILENO);
+			return (130);
+		}
+		if (WTERMSIG(status) == SIGQUIT)
+		{
+			ft_putstr_fd("Quit (core dumped)\n", STDERR_FILENO);
+			return (131);
+		}
+		return (128 + WTERMSIG(status));
+	}
+	if (WIFEXITED(status))
+		return (WEXITSTATUS(status));
+	return (1);
+}
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_error.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:42:37 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/08 17:42:40 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+void	print_error(char *cmd, char *arg, char *message)
+{
+	ft_putstr_fd("minishell: ", 2);
+	if (cmd)
+	{
+		ft_putstr_fd(cmd, 2);
+		ft_putstr_fd(": ", 2);
+	}
+	if (arg)
+	{
+		ft_putstr_fd(arg, 2);
+		ft_putstr_fd(": ", 2);
+	}
+	if (message)
+		ft_putstr_fd(message, 2);
+	ft_putstr_fd("\n", 2);
+}
+
+int	handle_cmd_error(char *cmd, char *error)
+{
+	print_error(cmd, NULL, error);
+	return (127);
+}
+
+int	handle_file_error(char *cmd, char *file, char *error)
+{
+	print_error(cmd, file, error);
+	return (1);
+}
+
+int	handle_pipe_error(void)
+{
+	print_error(NULL, NULL, "pipe error");
+	return (1);
+}
+
+int	handle_fork_error(void)
+{
+	print_error(NULL, NULL, "fork error");
+	return (1);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_heredoc.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:42:45 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/17 16:27:57 by jacobmaizel      ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+static void	handle_child_signal(int sig)
+{
+	(void)sig;
+	g_signal_received = 1;
+}
+
+static void	handle_parent_signal(int sig)
+{
+	(void)sig;
+}
+
+static void	setup_child_heredoc_signals(void)
+{
+	struct sigaction	sa;
+
+	ft_memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = handle_child_signal;
+	sa.sa_flags = 0;
+	sigemptyset(&sa.sa_mask);
+	sigaction(SIGINT, &sa, NULL);
+	signal(SIGQUIT, SIG_IGN);
+}
+
+static void	setup_parent_heredoc_signals(void)
+{
+	struct sigaction	sa;
+
+	ft_memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = handle_parent_signal;
+	sa.sa_flags = 0;
+	sigemptyset(&sa.sa_mask);
+	sigaction(SIGINT, &sa, NULL);
+	signal(SIGQUIT, SIG_IGN);
+}
+
+static char	*append_to_buffer(char *buffer, const char *line)
+{
+	char	*temp;
+	char	*new_buffer;
+
+	temp = ft_strjoin(buffer, line);
+	if (!temp)
+	{
+		free(buffer);
+		return (NULL);
+	}
+	new_buffer = ft_strjoin(temp, "\n");
+	free(temp);
+	if (!new_buffer)
+	{
+		free(buffer);
+		return (NULL);
+	}
+	free(buffer);
+	return (new_buffer);
+}
+
+static int	write_heredoc_content(int fd, char *delimiter)
+{
+	char	*line;
+	char	*buffer;
+
+	buffer = ft_strdup("");
+	if (!buffer)
+		return (-1);
+	while (!g_signal_received)
+	{
+		line = readline("heredoc> ");
+		if (!line || g_signal_received)
+		{
+			free(buffer);
+			free(line);
+			return (-1);
+		}
+		if (ft_strcmp(line, delimiter) == 0)
+		{
+			if (buffer && *buffer)  // N'écrit que si le buffer n'est pas vide
+				write(fd, buffer, ft_strlen(buffer));
+			free(line);
+			free(buffer);
+			return (0);
+		}
+		buffer = append_to_buffer(buffer, line);
+		free(line);
+		if (!buffer)
+			return (-1);
+	}
+	free(buffer);
+	return (-1);
+}
+
+int	handle_heredoc(char *delimiter)
+{
+	int		pipe_fd[2];
+	pid_t	pid;
+	int		status;
+
+	if (pipe(pipe_fd) == -1)
+		return (-1);
+	g_signal_received = 0;
+	setup_parent_heredoc_signals();
+	pid = fork();
+	if (pid == -1)
+	{
+		close(pipe_fd[0]);
+		close(pipe_fd[1]);
+		return (-1);
+	}
+	if (pid == 0)
+	{
+		setup_child_heredoc_signals();
+		close(pipe_fd[0]);
+		status = write_heredoc_content(pipe_fd[1], delimiter);
+		close(pipe_fd[1]);
+		if (g_signal_received)
+			ft_putchar_fd('\n', STDERR_FILENO);
+		_exit((status == -1) ? 1 : 0);
+	}
+	close(pipe_fd[1]);
+	waitpid(pid, &status, 0);
+	g_signal_received = 0;
+	setup_interactive_signals();
+	if (WIFSIGNALED(status) && WTERMSIG(status) == SIGINT)
+	{
+		close(pipe_fd[0]);
+		g_signal_received = 1;
+		return (-1);
+	}
+	if (WIFSIGNALED(status) || WEXITSTATUS(status) != 0)
+	{
+		close(pipe_fd[0]);
+		return (-1);
+	}
+	dup2(pipe_fd[0], STDIN_FILENO);
+	close(pipe_fd[0]);
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_path.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:43:13 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/08 17:43:15 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+char	*get_cmd_path(char *cmd, char **cmd_paths)
+{
+	char	*temp;
+	char	*cmd_path;
+	int		i;
+
+	if (!cmd || !cmd_paths)
+		return (NULL);
+	if (cmd[0] == '/' || cmd[0] == '.' || cmd[0] == '~')
+	{
+		if (access(cmd, X_OK) == 0)
+			return (ft_strdup(cmd));
+		return (NULL);
+	}
+	i = 0;
+	while (cmd_paths[i])
+	{
+		temp = ft_strjoin(cmd_paths[i], "/");
+		cmd_path = ft_strjoin(temp, cmd);
+		free(temp);
+		if (access(cmd_path, X_OK) == 0)
+			return (cmd_path);
+		free(cmd_path);
+		i++;
+	}
+	return (NULL);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_pipe.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:43:28 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/17 16:41:21 by jacobmaizel      ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+static void	close_all_pipes(int pipes[][2], int count)
+{
+	int	i;
+
+	i = 0;
+	while (i < count)
+	{
+		if (pipes[i][0] != -1)
+			close(pipes[i][0]);
+		if (pipes[i][1] != -1)
+			close(pipes[i][1]);
+		i++;
+	}
+}
+
+static void	init_pipes(int pipes[][2], int count)
+{
+	int	i;
+
+	i = 0;
+	while (i < count)
+	{
+		pipes[i][0] = -1;
+		pipes[i][1] = -1;
+		i++;
+	}
+}
+
+static int	setup_pipes(int pipes[][2], int count)
+{
+	int	i;
+
+	init_pipes(pipes, count);
+	i = 0;
+	while (i < count)
+	{
+		if (pipe(pipes[i]) == -1)
+		{
+			close_all_pipes(pipes, i);
+			return (-1);
+		}
+		i++;
+	}
+	return (0);
+}
+
+static void	setup_child_io(int i, int pipes[][2], int pipe_count)
+{
+	if (i > 0)
+	{
+		if (dup2(pipes[i - 1][0], STDIN_FILENO) == -1)
+			exit(1);
+	}
+	if (i < pipe_count)
+	{
+		if (dup2(pipes[i][1], STDOUT_FILENO) == -1)
+			exit(1);
+	}
+	close_all_pipes(pipes, pipe_count);
+}
+
+static void	execute_command(t_pip *cmd, t_exec *exec)
+{
+	t_cmd_args	*args;
+	char		*cmd_path;
+	char		*cmd_to_parse;
+
+	if (!cmd->redirection)
+		cmd->redirection = parse_redir(cmd->cmd_pipe);
+	// Seulement les redirections non-heredoc ici
+	if (cmd->redirection && setup_redirections(cmd->redirection,
+			&exec->process) == -1)
+		exit(1);
+	if (cmd->redirection)
+		cmd_to_parse = cmd->redirection->cmd;
+	else
+		cmd_to_parse = cmd->cmd_pipe;
+	args = parse_command_args(cmd_to_parse);
+	if (!args || !args->argv[0])
+	{
+		if (args)
+			free_cmd_args(args);
+		exit(1);
+	}
+	cmd_path = get_cmd_path(args->argv[0], exec->cmd_paths);
+	if (!cmd_path)
+	{
+		ft_printf("minishell: %s: command not found\n", args->argv[0]);
+		free_cmd_args(args);
+		exit(127);
+	}
+	execve(cmd_path, args->argv, exec->tools->env);
+	free(cmd_path);
+	free_cmd_args(args);
+	exit(127);
+}
+
+static int	fork_and_execute(t_pip *cmd, t_exec *exec, int i, int pipes[][2])
+{
+	pid_t	pid;
+
+	pid = fork();
+	if (pid == -1)
+		return (-1);
+	if (pid == 0)
+	{
+		setup_child_signals();
+		setup_child_io(i, pipes, exec->pipe_count);
+		execute_command(cmd, exec);
+	}
+	return (pid);
+}
+
+int	exec_pipeline(t_pip *pipeline, t_exec *exec)
+{
+	int		pipes[1024][2];
+	t_pip	*current;
+	pid_t	*pids;
+	int		i;
+	int		ret;
+
+	exec->pipe_count = count_pipes(pipeline);
+	
+	// Traiter tous les heredocs avant de commencer le pipeline
+	current = pipeline;
+	while (current)
+	{
+		if (!current->redirection)
+			current->redirection = parse_redir(current->cmd_pipe);
+		if (current->redirection && current->redirection->heredoc_count > 0)
+		{
+			i = 0;
+			while (i < current->redirection->heredoc_count)
+			{
+				ret = handle_heredoc(current->redirection->heredoc_delim[i]);
+				if (ret == -1)
+					return (1);
+				i++;
+			}
+		}
+		current = current->next;
+	}
+
+	if (setup_pipes(pipes, exec->pipe_count) == -1)
+		return (1);
+	pids = malloc(sizeof(pid_t) * (exec->pipe_count + 1));
+	if (!pids)
+	{
+		close_all_pipes(pipes, exec->pipe_count);
+		return (1);
+	}
+	current = pipeline;
+	i = 0;
+	while (current)
+	{
+		pids[i] = fork_and_execute(current, exec, i, pipes);
+		if (pids[i] == -1)
+		{
+			free(pids);
+			close_all_pipes(pipes, exec->pipe_count);
+			return (1);
+		}
+		current = current->next;
+		i++;
+	}
+	close_all_pipes(pipes, exec->pipe_count);
+	wait_all_processes(exec, exec->pipe_count + 1);
+	free(pids);
+	setup_parent_signals();
+	return (exec->exit_status);
+}/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_redir.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:43:39 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/17 16:34:31 by jacobmaizel      ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+static int	handle_output_redir(char *file, int append)
+{
+	int	fd;
+	int	flags;
+
+	flags = O_WRONLY | O_CREAT;
+	if (append)
+		flags |= O_APPEND;
+	else
+		flags |= O_TRUNC;
+	fd = open(file, flags, 0644);
+	if (fd == -1)
+	{
+		ft_printf("minishell: %s: Permission denied\n", file);
+		return (-1);
+	}
+	if (dup2(fd, STDOUT_FILENO) == -1)
+	{
+		close(fd);
+		return (-1);
+	}
+	close(fd);
+	return (0);
+}
+
+static int	setup_input(t_parsed_cmd *cmd, t_process *process)
+{
+	int	fd;
+	int	i;
+
+	if (cmd->heredoc_count > 0)
+	{
+		i = 0;
+		while (i < cmd->heredoc_count)
+		{
+			if (handle_heredoc(cmd->heredoc_delim[i]) == -1)
+				return (-1);
+			i++;
+		}
+		process->stdin_backup = dup(STDIN_FILENO);
+	}
+	else if (cmd->input_count > 0)
+	{
+		fd = open(cmd->input_file[cmd->input_count - 1], O_RDONLY);
+		if (fd == -1)
+		{
+			ft_printf("minishell: %s: No such file or directory\n",
+				cmd->input_file[cmd->input_count - 1]);
+			return (-1);
+		}
+		process->stdin_backup = dup(STDIN_FILENO);
+		if (dup2(fd, STDIN_FILENO) == -1)
+		{
+			close(fd);
+			return (-1);
+		}
+		close(fd);
+	}
+	return (0);
+}
+
+int	setup_redirections(t_parsed_cmd *cmd, t_process *process)
+{
+	if (!cmd)
+		return (0);
+	process->stdin_backup = -1;
+	process->stdout_backup = -1;
+	if (setup_input(cmd, process) == -1)
+		return (-1);
+	if (cmd->append_count > 0 || cmd->output_count > 0)
+	{
+		process->stdout_backup = dup(STDOUT_FILENO);
+		if (cmd->append_count > 0)
+		{
+			if (handle_output_redir(cmd->append_file[cmd->append_count - 1], 1)
+				== -1)
+				return (-1);
+		}
+		else
+		{
+			if (handle_output_redir(cmd->output_file[cmd->output_count - 1], 0)
+				== -1)
+				return (-1);
+		}
+	}
+	return (0);
+}
+
+void	restore_redirections(t_process *process)
+{
+	if (process->stdin_backup != -1)
+	{
+		dup2(process->stdin_backup, STDIN_FILENO);
+		close(process->stdin_backup);
+		process->stdin_backup = -1;
+	}
+	if (process->stdout_backup != -1)
+	{
+		dup2(process->stdout_backup, STDOUT_FILENO);
+		close(process->stdout_backup);
+		process->stdout_backup = -1;
+	}
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_signals.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:43:51 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/13 13:57:06 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+static void	signal_handler(int sig)
+{
+	if (sig == SIGINT)
+	{
+		ft_putchar_fd('\n', STDERR_FILENO);
+		rl_on_new_line();
+		rl_replace_line("", 0);
+		rl_redisplay();
+	}
+}
+
+void	setup_parent_signals(void)
+{
+	struct sigaction	sa;
+
+	ft_memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = signal_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	sigaction(SIGINT, &sa, NULL);
+	signal(SIGQUIT, SIG_IGN);
+}
+
+void	setup_child_signals(void)
+{
+	struct sigaction	sa;
+
+	ft_memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = SIG_DFL;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_utils.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/08 17:44:02 by cdedessu          #+#    #+#             */
+/*   Updated: 2025/02/08 17:44:04 by cdedessu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../../includes/execution.h"
+
+int	count_pipes(t_pip *pipeline)
+{
+	int		count;
+	t_pip	*current;
+
+	count = 0;
+	current = pipeline;
+	while (current && current->next)
+	{
+		count++;
+		current = current->next;
+	}
+	return (count);
+}
+
+void	close_pipe(int pipe_fd[2])
+{
+	if (pipe_fd[PIPE_READ] != -1)
+		close(pipe_fd[PIPE_READ]);
+	if (pipe_fd[PIPE_WRITE] != -1)
+		close(pipe_fd[PIPE_WRITE]);
+}
+
+void	wait_all_processes(t_exec *exec, int process_count)
+{
+	int	i;
+	int	status;
+
+	i = 0;
+	while (i < process_count)
+	{
+		if (wait(&status) == exec->process.pid)
+		{
+			if (WIFEXITED(status))
+				exec->exit_status = WEXITSTATUS(status);
+			else if (WIFSIGNALED(status))
+				exec->exit_status = WTERMSIG(status) + 128;
+		}
+		i++;
+	}
+}

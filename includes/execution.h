@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   execution.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/09 18:33:01 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/17 16:50:43 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ int		setup_redirections(t_parsed_cmd *cmd, t_process *process);
 void	restore_redirections(t_process *process);
 
 /* exec_heredoc.c */
-int		handle_heredoc(char *delimiter);
+int handle_heredoc(char **delimiters, int count);
 
 /* exec_signals.c */
 void	setup_parent_signals(void);

@@ -6,7 +6,7 @@
 /*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 10:04:22 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/02/17 12:27:09 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/17 17:06:53 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ int	builtin_cd(t_tools *tools, char **args)
 		int oldpwd_idx = find_env_var(tools->env, "OLDPWD");
 		if (oldpwd_idx == -1)
 			return (ft_printf("minishell: cd: OLDPWD not set\n"), 1);
-		expanded_path = ft_strdup(tools->env[oldpwd_idx] + 7); // Skip "OLDPWD="
+		expanded_path = ft_strdup(tools->env[oldpwd_idx] + 7);
 		if (expanded_path)
 			ft_printf("%s\n", expanded_path);
 	}

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_pipe.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:28 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/13 13:55:15 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/17 16:51:20 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,8 +81,9 @@ static void	execute_command(t_pip *cmd, t_exec *exec)
 
 	if (!cmd->redirection)
 		cmd->redirection = parse_redir(cmd->cmd_pipe);
-	if (cmd->redirection &&
-		setup_redirections(cmd->redirection, &exec->process) == -1)
+	// Seulement les redirections non-heredoc ici
+	if (cmd->redirection && setup_redirections(cmd->redirection,
+			&exec->process) == -1)
 		exit(1);
 	if (cmd->redirection)
 		cmd_to_parse = cmd->redirection->cmd;
@@ -124,39 +125,57 @@ static int	fork_and_execute(t_pip *cmd, t_exec *exec, int i, int pipes[][2])
 	return (pid);
 }
 
-int	exec_pipeline(t_pip *pipeline, t_exec *exec)
+int exec_pipeline(t_pip *pipeline, t_exec *exec)
 {
-	int		pipes[1024][2];
-	t_pip	*current;
-	pid_t	*pids;
-	int		i;
+    int     pipes[1024][2];
+    t_pip   *current;
+    pid_t   *pids;
+    int     i;
+    int     ret;
 
-	exec->pipe_count = count_pipes(pipeline);
-	if (setup_pipes(pipes, exec->pipe_count) == -1)
-		return (1);
-	pids = malloc(sizeof(pid_t) * (exec->pipe_count + 1));
-	if (!pids)
-	{
-		close_all_pipes(pipes, exec->pipe_count);
-		return (1);
-	}
-	current = pipeline;
-	i = 0;
-	while (current)
-	{
-		pids[i] = fork_and_execute(current, exec, i, pipes);
-		if (pids[i] == -1)
-		{
-			free(pids);
-			close_all_pipes(pipes, exec->pipe_count);
-			return (1);
-		}
-		current = current->next;
-		i++;
-	}
-	close_all_pipes(pipes, exec->pipe_count);
-	wait_all_processes(exec, exec->pipe_count + 1);
-	free(pids);
-	setup_parent_signals();
-	return (exec->exit_status);
+    exec->pipe_count = count_pipes(pipeline);
+    
+    // Traiter tous les heredocs avant de commencer le pipeline
+    current = pipeline;
+    while (current)
+    {
+        if (!current->redirection)
+            current->redirection = parse_redir(current->cmd_pipe);
+        if (current->redirection && current->redirection->heredoc_count > 0)
+        {
+            ret = handle_heredoc(current->redirection->heredoc_delim, 
+                               current->redirection->heredoc_count);
+            if (ret == -1)
+                return (1);
+        }
+        current = current->next;
+    }
+
+    if (setup_pipes(pipes, exec->pipe_count) == -1)
+        return (1);
+    pids = malloc(sizeof(pid_t) * (exec->pipe_count + 1));
+    if (!pids)
+    {
+        close_all_pipes(pipes, exec->pipe_count);
+        return (1);
+    }
+    current = pipeline;
+    i = 0;
+    while (current)
+    {
+        pids[i] = fork_and_execute(current, exec, i, pipes);
+        if (pids[i] == -1)
+        {
+            free(pids);
+            close_all_pipes(pipes, exec->pipe_count);
+            return (1);
+        }
+        current = current->next;
+        i++;
+    }
+    close_all_pipes(pipes, exec->pipe_count);
+    wait_all_processes(exec, exec->pipe_count + 1);
+    free(pids);
+    setup_parent_signals();
+    return (exec->exit_status);
 }
