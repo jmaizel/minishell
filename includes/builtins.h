@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtins.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 15:26:11 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/16 20:38:14 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/18 14:42:17 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 # include "minishell.h"
 
-//#define PATH_MAX 4096
+#define PATH_MAX 4096
 
 /* Builtins */
 int		builtin_env(t_tools *tools, char **argv);
