@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:45 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/19 09:47:32 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/19 21:13:35 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,11 +73,14 @@ int write_heredoc_content(int fd, char *delimiter)
 {
     char    *line;
     char    *buffer;
+    size_t  len;
     int     saved_stdout;
 
     buffer = ft_strdup("");
     if (!buffer)
         return (-1);
+
+    // Sauvegarder la sortie standard originale
     saved_stdout = dup(STDOUT_FILENO);
     if (saved_stdout == -1)
     {
@@ -87,8 +90,14 @@ int write_heredoc_content(int fd, char *delimiter)
 
     while (!g_signal_received)
     {
-        dup2(saved_stdout, STDOUT_FILENO);
+        // Rediriger la sortie standard vers stderr pour readline
+        dup2(STDERR_FILENO, STDOUT_FILENO);
+        
         line = readline("heredoc> ");
+        
+        // Restaurer la sortie standard originale
+        dup2(saved_stdout, STDOUT_FILENO);
+        
         if (!line || g_signal_received)
         {
             free(buffer);
@@ -96,14 +105,17 @@ int write_heredoc_content(int fd, char *delimiter)
             close(saved_stdout);
             return (-1);
         }
+        
         if (ft_strcmp(line, delimiter) == 0)
         {
-            write(fd, buffer, ft_strlen(buffer));
+            len = ft_strlen(buffer);
+            write(fd, buffer, len);
             free(line);
             free(buffer);
             close(saved_stdout);
             return (0);
         }
+        
         buffer = append_to_buffer(buffer, line);
         free(line);
         if (!buffer)
@@ -112,8 +124,8 @@ int write_heredoc_content(int fd, char *delimiter)
             return (-1);
         }
     }
-    free(buffer);
     close(saved_stdout);
+    free(buffer);
     return (-1);
 }
 
