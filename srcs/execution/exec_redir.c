@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:39 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/13 13:54:04 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/19 09:48:32 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,34 +37,41 @@ static int	handle_output_redir(char *file, int append)
 	return (0);
 }
 
-static int	setup_input(t_parsed_cmd *cmd, t_process *process)
+static int setup_input(t_parsed_cmd *cmd, t_process *process)
 {
-	int	fd;
+    int fd;
 
-	if (cmd->heredoc_count > 0)
-	{
-		if (handle_heredoc(cmd->heredoc_delim[cmd->heredoc_count - 1]) == -1)
-			return (-1);
-		process->stdin_backup = dup(STDIN_FILENO);
-	}
-	else if (cmd->input_count > 0)
-	{
-		fd = open(cmd->input_file[cmd->input_count - 1], O_RDONLY);
-		if (fd == -1)
-		{
-			ft_printf("minishell: %s: No such file or directory\n",
-				cmd->input_file[cmd->input_count - 1]);
-			return (-1);
-		}
-		process->stdin_backup = dup(STDIN_FILENO);
-		if (dup2(fd, STDIN_FILENO) == -1)
-		{
-			close(fd);
-			return (-1);
-		}
-		close(fd);
-	}
-	return (0);
+    if (cmd->heredoc_count > 0)
+    {
+        fd = handle_heredoc(cmd->heredoc_delim[cmd->heredoc_count - 1]);
+        if (fd == -1)
+            return (-1);
+        process->stdin_backup = dup(STDIN_FILENO);
+        if (dup2(fd, STDIN_FILENO) == -1)
+        {
+            close(fd);
+            return (-1);
+        }
+        close(fd);
+    }
+    else if (cmd->input_count > 0)
+    {
+        fd = open(cmd->input_file[cmd->input_count - 1], O_RDONLY);
+        if (fd == -1)
+        {
+            ft_printf("minishell: %s: No such file or directory\n",
+                cmd->input_file[cmd->input_count - 1]);
+            return (-1);
+        }
+        process->stdin_backup = dup(STDIN_FILENO);
+        if (dup2(fd, STDIN_FILENO) == -1)
+        {
+            close(fd);
+            return (-1);
+        }
+        close(fd);
+    }
+    return (0);
 }
 
 int	setup_redirections(t_parsed_cmd *cmd, t_process *process)

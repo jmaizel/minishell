@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:28 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/13 13:55:15 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/19 09:48:20 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,55 +73,81 @@ static void	setup_child_io(int i, int pipes[][2], int pipe_count)
 	close_all_pipes(pipes, pipe_count);
 }
 
-static void	execute_command(t_pip *cmd, t_exec *exec)
+static void execute_command(t_pip *cmd, t_exec *exec, int index)
 {
-	t_cmd_args	*args;
-	char		*cmd_path;
-	char		*cmd_to_parse;
+    t_cmd_args  *args;
+    char        *cmd_path;
+    char        *cmd_to_parse;
 
-	if (!cmd->redirection)
-		cmd->redirection = parse_redir(cmd->cmd_pipe);
-	if (cmd->redirection &&
-		setup_redirections(cmd->redirection, &exec->process) == -1)
-		exit(1);
-	if (cmd->redirection)
-		cmd_to_parse = cmd->redirection->cmd;
-	else
-		cmd_to_parse = cmd->cmd_pipe;
-	args = parse_command_args(cmd_to_parse);
-	if (!args || !args->argv[0])
-	{
-		if (args)
-			free_cmd_args(args);
-		exit(1);
-	}
-	cmd_path = get_cmd_path(args->argv[0], exec->cmd_paths);
-	if (!cmd_path)
-	{
-		ft_printf("minishell: %s: command not found\n", args->argv[0]);
-		free_cmd_args(args);
-		exit(127);
-	}
-	execve(cmd_path, args->argv, exec->tools->env);
-	free(cmd_path);
-	free_cmd_args(args);
-	exit(127);
+	(void)index;
+    setup_child_signals();
+    if (!cmd->redirection)
+        cmd->redirection = parse_redir(cmd->cmd_pipe);
+    if (cmd->redirection)
+    {
+        if (setup_redirections(cmd->redirection, &exec->process) == -1)
+            exit(1);
+        cmd_to_parse = cmd->redirection->cmd;
+    }
+    else
+        cmd_to_parse = cmd->cmd_pipe;
+    args = parse_command_args(cmd_to_parse);
+    if (!args || !args->argv[0])
+    {
+        if (args)
+            free_cmd_args(args);
+        exit(1);
+    }
+    cmd_path = get_cmd_path(args->argv[0], exec->cmd_paths);
+    if (!cmd_path)
+    {
+        ft_printf("minishell: %s: command not found\n", args->argv[0]);
+        free_cmd_args(args);
+        exit(127);
+    }
+    execve(cmd_path, args->argv, exec->tools->env);
+    free(cmd_path);
+    free_cmd_args(args);
+    exit(127);
 }
 
-static int	fork_and_execute(t_pip *cmd, t_exec *exec, int i, int pipes[][2])
+static int fork_and_execute(t_pip *cmd, t_exec *exec, int i, int pipes[][2])
 {
-	pid_t	pid;
+    pid_t   pid;
 
-	pid = fork();
-	if (pid == -1)
-		return (-1);
-	if (pid == 0)
-	{
-		setup_child_signals();
-		setup_child_io(i, pipes, exec->pipe_count);
-		execute_command(cmd, exec);
-	}
-	return (pid);
+    pid = fork();
+    if (pid == -1)
+        return (-1);
+    if (pid == 0)
+    {
+        setup_child_signals();
+        if (i == 0 && cmd->redirection && cmd->redirection->heredoc_count > 0)
+        {
+            if (exec->pipe_count > 0)
+            {
+                int j = 0;
+                while (j < exec->pipe_count)
+                {
+                    if (j != i)
+                    {
+                        close(pipes[j][0]);
+                        close(pipes[j][1]);
+                    }
+                    j++;
+                }
+            }
+            if (setup_redirections(cmd->redirection, &exec->process) == -1)
+                exit(1);
+            if (exec->pipe_count > 0 && dup2(pipes[i][1], STDOUT_FILENO) == -1)
+                exit(1);
+        }
+        else
+        {
+            setup_child_io(i, pipes, exec->pipe_count);
+        }
+        execute_command(cmd, exec, i);
+    }
+    return (pid);
 }
 
 int	exec_pipeline(t_pip *pipeline, t_exec *exec)
