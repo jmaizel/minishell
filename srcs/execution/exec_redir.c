@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:39 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/19 09:48:32 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/20 20:54:37 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,10 @@ static int setup_input(t_parsed_cmd *cmd, t_process *process)
 
     if (cmd->heredoc_count > 0)
     {
-        fd = handle_heredoc(cmd->heredoc_delim[cmd->heredoc_count - 1]);
+        if (cmd->heredoc_count > 1)
+            fd = handle_heredoc_multiple(cmd);
+        else
+            fd = handle_heredoc(cmd->heredoc_delim[0]);
         if (fd == -1)
             return (-1);
         process->stdin_backup = dup(STDIN_FILENO);

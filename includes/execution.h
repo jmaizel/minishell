@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/19 09:00:15 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/20 20:56:09 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ int		handle_heredoc(char *delimiter);
 void	setup_child_heredoc_signals(void);
 void	setup_parent_heredoc_signals(void);
 int		write_heredoc_content(int fd, char *delimiter);
+int		handle_heredoc_multiple(t_parsed_cmd *cmd);
 
 /* exec_signals.c */
 void	setup_parent_signals(void);

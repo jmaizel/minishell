@@ -1,11 +1,9 @@
-<infile.txt grep hello | wc -l >outfile1>outfile2
 
 Message error command not found
 
-Il faut appuyer deux fois sur CTRL-D après un CTRL-C dans un heredoc
-
-cd - NE MARCHE PAS
-
 VERIFIER LES SIGNAUX SUR UN LINUX CAR IMPOSSIBLE SUR MAC
 
-cat << EOF | wc -l NE MARCHE PAS MAIS LE PROBLEME N'EST PAS UNE BOUCLE INFINE MAIS UN PROBLEME D'AFFIHAGE DE HEREDOC 
+
+HEREDOC error list : 
+-  << hello NE LANCE PAS DE HEREDOC 
+- cat << hello << salut << je MARHCHE AVEC DEUX MAIS PAS PLUS DONC PROBLEME
