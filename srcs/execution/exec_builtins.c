@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 18:25:25 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/16 20:42:47 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/22 21:50:39 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ int	handle_builtin(t_pip *cmd, t_exec *exec)
 	}
 	if (cmd->redirection)
 	{
-		if (setup_redirections(cmd->redirection, &exec->process) == -1)
+		if (setup_redirections(cmd->redirection, &exec->process, exec) == -1)
 		{
 			free_cmd_args(args);
 			return (1);

@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:28 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/20 20:55:06 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/22 21:50:05 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ static void execute_command(t_pip *cmd, t_exec *exec, int index)
         cmd->redirection = parse_redir(cmd->cmd_pipe);
     if (cmd->redirection)
     {
-        if (setup_redirections(cmd->redirection, &exec->process) == -1)
+        if (setup_redirections(cmd->redirection, &exec->process, exec))
             exit(1);
         cmd_to_parse = cmd->redirection->cmd;
     }
@@ -120,7 +120,7 @@ static int handle_heredoc_pipe(t_pip *cmd, t_exec *exec, int i, int pipes[][2])
     if (cmd->redirection && cmd->redirection->heredoc_count > 0)
     {
         if (cmd->redirection->heredoc_count > 1)
-            fd = handle_heredoc_multiple(cmd->redirection);
+            fd = handle_heredoc_multiple(cmd->redirection, exec);
         else
             fd = handle_heredoc(cmd->redirection->heredoc_delim[0]);
         if (fd == -1)
@@ -153,7 +153,7 @@ static int handle_heredoc_pipe(t_pip *cmd, t_exec *exec, int i, int pipes[][2])
 
         if (cmd->redirection)
         {
-            if (setup_redirections(cmd->redirection, &exec->process) == -1)
+            if (setup_redirections(cmd->redirection, &exec->process, exec) == -1)
                 exit(1);
         }
 
@@ -186,7 +186,7 @@ static int fork_and_execute(t_pip *cmd, t_exec *exec, int i, int pipes[][2])
         
         if (cmd->redirection)
         {
-            if (setup_redirections(cmd->redirection, &exec->process) == -1)
+           if (setup_redirections(cmd->redirection, &exec->process, exec) == -1)
                 exit(1);
         }
         

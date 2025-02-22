@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:30 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/16 20:45:27 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/22 21:32:33 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ static void	execute_cmd(t_pip *cmd, t_exec *exec, char *cmd_path)
 	setup_child_signals();
 	if (cmd->redirection)
 	{
-		if (setup_redirections(cmd->redirection, &exec->process) == -1)
+		if (setup_redirections(cmd->redirection, &exec->process, exec) == -1)
 			exit(1);
 	}
 	if (cmd->redirection)
@@ -38,7 +38,7 @@ static void	execute_cmd(t_pip *cmd, t_exec *exec, char *cmd_path)
 		exit(1);
 	}
 	execve(cmd_path, args->argv, exec->tools->env);
-	ft_printf("minishell: %s: command not found\n", args->cmd);
+	ft_printf("minishell: %s: command not found\n", args->argv[0]);
 	free_cmd_args(args);
 	exit(127);
 }

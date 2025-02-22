@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:45 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/20 21:23:31 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/22 21:56:34 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,106 +109,87 @@ static char	*clean_quotes_from_delimiter(char *delim)
 	return (ft_strdup(delim));
 }
 
-static int	write_heredoc_multiple(int fd, char **delims, int count)
+static int  write_heredoc_multiple(int fd, char **delims, int count, t_tools *tools)
 {
-	char	*line;
-	char	*buffer;
-	int		saved_stdout;
-	char	*cleaned_delim;
+    char    *line;
+    char    *buffer;
+    int     saved_stdout;
+    char    *cleaned_delim;
+    int     quoted;
+    char    *expanded_line;
 
-	buffer = ft_strdup("");
-	cleaned_delim = clean_quotes_from_delimiter(delims[count - 1]);
-	if (!buffer || !cleaned_delim)
-	{
-		free(buffer);
-		free(cleaned_delim);
-		return (-1);
-	}
-	saved_stdout = dup(STDOUT_FILENO);
-	if (saved_stdout == -1)
-	{
-		free(buffer);
-		free(cleaned_delim);
-		return (-1);
-	}
-	g_signal_received = 0;
-	while (!g_signal_received)
-	{
-		dup2(STDERR_FILENO, STDOUT_FILENO);
-		line = readline("heredoc> ");
-		dup2(saved_stdout, STDOUT_FILENO);
-		if (!line || g_signal_received)
-		{
-			free(buffer);
-			free(cleaned_delim);
-			if (line)
-				free(line);
-			close(saved_stdout);
-			return (-1);
-		}
-		if (ft_strcmp(line, cleaned_delim) == 0)
-		{
-			write(fd, buffer, ft_strlen(buffer));
-			free(line);
-			free(buffer);
-			free(cleaned_delim);
-			close(saved_stdout);
-			return (0);
-		}
-		buffer = append_to_buffer(buffer, line);
-		free(line);
-		if (!buffer)
-		{
-			free(cleaned_delim);
-			close(saved_stdout);
-			return (-1);
-		}
-	}
-	free(buffer);
-	free(cleaned_delim);
-	close(saved_stdout);
-	return (-1);
-}
+    buffer = ft_strdup("");
+    quoted = (ft_strlen(delims[count - 1]) >= 2 && 
+             ((delims[count - 1][0] == '"' && delims[count - 1][ft_strlen(delims[count - 1]) - 1] == '"') ||
+              (delims[count - 1][0] == '\'' && delims[count - 1][ft_strlen(delims[count - 1]) - 1] == '\'')));
+    cleaned_delim = clean_quotes_from_delimiter(delims[count - 1]);
+    if (!buffer || !cleaned_delim)
+    {
+        free(buffer);
+        free(cleaned_delim);
+        return (-1);
+    }
+    saved_stdout = dup(STDOUT_FILENO);
+    if (saved_stdout == -1)
+    {
+        free(buffer);
+        free(cleaned_delim);
+        return (-1);
+    }
+    g_signal_received = 0;
+    while (!g_signal_received)
+    {
+        dup2(STDERR_FILENO, STDOUT_FILENO);
+        line = readline("heredoc> ");
+        dup2(saved_stdout, STDOUT_FILENO);
+        
+        if (!line || g_signal_received)
+        {
+            free(buffer);
+            free(cleaned_delim);
+            if (line)
+                free(line);
+            close(saved_stdout);
+            return (-1);
+        }
+        
+        if (ft_strcmp(line, cleaned_delim) == 0)
+        {
+            write(fd, buffer, ft_strlen(buffer));
+            free(line);
+            free(buffer);
+            free(cleaned_delim);
+            close(saved_stdout);
+            return (0);
+        }
 
-int	handle_heredoc_multiple(t_parsed_cmd *cmd)
-{
-	int		pipe_fd[2];
-	pid_t	pid;
-	int		status;
+        // Expansion des variables seulement si pas de guillemets
+        if (!quoted && tools)
+        {
+            expanded_line = expand_str(line, tools);
+            if (expanded_line)
+            {
+                buffer = append_to_buffer(buffer, expanded_line);
+                free(expanded_line);
+            }
+            else
+                buffer = append_to_buffer(buffer, line);
+        }
+        else
+            buffer = append_to_buffer(buffer, line);
 
-	if (pipe(pipe_fd) == -1)
-		return (-1);
-	g_signal_received = 0;
-	setup_parent_heredoc_signals();
-	pid = fork();
-	if (pid == -1)
-	{
-		close(pipe_fd[0]);
-		close(pipe_fd[1]);
-		return (-1);
-	}
-	if (pid == 0)
-	{
-		setup_child_heredoc_signals();
-		close(pipe_fd[0]);
-		if (write_heredoc_multiple(pipe_fd[1], cmd->heredoc_delim,
-				cmd->heredoc_count) == -1)
-		{
-			close(pipe_fd[1]);
-			exit(1);
-		}
-		close(pipe_fd[1]);
-		exit(0);
-	}
-	close(pipe_fd[1]);
-	waitpid(pid, &status, 0);
-	setup_interactive_signals();
-	if (WIFSIGNALED(status) || WEXITSTATUS(status) != 0)
-	{
-		close(pipe_fd[0]);
-		return (-1);
-	}
-	return (pipe_fd[0]);
+        free(line);
+        if (!buffer)
+        {
+            free(cleaned_delim);
+            close(saved_stdout);
+            return (-1);
+        }
+    }
+    free(buffer);
+    free(cleaned_delim);
+    close(saved_stdout);
+    return (-1);
 }
 
 int	handle_heredoc(char *delimiter)
@@ -232,7 +213,48 @@ int	handle_heredoc(char *delimiter)
 	{
 		setup_child_heredoc_signals();
 		close(pipe_fd[0]);
-		if (write_heredoc_multiple(pipe_fd[1], &delimiter, 1) == -1)
+		if (write_heredoc_multiple(pipe_fd[1], &delimiter, 1, NULL) == -1)
+		{
+			close(pipe_fd[1]);
+			exit(1);
+		}
+		close(pipe_fd[1]);
+		exit(0);
+	}
+	close(pipe_fd[1]);
+	waitpid(pid, &status, 0);
+	setup_interactive_signals();
+	if (WIFSIGNALED(status) || WEXITSTATUS(status) != 0)
+	{
+		close(pipe_fd[0]);
+		return (-1);
+	}
+	return (pipe_fd[0]);
+}
+
+int	handle_heredoc_multiple(t_parsed_cmd *cmd, t_exec *exec)
+{
+	int		pipe_fd[2];
+	pid_t	pid;
+	int		status;
+
+	if (pipe(pipe_fd) == -1)
+		return (-1);
+	g_signal_received = 0;
+	setup_parent_heredoc_signals();
+	pid = fork();
+	if (pid == -1)
+	{
+		close(pipe_fd[0]);
+		close(pipe_fd[1]);
+		return (-1);
+	}
+	if (pid == 0)
+	{
+		setup_child_heredoc_signals();
+		close(pipe_fd[0]);
+		if (write_heredoc_multiple(pipe_fd[1], cmd->heredoc_delim,
+				cmd->heredoc_count, exec->tools) == -1)
 		{
 			close(pipe_fd[1]);
 			exit(1);

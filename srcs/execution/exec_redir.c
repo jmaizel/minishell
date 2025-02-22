@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:39 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/20 20:54:37 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/22 21:13:17 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,14 +37,14 @@ static int	handle_output_redir(char *file, int append)
 	return (0);
 }
 
-static int setup_input(t_parsed_cmd *cmd, t_process *process)
+static int setup_input(t_parsed_cmd *cmd, t_process *process, t_exec *exec)
 {
     int fd;
 
     if (cmd->heredoc_count > 0)
     {
         if (cmd->heredoc_count > 1)
-            fd = handle_heredoc_multiple(cmd);
+            fd = handle_heredoc_multiple(cmd, exec);
         else
             fd = handle_heredoc(cmd->heredoc_delim[0]);
         if (fd == -1)
@@ -77,13 +77,13 @@ static int setup_input(t_parsed_cmd *cmd, t_process *process)
     return (0);
 }
 
-int	setup_redirections(t_parsed_cmd *cmd, t_process *process)
+int	setup_redirections(t_parsed_cmd *cmd, t_process *process, t_exec *exec)
 {
 	if (!cmd)
 		return (0);
 	process->stdin_backup = -1;
 	process->stdout_backup = -1;
-	if (setup_input(cmd, process) == -1)
+	if (setup_input(cmd, process, exec) == -1)
 		return (-1);
 	if (cmd->append_count > 0 || cmd->output_count > 0)
 	{
