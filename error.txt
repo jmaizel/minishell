@@ -1,9 +1,0 @@
-
-Message error command not found
-
-VERIFIER LES SIGNAUX SUR UN LINUX CAR IMPOSSIBLE SUR MAC
-
-
-HEREDOC error list : 
--  << hello NE LANCE PAS DE HEREDOC 
-- cat << hello << salut << je MARHCHE AVEC DEUX MAIS PAS PLUS DONC PROBLEME

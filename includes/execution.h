@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/22 21:14:02 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/23 16:24:23 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include <sys/wait.h>
 # include <sys/stat.h>
 # include <fcntl.h>
+# include <termios.h>
 
 # define PIPE_READ 0
 # define PIPE_WRITE 1
@@ -54,11 +55,8 @@ int     setup_redirections(t_parsed_cmd *cmd, t_process *process, t_exec *exec);
 void	restore_redirections(t_process *process);
 
 /* exec_heredoc.c */
-int		handle_heredoc(char *delimiter);
-void	setup_child_heredoc_signals(void);
-void	setup_parent_heredoc_signals(void);
-int		write_heredoc_content(int fd, char *delimiter);
-int     handle_heredoc_multiple(t_parsed_cmd *cmd, t_exec *exec);
+void	setup_heredoc_signals(void);
+int		handle_heredoc(t_parsed_cmd *cmd, t_exec *exec);
 
 /* exec_signals.c */
 void	setup_parent_signals(void);

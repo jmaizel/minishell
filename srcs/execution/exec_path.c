@@ -6,36 +6,36 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:13 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/08 17:43:15 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/24 21:02:59 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/execution.h"
 
-char	*get_cmd_path(char *cmd, char **cmd_paths)
+char    *get_cmd_path(char *cmd, char **cmd_paths)
 {
-	char	*temp;
-	char	*cmd_path;
-	int		i;
+    char    *temp;
+    char    *cmd_path;
+    int     i;
 
-	if (!cmd || !cmd_paths)
-		return (NULL);
-	if (cmd[0] == '/' || cmd[0] == '.' || cmd[0] == '~')
-	{
-		if (access(cmd, X_OK) == 0)
-			return (ft_strdup(cmd));
-		return (NULL);
-	}
-	i = 0;
-	while (cmd_paths[i])
-	{
-		temp = ft_strjoin(cmd_paths[i], "/");
-		cmd_path = ft_strjoin(temp, cmd);
-		free(temp);
-		if (access(cmd_path, X_OK) == 0)
-			return (cmd_path);
-		free(cmd_path);
-		i++;
-	}
-	return (NULL);
+    if (!cmd || !cmd_paths)
+        return (NULL);
+    if (cmd[0] == '/' || cmd[0] == '.' || cmd[0] == '~')
+    {
+        if (access(cmd, X_OK) == 0)
+            return (ft_strdup(cmd));
+        return (NULL);
+    }
+    i = 0;
+    while (cmd_paths[i])
+    {
+        temp = ft_strjoin(cmd_paths[i], "/");
+        cmd_path = ft_strjoin(temp, cmd);
+        free(temp);
+        if (access(cmd_path, X_OK) == 0)
+            return (cmd_path);
+        free(cmd_path);
+        i++;
+    }
+    return (NULL);
 }
