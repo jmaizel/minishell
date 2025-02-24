@@ -6,33 +6,11 @@
 /*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 13:47:02 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/15 10:17:59 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/24 13:13:24 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
-
-char	*expand_exit_status(int exit_code)
-{
-	char	*result;
-	int		i;
-
-	char temp[12]; // assez grand pour un int
-	i = 0;
-	if (exit_code == 0)
-		temp[i++] = '0';
-	else
-	{
-		while (exit_code > 0)
-		{
-			temp[i++] = (exit_code % 10) + '0';
-			exit_code /= 10;
-		}
-	}
-	temp[i] = '\0';
-	result = ft_strdup(temp);
-	return (result);
-}
 
 char	*get_var_value(const char *var_name, char **env)
 {
@@ -51,6 +29,7 @@ char	*get_var_value(const char *var_name, char **env)
 	}
 	return (ft_strdup(""));
 }
+
 static char	*ft_realloc(char *ptr, size_t old_size, size_t new_size)
 {
 	char	*new_ptr;
@@ -70,105 +49,134 @@ static char	*ft_realloc(char *ptr, size_t old_size, size_t new_size)
 	return (new_ptr);
 }
 
-char	*expand_str(const char *str, t_tools *tools)
+static char	*convert_exit_status(int exit_code)
 {
-	char	*result;
-	size_t	result_size;
-	size_t	i;
-	size_t	j;
-	int		in_single_quotes;
-	char	*value;
-	char	*new_result;
-	char	*var_name;
-	size_t	var_start;
-	size_t	val_len;
+	char	temp[12];
+	int		i;
 
-	if (!str || !tools || !tools->env)
-		return (ft_strdup(""));
-	// Préallouer une taille suffisante
-	result_size = 2048;
-	result = ft_calloc(result_size, sizeof(char));
-	if (!result)
-		return (NULL);
 	i = 0;
-	j = 0;
-	in_single_quotes = 0;
-	while (str[i])
+	if (exit_code == 0)
+		temp[i++] = '0';
+	else
 	{
-		// Gestion des guillemets simples
-		if (str[i] == '\'')
+		while (exit_code > 0)
 		{
-			in_single_quotes = !in_single_quotes;
-			result[j++] = str[i++];
-			continue ;
-		}
-		// Traitement des variables d'environnement
-		if (str[i] == '$' && !in_single_quotes)
-		{
-			i++; // Passer le $
-			// Gérer le cas spécial $?
-			if (str[i] == '?')
-			{
-				value = expand_exit_status(tools->exit_code);
-				i++;
-			}
-			// Gérer les variables normales
-			else if (ft_isalpha(str[i]) || str[i] == '_')
-			{
-				var_start = i;
-				while (str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
-					i++;
-				var_name = ft_substr(str, var_start, i - var_start);
-				if (!var_name)
-					continue ;
-				value = get_var_value(var_name, tools->env);
-				free(var_name);
-			}
-			else
-			{
-				result[j++] = '$';
-				continue ;
-			}
-			// Copier la valeur dans le résultat
-			if (value)
-			{
-				val_len = ft_strlen(value);
-				// Vérifier s'il faut agrandir le buffer
-				if (j + val_len >= result_size)
-				{
-					new_result = ft_realloc(result, result_size, result_size
-							+ val_len + 1024);
-					if (!new_result)
-					{
-						free(result);
-						free(value);
-						return (NULL);
-					}
-					result = new_result;
-					result_size = result_size + val_len + 1024;
-				}
-				ft_strlcpy(result + j, value, result_size - j);
-				j += val_len;
-				free(value);
-			}
-		}
-		else
-		{
-			result[j++] = str[i++];
-		}
-		// Vérifier s'il faut agrandir le buffer
-		if (j >= result_size - 1)
-		{
-			new_result = ft_realloc(result, result_size, result_size + 1024);
-			if (!new_result)
-			{
-				free(result);
-				return (NULL);
-			}
-			result = new_result;
-			result_size += 1024;
+			temp[i++] = (exit_code % 10) + '0';
+			exit_code /= 10;
 		}
 	}
-	result[j] = '\0';
+	temp[i] = '\0';
+	return (ft_strdup(temp));
+}
+
+static char	*extract_var_name(const char *str, size_t *i)
+{
+	size_t	start;
+	char	*var_name;
+
+	start = *i;
+	while (str[*i] && (ft_isalnum(str[*i]) || str[*i] == '_'))
+		(*i)++;
+	var_name = ft_substr(str, start, *i - start);
+	return (var_name);
+}
+
+char	*resize_buffer(char *result, size_t *size, size_t needed_size)
+{
+	char	*new_result;
+
+	if (needed_size >= *size)
+	{
+		new_result = ft_realloc(result, *size, *size + needed_size + 1024);
+		if (!new_result)
+		{
+			free(result);
+			return (NULL);
+		}
+		*size += needed_size + 1024;
+		return (new_result);
+	}
+	return (result);
+}
+
+static char	*handle_variable(const char *str, size_t *i, t_tools *tools)
+{
+	char	*var_name;
+	char	*value;
+
+	if (str[*i] == '?')
+	{
+		(*i)++;
+		return (convert_exit_status(tools->exit_code));
+	}
+	var_name = extract_var_name(str, i);
+	if (!var_name)
+		return (NULL);
+	value = get_var_value(var_name, tools->env);
+	free(var_name);
+	return (value);
+}
+
+static size_t	copy_value(char **result, size_t j, char *value, size_t *size)
+{
+	size_t	len;
+
+	len = ft_strlen(value);
+	*result = resize_buffer(*result, size, j + len);
+	if (!*result)
+		return (0);
+	ft_memcpy(*result + j, value, len);
+	free(value);
+	return (j + len);
+}
+
+static size_t	process_dollar(const char *str, t_expand *exp, char **result,
+									t_tools *tools)
+{
+	char	*value;
+
+	(exp->i)++;
+	value = handle_variable(str, &(exp->i), tools);
+	if (!value)
+		return (free(*result), 0);
+	exp->j = copy_value(result, exp->j, value, &(exp->size));
+	return (1);
+}
+
+static int	handle_char(const char *str, char **result, t_expand *exp,
+				t_tools *tools)
+{
+	if (str[exp->i] == '\'')
+		exp->in_quotes = !(exp->in_quotes);
+	else if (str[exp->i] == '$' && !(exp->in_quotes))
+	{
+		if (!process_dollar(str, exp, result, tools))
+			return (0);
+		return (1);
+	}
+	else
+		(*result)[(exp->j)++] = str[(exp->i)++];
+	*result = resize_buffer(*result, &exp->size, exp->j);
+	return (1);
+}
+
+char	*expand_str(const char *str, t_tools *tools)
+{
+	char		*result;
+	t_expand	exp;
+
+	exp.size = 2048;
+	if (!str || !tools || !tools->env)
+		return (ft_strdup(""));
+	result = ft_calloc(exp.size, sizeof(char));
+	if (!result)
+		return (NULL);
+	exp.i = 0;
+	exp.j = 0;
+	exp.in_quotes = 0;
+	while (str[exp.i])
+		if (!handle_char(str, &result, &exp, tools))
+			return (NULL);
+	result[exp.j] = '\0';
 	return (result);
 }

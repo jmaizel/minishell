@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 12:08:50 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/16 20:37:29 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/24 13:09:59 by jacobmaizel      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,14 @@ typedef struct s_pip
 	struct s_pip	*prev;
 	int				pip_count;
 }				t_pip;
+
+typedef struct s_expand
+{
+	size_t	i;
+	size_t	j;
+	int		in_quotes;
+	size_t	size;
+}	t_expand;
 
 /*
 ** Environment functions
