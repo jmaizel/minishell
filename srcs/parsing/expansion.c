@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   expansion.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 13:47:02 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/24 13:13:24 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/25 13:26:23 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,33 +130,46 @@ static size_t	copy_value(char **result, size_t j, char *value, size_t *size)
 	return (j + len);
 }
 
-static size_t	process_dollar(const char *str, t_expand *exp, char **result,
-									t_tools *tools)
+static int	process_dollar(const char *str, t_expand *exp, char **result,
+							t_tools *tools)
 {
 	char	*value;
 
 	(exp->i)++;
-	value = handle_variable(str, &(exp->i), tools);
-	if (!value)
-		return (free(*result), 0);
-	exp->j = copy_value(result, exp->j, value, &(exp->size));
+	if (ft_isalpha(str[exp->i]) || str[exp->i] == '_' || str[exp->i] == '?')
+	{
+		value = handle_variable(str, &(exp->i), tools);
+		if (!value)
+			return (0);
+		exp->j = copy_value(result, exp->j, value, &(exp->size));
+		if (!*result)
+			return (0);
+	}
+	else
+	{
+		(*result)[exp->j++] = '$';
+	}
 	return (1);
 }
 
 static int	handle_char(const char *str, char **result, t_expand *exp,
-				t_tools *tools)
+						t_tools *tools)
 {
 	if (str[exp->i] == '\'')
+	{
+		(*result)[exp->j++] = str[exp->i++];
 		exp->in_quotes = !(exp->in_quotes);
+	}
 	else if (str[exp->i] == '$' && !(exp->in_quotes))
 	{
 		if (!process_dollar(str, exp, result, tools))
 			return (0);
-		return (1);
 	}
 	else
-		(*result)[(exp->j)++] = str[(exp->i)++];
+		(*result)[exp->j++] = str[exp->i++];
 	*result = resize_buffer(*result, &exp->size, exp->j);
+	if (!*result)
+		return (0);
 	return (1);
 }
 
@@ -175,8 +188,10 @@ char	*expand_str(const char *str, t_tools *tools)
 	exp.j = 0;
 	exp.in_quotes = 0;
 	while (str[exp.i])
+	{
 		if (!handle_char(str, &result, &exp, tools))
 			return (NULL);
+	}
 	result[exp.j] = '\0';
 	return (result);
 }

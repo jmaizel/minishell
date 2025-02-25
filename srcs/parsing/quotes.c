@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 12:04:34 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/02/04 10:40:57 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/25 13:31:31 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,11 @@
 
 char	*clean_quotes(char *str)
 {
-	char *result;
-	int i;
-	int j;
-	int in_quotes;
-	char quote_type;
+	char	*result;
+	int		i;
+	int		j;
+	int		in_quotes;
+	char	quote_type;
 
 	if (!str)
 		return (NULL);

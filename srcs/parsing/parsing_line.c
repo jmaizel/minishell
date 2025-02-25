@@ -6,55 +6,47 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 13:30:33 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/13 15:22:22 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/25 13:37:43 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
 
-void	print_parsed_command(t_parsed_cmd *cmd)
+static void	print_redirections(t_parsed_cmd *cmd, int type)
 {
-	int	j;
-	int	k;
-	int	l;
 	int	i;
 
-	printf(" parsing results:\n");
-	printf(" Full command: [%s]\n", cmd->full_cmd);
-	if (cmd->input_count > 0)
+	i = 0;
+	if (type == 0 && cmd->input_count > 0)
 	{
 		printf(" Input File:\n");
-		j = 0;
-		while (j < cmd->input_count)
+		while (i < cmd->input_count)
 		{
-			printf(" %d: [%s]\n", j + 1, cmd->input_file[j]);
-			j++;
+			printf(" %d: [%s]\n", i + 1, cmd->input_file[i]);
+			i++;
 		}
 	}
-	if (cmd->output_count > 0)
+	else if (type == 1 && cmd->output_count > 0)
 	{
 		printf(" Output File:\n");
-		k = 0;
-		while (k < cmd->output_count)
+		while (i < cmd->output_count)
 		{
-			printf(" %d: [%s]\n", k + 1, cmd->output_file[k]);
-			k++;
+			printf(" %d: [%s]\n", i + 1, cmd->output_file[i]);
+			i++;
 		}
 	}
-	if (cmd->append_count > 0)
+	else if (type == 2 && cmd->append_count > 0)
 	{
 		printf(" Append File:\n");
-		l = 0;
-		while (l < cmd->append_count)
+		while (i < cmd->append_count)
 		{
-			printf(" %d: [%s]\n", l + 1, cmd->append_file[l]);
-			l++;
+			printf(" %d: [%s]\n", i + 1, cmd->append_file[i]);
+			i++;
 		}
 	}
-	if (cmd->heredoc_count > 0)
+	else if (type == 3 && cmd->heredoc_count > 0)
 	{
 		printf(" Heredoc Delimiters:\n");
-		i = 0;
 		while (i < cmd->heredoc_count)
 		{
 			printf(" %d: [%s]\n", i + 1, cmd->heredoc_delim[i]);
@@ -63,42 +55,45 @@ void	print_parsed_command(t_parsed_cmd *cmd)
 	}
 }
 
-void	free_parsed_cmd(t_parsed_cmd *cmd)
+void	print_parsed_command(t_parsed_cmd *cmd)
+{
+	printf(" parsing results:\n");
+	printf(" Full command: [%s]\n", cmd->full_cmd);
+	print_redirections(cmd, 0);
+	print_redirections(cmd, 1);
+	print_redirections(cmd, 2);
+	print_redirections(cmd, 3);
+}
+
+static void	free_redir_arrays(t_parsed_cmd *cmd)
 {
 	int	i;
 
+	i = 0;
+	while (i < cmd->input_count)
+		free(cmd->input_file[i++]);
+	free(cmd->input_file);
+	i = 0;
+	while (i < cmd->output_count)
+		free(cmd->output_file[i++]);
+	free(cmd->output_file);
+	i = 0;
+	while (i < cmd->append_count)
+		free(cmd->append_file[i++]);
+	free(cmd->append_file);
+	i = 0;
+	while (i < cmd->heredoc_count)
+		free(cmd->heredoc_delim[i++]);
+	free(cmd->heredoc_delim);
+}
+
+void	free_parsed_cmd(t_parsed_cmd *cmd)
+{
 	if (!cmd)
 		return ;
 	free(cmd->full_cmd);
 	free(cmd->cmd);
-	i = 0;
-	while (i < cmd->input_count)
-	{
-		free(cmd->input_file[i]);
-		i++;
-	}
-	free(cmd->input_file);
-	i = 0;
-	while (i < cmd->output_count)
-	{
-		free(cmd->output_file[i]);
-		i++;
-	}
-	free(cmd->output_file);
-	i = 0;
-	while (i < cmd->append_count)
-	{
-		free(cmd->append_file[i]);
-		i++;
-	}
-	free(cmd->append_file);
-	i = 0;
-	while (i < cmd->heredoc_count)
-	{
-		free(cmd->heredoc_delim[i]);
-		i++;
-	}
-	free(cmd->heredoc_delim);
+	free_redir_arrays(cmd);
 	free(cmd);
 }
 
@@ -108,9 +103,7 @@ void	free_cell(t_sep *cell)
 	t_pip	*next;
 
 	if (!cell)
-	{
 		return ;
-	}
 	current = cell->pipcell;
 	while (current)
 	{
@@ -124,41 +117,46 @@ void	free_cell(t_sep *cell)
 		free(cell->cmd_sep);
 	free(cell);
 }
-void    parsing_line(char *user_input, t_tools *tools)
+
+static void	process_command(t_pip *current)
 {
-    t_sep           *cell;
-    t_pip           *current;
-    t_cmd_args      *cmd_args;
-    t_parsed_cmd    *parsed_cmd;
+	t_parsed_cmd	*parsed_cmd;
+	t_cmd_args		*cmd_args;
 
-    if (!user_input || check_invalid_chars(user_input))
-        return ;
-    (void)tools;
+	parsed_cmd = parse_redir(current->cmd_pipe);
+	if (parsed_cmd)
+	{
+		print_parsed_command(parsed_cmd);
+		if (parsed_cmd->cmd && *(parsed_cmd->cmd) != '\0')
+		{
+			cmd_args = parse_command_args(parsed_cmd->cmd);
+			if (cmd_args)
+			{
+				print_cmd_args(cmd_args);
+				free_cmd_args(cmd_args);
+			}
+		}
+		free_parsed_cmd(parsed_cmd);
+	}
+}
 
-    cell = create_cell(ft_strdup(user_input));
-    if (!cell)
-        return ;
+void	parsing_line(char *user_input, t_tools *tools)
+{
+	t_sep	*cell;
+	t_pip	*current;
 
-    parse_pipes(cell);
-    current = cell->pipcell;
-    while (current && current->cmd_pipe)
-    {
-        parsed_cmd = parse_redir(current->cmd_pipe);
-        if (parsed_cmd)
-        {
-            print_parsed_command(parsed_cmd);
-            if (parsed_cmd->cmd && *(parsed_cmd->cmd) != '\0')
-            {
-                cmd_args = parse_command_args(parsed_cmd->cmd);
-                if (cmd_args)
-                {
-                    print_cmd_args(cmd_args);
-                    free_cmd_args(cmd_args);
-                }
-            }
-            free_parsed_cmd(parsed_cmd);
-        }
-        current = current->next;
-    }
-    free_cell(cell);
+	if (!user_input || check_invalid_chars(user_input))
+		return ;
+	(void)tools;
+	cell = create_cell(ft_strdup(user_input));
+	if (!cell)
+		return ;
+	parse_pipes(cell);
+	current = cell->pipcell;
+	while (current && current->cmd_pipe)
+	{
+		process_command(current);
+		current = current->next;
+	}
+	free_cell(cell);
 }

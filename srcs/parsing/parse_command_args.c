@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_command_args.c                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 11:38:29 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/24 14:32:39 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/25 13:32:39 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,25 +19,6 @@ static int	skip_spaces(char *cmd_str, int i)
 	return (i);
 }
 
-static int	handle_quotes(char *cmd_str, int *i, int *in_quotes,
-		char *quote_type)
-{
-	if (!*in_quotes && (cmd_str[*i] == '"' || cmd_str[*i] == '\''))
-	{
-		*quote_type = cmd_str[*i];
-		*in_quotes = 1;
-		(*i)++;
-		return (1);
-	}
-	if (*in_quotes && cmd_str[*i] == *quote_type)
-	{
-		*in_quotes = 0;
-		(*i)++;
-		return (1);
-	}
-	return (0);
-}
-
 static int	get_token_length(char *cmd_str, int i)
 {
 	int		start;
@@ -48,8 +29,19 @@ static int	get_token_length(char *cmd_str, int i)
 	in_quotes = 0;
 	while (cmd_str[i])
 	{
-		if (handle_quotes(cmd_str, &i, &in_quotes, &quote_type))
+		if (!in_quotes && (cmd_str[i] == '"' || cmd_str[i] == '\''))
+		{
+			quote_type = cmd_str[i];
+			in_quotes = 1;
+			i++;
 			continue ;
+		}
+		if (in_quotes && cmd_str[i] == quote_type)
+		{
+			in_quotes = 0;
+			i++;
+			continue ;
+		}
 		if (!in_quotes && ft_isspace(cmd_str[i]))
 			break ;
 		i++;
@@ -57,23 +49,23 @@ static int	get_token_length(char *cmd_str, int i)
 	return (i - start);
 }
 
-static int	fill_args(char **args, char *cmd_str, int i, int *j)
+static int	extract_arg(char **args, char *cmd_str, int i, int *j)
 {
-	int		len;
 	int		start;
+	int		len;
 	char	*arg;
+	char	*cleaned;
 
 	start = i;
 	len = get_token_length(cmd_str, i);
 	arg = ft_substr(cmd_str, start, len);
 	if (!arg)
 		return (0);
-	args[*j] = clean_quotes(arg);
-	if (!args[*j])
-	{
-		free(arg);
+	cleaned = clean_quotes(arg);
+	free(arg);
+	if (!cleaned)
 		return (0);
-	}
+	args[*j] = cleaned;
 	(*j)++;
 	return (start + len);
 }
@@ -96,11 +88,16 @@ static t_cmd_args	*init_cmd_args(char *cmd_str, char ***args)
 	return (cmd_args);
 }
 
-static int	parse_tokens(char **args, char *cmd_str)
+t_cmd_args	*parse_command_args(char *cmd_str)
 {
-	int	i;
-	int	j;
+	t_cmd_args	*cmd_args;
+	char		**args;
+	int			i;
+	int			j;
 
+	cmd_args = init_cmd_args(cmd_str, &args);
+	if (!cmd_args)
+		return (NULL);
 	i = 0;
 	j = 0;
 	while (cmd_str[i])
@@ -108,35 +105,18 @@ static int	parse_tokens(char **args, char *cmd_str)
 		i = skip_spaces(cmd_str, i);
 		if (!cmd_str[i])
 			break ;
-		i = fill_args(args, cmd_str, i, &j);
+		i = extract_arg(args, cmd_str, i, &j);
 		if (!i)
 		{
 			free_str_array(args);
-			return (0);
+			free(cmd_args);
+			return (NULL);
 		}
 	}
 	args[j] = NULL;
-	return (j);
-}
-
-t_cmd_args	*parse_command_args(char *cmd_str)
-{
-	t_cmd_args	*cmd_args;
-	char		**args;
-	int			argc;
-
-	cmd_args = init_cmd_args(cmd_str, &args);
-	if (!cmd_args)
-		return (NULL);
-	argc = parse_tokens(args, cmd_str);
-	if (!argc)
-	{
-		free(cmd_args);
-		return (NULL);
-	}
 	cmd_args->argv = args;
 	cmd_args->cmd = ft_strdup(args[0]);
-	cmd_args->argc = argc;
+	cmd_args->argc = j;
 	return (cmd_args);
 }
 
@@ -158,7 +138,7 @@ void	print_cmd_args(t_cmd_args *cmd_args)
 
 void	free_cmd_args(t_cmd_args *cmd_args)
 {
-	int i;
+	int	i;
 
 	if (!cmd_args)
 		return ;
