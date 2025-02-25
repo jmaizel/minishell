@@ -23,7 +23,8 @@ SRC_LIBFT = $(DIR_LIBFT)/ft_atoi.c $(DIR_LIBFT)/ft_isprint.c $(DIR_LIBFT)/ft_lst
             $(DIR_LIBFT)/ft_memcmp.c $(DIR_LIBFT)/ft_putstr_fd.c $(DIR_LIBFT)/ft_strlcpy.c \
             $(DIR_LIBFT)/ft_substr.c $(DIR_LIBFT)/ft_isdigit.c $(DIR_LIBFT)/ft_lstiter.c \
             $(DIR_LIBFT)/ft_memcpy.c $(DIR_LIBFT)/ft_split.c $(DIR_LIBFT)/ft_strlen.c \
-            $(DIR_LIBFT)/ft_tolower.c $(DIR_LIBFT)/ft_split_pipes.c $(DIR_LIBFT)/ft_strcmp.c
+            $(DIR_LIBFT)/ft_tolower.c $(DIR_LIBFT)/ft_split_pipes.c $(DIR_LIBFT)/ft_strcmp.c \
+            $(DIR_LIBFT)/is_quotes.c
 
 SRC_PRINTF = $(DIR_PRINTF)/ft_print_char.c $(DIR_PRINTF)/ft_print_int.c \
              $(DIR_PRINTF)/ft_print_str.c $(DIR_PRINTF)/ft_printf.c \

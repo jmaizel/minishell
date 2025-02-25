@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtins.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 15:26:11 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/24 12:45:14 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/25 17:45:48 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 # include "minishell.h"
 
-//#define PATH_MAX 4096
+#define PATH_MAX 4096
 
 /* Builtins */
 int		builtin_env(t_tools *tools, char **argv);
@@ -33,5 +33,5 @@ char	**update_env(char **env, const char *name, const char *value);
 char	*get_env_name(const char *var);
 char	*get_env_value(const char *var);
 int		count_env_vars(char **env);
-
+void	cleanup_minishell(t_tools *tools);
 #endif

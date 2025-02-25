@@ -3,15 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:44:53 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/13 13:58:06 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/25 15:58:33 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/minishell.h"
 #include "../../includes/execution.h"
+
+int g_signal_received = 0;
 
 static void	init_minishell(t_tools *tools, char **env)
 {

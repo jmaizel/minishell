@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   print_pipe_command.c                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 12:52:58 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/02/03 12:53:23 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/25 14:12:09 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 

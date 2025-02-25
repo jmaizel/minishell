@@ -3,16 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   signals.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:58:53 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/13 14:00:15 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/25 15:59:00 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
-
-int	g_signal_received = 0;
+#include <signal.h>
 
 static void	handle_interactive_signal(int sig)
 {

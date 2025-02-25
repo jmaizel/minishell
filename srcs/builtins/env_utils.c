@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   env_utils.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 18:51:19 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/10 20:04:40 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/25 17:45:27 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,8 +61,8 @@ static char	*create_env_string(const char *name, const char *value)
 	return (new_var);
 }
 
-static char	**replace_env_var(char **env, int index,
-		const char *name, const char *value)
+static char	**replace_env_var(char **env, int index, const char *name,
+		const char *value)
 {
 	char	*new_var;
 

@@ -1,58 +1,46 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parsing_line.c                                     :+:      :+:    :+:   */
+/*   parse_display.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 13:30:33 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/25 13:37:43 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/25 17:37:56 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
 
-static void	print_redirections(t_parsed_cmd *cmd, int type)
+static void	print_redirect_files(char **files, int count, const char *label)
 {
 	int	i;
 
-	i = 0;
-	if (type == 0 && cmd->input_count > 0)
+	if (count > 0)
 	{
-		printf(" Input File:\n");
-		while (i < cmd->input_count)
+		printf(" %s:\n", label);
+		i = 0;
+		while (i < count)
 		{
-			printf(" %d: [%s]\n", i + 1, cmd->input_file[i]);
+			printf(" %d: [%s]\n", i + 1, files[i]);
 			i++;
 		}
 	}
-	else if (type == 1 && cmd->output_count > 0)
-	{
-		printf(" Output File:\n");
-		while (i < cmd->output_count)
-		{
-			printf(" %d: [%s]\n", i + 1, cmd->output_file[i]);
-			i++;
-		}
-	}
-	else if (type == 2 && cmd->append_count > 0)
-	{
-		printf(" Append File:\n");
-		while (i < cmd->append_count)
-		{
-			printf(" %d: [%s]\n", i + 1, cmd->append_file[i]);
-			i++;
-		}
-	}
-	else if (type == 3 && cmd->heredoc_count > 0)
-	{
-		printf(" Heredoc Delimiters:\n");
-		while (i < cmd->heredoc_count)
-		{
-			printf(" %d: [%s]\n", i + 1, cmd->heredoc_delim[i]);
-			i++;
-		}
-	}
+}
+
+static void	print_redirections(t_parsed_cmd *cmd, int type)
+{
+	if (type == 0)
+		print_redirect_files(cmd->input_file, cmd->input_count, "Input File");
+	else if (type == 1)
+		print_redirect_files(cmd->output_file, cmd->output_count,
+			"Output File");
+	else if (type == 2)
+		print_redirect_files(cmd->append_file, cmd->append_count,
+			"Append File");
+	else if (type == 3)
+		print_redirect_files(cmd->heredoc_delim, cmd->heredoc_count,
+			"Heredoc Delimiters");
 }
 
 void	print_parsed_command(t_parsed_cmd *cmd)
@@ -63,59 +51,6 @@ void	print_parsed_command(t_parsed_cmd *cmd)
 	print_redirections(cmd, 1);
 	print_redirections(cmd, 2);
 	print_redirections(cmd, 3);
-}
-
-static void	free_redir_arrays(t_parsed_cmd *cmd)
-{
-	int	i;
-
-	i = 0;
-	while (i < cmd->input_count)
-		free(cmd->input_file[i++]);
-	free(cmd->input_file);
-	i = 0;
-	while (i < cmd->output_count)
-		free(cmd->output_file[i++]);
-	free(cmd->output_file);
-	i = 0;
-	while (i < cmd->append_count)
-		free(cmd->append_file[i++]);
-	free(cmd->append_file);
-	i = 0;
-	while (i < cmd->heredoc_count)
-		free(cmd->heredoc_delim[i++]);
-	free(cmd->heredoc_delim);
-}
-
-void	free_parsed_cmd(t_parsed_cmd *cmd)
-{
-	if (!cmd)
-		return ;
-	free(cmd->full_cmd);
-	free(cmd->cmd);
-	free_redir_arrays(cmd);
-	free(cmd);
-}
-
-void	free_cell(t_sep *cell)
-{
-	t_pip	*current;
-	t_pip	*next;
-
-	if (!cell)
-		return ;
-	current = cell->pipcell;
-	while (current)
-	{
-		next = current->next;
-		if (current->cmd_pipe)
-			free(current->cmd_pipe);
-		free(current);
-		current = next;
-	}
-	if (cell->cmd_sep)
-		free(cell->cmd_sep);
-	free(cell);
 }
 
 static void	process_command(t_pip *current)

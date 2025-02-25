@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_split_pipes.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 15:44:59 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/03 13:01:02 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/25 17:42:20 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,11 +25,6 @@ static void	free_str(char **array)
 		i++;
 	}
 	free(array);
-}
-
-static int	is_quote(char c)
-{
-	return (c == '\'' || c == '"');
 }
 
 static void	skip_quotes(const char *str, int *i)
