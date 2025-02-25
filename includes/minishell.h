@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 12:08:50 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/25 18:00:14 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/25 18:13:43 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,7 +121,7 @@ void						free_parsed_cmd(t_parsed_cmd *cmd);
 void						parsing_line(char *user_input, t_tools *tools);
 int							extract_arg(char **args, char *cmd_str, int i,
 								int *j);
-
+t_parsed_cmd				*parse_redir(char *input);
 /*
 ** Cell functions (sep.c, parse_cleanup.c)
 */
@@ -175,7 +175,6 @@ char						*handle_variable(const char *str, size_t *i,
 */
 void						process_redirection(char **ptr,
 								t_parsed_cmd *result, char **cmd_ptr);
-void						process_quotes(char **cmd_ptr, char **ptr,
-								int *in_quotes, char *quote_type);
-
+void	process_quotes(char **cmd_ptr, char **ptr, int *in_quotes,
+		char *quote_type);
 #endif

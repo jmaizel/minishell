@@ -6,13 +6,13 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 12:04:34 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/02/25 14:25:10 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/25 18:14:08 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
 
-static void	process_quotes(char *str, int *i, int *in_quotes, char *quote_type)
+static void	process_quote(char *str, int *i, int *in_quotes, char *quote_type)
 {
 	if (!*in_quotes && (str[*i] == '"' || str[*i] == '\''))
 	{
@@ -51,7 +51,7 @@ char	*clean_quotes(char *str)
 	in_quotes = 0;
 	while (str[i])
 	{
-		process_quotes(str, &i, &in_quotes, &quote_type);
+		process_quote(str, &i, &in_quotes, &quote_type);
 		if (!((!in_quotes && (str[i] == '"' || str[i] == '\'')) || (in_quotes
 					&& str[i] == quote_type)))
 			result[j++] = str[i];
