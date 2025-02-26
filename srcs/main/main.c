@@ -6,12 +6,15 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:44:53 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/26 11:29:14 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/26 19:42:54 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/minishell.h"
 #include "../../includes/execution.h"
+
+
+int g_signal_received = 0;
 
 // Fonction pour dupliquer l’environnement
 static char **dup_env(char **env)
@@ -81,15 +84,16 @@ static int handle_execution(t_tools *tools, char *user_input)
 
     if (!user_input)
         return (1);
-    // Vérification des syntaxes invalides (ex. pipe initial)
-    if (user_input[0] == '|' || ft_strchr(user_input, '\n'))
+    // Vérifie uniquement un pipe initial
+    if (user_input[0] == '|')
     {
         ft_printf("minishell: syntax error near unexpected token '|'\n");
         return (1);
     }
+    // Garde une vérification minimale pour les caractères invalides
     if (check_invalid_chars(user_input))
     {
-        ft_printf("Error: Invalid input\n");
+        ft_printf("minishell: syntax error: invalid characters\n");
         return (1);
     }
     cell = create_cell(ft_strdup(user_input));

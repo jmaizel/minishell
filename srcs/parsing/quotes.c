@@ -6,23 +6,44 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 12:04:34 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/02/04 10:40:57 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/25 18:14:08 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
 
-char	*clean_quotes(char *str)
+static void	process_quote(char *str, int *i, int *in_quotes, char *quote_type)
 {
-	char *result;
-	int i;
-	int j;
-	int in_quotes;
-	char quote_type;
+	if (!*in_quotes && (str[*i] == '"' || str[*i] == '\''))
+	{
+		*quote_type = str[*i];
+		*in_quotes = 1;
+	}
+	else if (*in_quotes && str[*i] == *quote_type)
+		*in_quotes = 0;
+}
+
+static char	*allocate_result_buffer(char *str)
+{
+	char	*result;
 
 	if (!str)
 		return (NULL);
 	result = malloc(sizeof(char) * (ft_strlen(str) + 1));
+	if (!result)
+		return (NULL);
+	return (result);
+}
+
+char	*clean_quotes(char *str)
+{
+	char	*result;
+	int		i;
+	int		j;
+	int		in_quotes;
+	char	quote_type;
+
+	result = allocate_result_buffer(str);
 	if (!result)
 		return (NULL);
 	i = 0;
@@ -30,14 +51,9 @@ char	*clean_quotes(char *str)
 	in_quotes = 0;
 	while (str[i])
 	{
-		if (!in_quotes && (str[i] == '"' || str[i] == '\''))
-		{
-			quote_type = str[i];
-			in_quotes = 1;
-		}
-		else if (in_quotes && str[i] == quote_type)
-			in_quotes = 0;
-		else
+		process_quote(str, &i, &in_quotes, &quote_type);
+		if (!((!in_quotes && (str[i] == '"' || str[i] == '\'')) || (in_quotes
+					&& str[i] == quote_type)))
 			result[j++] = str[i];
 		i++;
 	}

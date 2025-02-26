@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:39 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/26 18:58:48 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/26 19:55:17 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,30 +83,39 @@ int setup_redirections(t_parsed_cmd *cmd, t_process *process, t_exec *exec)
         return (0);
     process->stdin_backup = -1;
     process->stdout_backup = -1;
+
     if (setup_input(cmd, process, exec) == -1)
         return (-1);
+
     if (cmd->output_count > 0)
     {
         process->stdout_backup = dup(STDOUT_FILENO);
+
+        ft_printf("DEBUG: output_count = %d\n", cmd->output_count);
         for (i = 0; i < cmd->output_count - 1; i++)
         {
+            ft_printf("DEBUG: Opening intermediate file: %s\n", cmd->output_file[i]);
+            if (!cmd->output_file[i])
+            {
+                ft_printf("minishell: invalid output file at index %d\n", i);
+                return (-1);
+            }
             fd = open(cmd->output_file[i], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            if (fd == -1) { ft_printf("minishell: %s: Permission denied\n", cmd->output_file[i]); return (-1); }
+            if (fd == -1)
+            {
+                ft_printf("minishell: %s: Permission denied\n", cmd->output_file[i]);
+                return (-1);
+            }
             close(fd);
+        }
+
+        ft_printf("DEBUG: Redirecting to final file: %s\n", cmd->output_file[cmd->output_count - 1]);
+        if (!cmd->output_file[cmd->output_count - 1])
+        {
+            ft_printf("minishell: invalid final output file\n");
+            return (-1);
         }
         if (handle_output_redir(cmd->output_file[cmd->output_count - 1], 0) == -1)
-            return (-1);
-    }
-    if (cmd->append_count > 0)
-    {
-        process->stdout_backup = dup(STDOUT_FILENO);
-        for (i = 0; i < cmd->append_count - 1; i++)
-        {
-            fd = open(cmd->append_file[i], O_WRONLY | O_CREAT | O_APPEND, 0644);
-            if (fd == -1) { ft_printf("minishell: %s: Permission denied\n", cmd->append_file[i]); return (-1); }
-            close(fd);
-        }
-        if (handle_output_redir(cmd->append_file[cmd->append_count - 1], 1) == -1)
             return (-1);
     }
     return (0);

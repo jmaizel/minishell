@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   sep.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 15:17:10 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/02/09 14:12:29 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/26 19:45:49 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,34 +27,37 @@ t_sep	*create_cell(char *cmd_sep)
 	return (cell);
 }
 
-// Cette fonction ajoutera une cellule dans la liste chaînée à la position spécifiée.
-// Si la liste est vide,
-// la nouvelle cellule sera simplement le premier élément de la liste.
+static void	find_insert_position(t_sep **cur, t_sep **prec, int pos)
+{
+	int	i;
+
+	i = 0;
+	while (i < pos && *cur != NULL)
+	{
+		*prec = *cur;
+		*cur = (*cur)->next;
+		i++;
+	}
+}
 
 t_sep	*add_cell(t_sep *list, char *cmd_sep, int pos)
 {
 	t_sep	*prec;
 	t_sep	*cur;
 	t_sep	*cell;
-	int		i;
 
 	cell = create_cell(cmd_sep);
 	if (!list)
 		return (cell);
 	cur = list;
-	i = 0;
-	while (i < pos && cur != NULL)
-	{
-		prec = cur;
-		cur = cur->next;
-		i++;
-	}
-	if (prec != NULL)
+	prec = NULL;
+	find_insert_position(&cur, &prec, pos);
+	if (prec)
 	{
 		prec->next = cell;
 		cell->prev = prec;
 	}
-	if (cur != NULL)
+	if (cur)
 	{
 		cell->next = cur;
 		cur->prev = cell;
@@ -62,39 +65,10 @@ t_sep	*add_cell(t_sep *list, char *cmd_sep, int pos)
 	return (list);
 }
 
-/* void	free_cell(t_sep *cell)
-{
-	t_pip	*current;
-	t_pip	*next;
-
-	if (!cell)
-		return ;
-	current = cell->pipcell;
-	while (current)
-	{
-		next = current->next;
-		if (current->cmd_pipe)
-			free(current->cmd_pipe);
-		// Ne pas libérer current->redirection ici
-		// car il sera libéré dans free_cmd_args
-		free(current);
-		current = next;
-	}
-	if (cell->cmd_sep)
-		free(cell->cmd_sep);
-	free(cell);
-} */
-
 static int	is_invalid_char(char c)
 {
 	return (c == '\\' || c == ';');
 }
-
-/*
-** check_invalid_chars: Vérifie les caractères invalides dans la commande
-** Retourne 1 si un caractère invalide est trouvé hors guillemets
-** Retourne 0 si la commande est valide
-*/
 
 int	check_invalid_chars(const char *cmd)
 {
@@ -107,7 +81,7 @@ int	check_invalid_chars(const char *cmd)
 	i = 0;
 	in_quotes = 0;
 	quote_type = 0;
-	while (cmd[i])
+	while (cmd[i])	
 	{
 		if (!in_quotes && (cmd[i] == '\'' || cmd[i] == '"'))
 		{

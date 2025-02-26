@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_split_pipes.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacobmaizel <jacobmaizel@student.42.fr>    +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 15:44:59 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/03 13:01:02 by jacobmaizel      ###   ########.fr       */
+/*   Updated: 2025/02/26 19:27:28 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,11 +25,6 @@ static void	free_str(char **array)
 		i++;
 	}
 	free(array);
-}
-
-static int	is_quote(char c)
-{
-	return (c == '\'' || c == '"');
 }
 
 static void	skip_quotes(const char *str, int *i)
@@ -60,7 +55,7 @@ static int	count_segments(const char *s, char delimiter)
 			count++;
 			while (s[i] && s[i] != delimiter)
 			{
-				if (is_quote(s[i]))
+				if (ft_isquotes(s[i]))
 					skip_quotes(s, &i);
 				else
 					i++;

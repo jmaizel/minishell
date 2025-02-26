@@ -18,9 +18,10 @@ BUILTINS_DIR = ./srcs/builtins
 LIBS = $(READLINE_LIB) -lreadline -L$(LIBFT_DIR) -lft
 LIBFT = $(LIBFT_DIR)/libft.a
 
-PARSING_FILES = env.c parse_command_args.c parsing_line.c parsing_pipe.c \
-				prompt.c sep.c signals.c parsing_redir.c utils.c quotes.c \
-				count_args.c expansion.c
+PARSING_FILES = cmd_args_parse.c cmd_args_utils.c count_args.c env.c expansion_core.c \
+				expansion_utls.c expansion_variable.c parse_cleanup.c parse_display.c \
+				parsing_pipe.c parsing_redir.c print_pipe_command.c prompt.c quotes.c \
+				redir_file.c redir_init.c redir_syntax.c sep.c signals.c utils.c process.c
 
 EXECUTION_FILES = exec.c exec_cmd.c exec_pipe.c exec_redir.c exec_utils.c \
 				 exec_signals.c exec_error.c exec_heredoc.c exec_path.c exec_builtins.c
