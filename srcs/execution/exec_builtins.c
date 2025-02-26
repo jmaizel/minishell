@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 18:25:25 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/24 21:01:34 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/26 08:39:44 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,9 @@ int is_builtin(char *cmd)
     if (ft_strcmp(cmd, "env") == 0)
         return (1);
     if (ft_strcmp(cmd, "export") == 0)
-        return (0);
+        return (1);
     if (ft_strcmp(cmd, "unset") == 0)
-        return (0);
+        return (1);
     if (ft_strcmp(cmd, "exit") == 0)
         return (1);
     if (ft_strcmp(cmd, "cd") == 0)

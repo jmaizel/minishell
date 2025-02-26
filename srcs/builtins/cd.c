@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 10:04:22 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/02/26 07:45:38 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/26 08:48:17 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ static int update_env_var(t_tools *tools, const char *name, const char *value)
     char *new_var;
     int idx;
 
-    new_var = ft_strjoin(name, value);
+    new_var = ft_strjoin_three(name, "=", value);
     if (!new_var)
         return (0);
     idx = find_env_var(tools->env, name);
@@ -58,18 +58,12 @@ static int update_env_var(t_tools *tools, const char *name, const char *value)
 static void update_pwd_vars(t_tools *tools, const char *old_pwd)
 {
     char current_pwd[PATH_MAX];
-    int old_idx = find_env_var(tools->env, "OLDPWD");
-    int pwd_idx = find_env_var(tools->env, "PWD");
 
     if (!getcwd(current_pwd, PATH_MAX))
         return;
-    ft_printf("DEBUG: old_pwd=%s, current_pwd=%s\n", old_pwd, current_pwd);
-    ft_printf("DEBUG: OLDPWD in env=%s, PWD in env=%s\n",
-              old_idx != -1 ? tools->env[old_idx] : "not set",
-              pwd_idx != -1 ? tools->env[pwd_idx] : "not set");
     if (old_pwd)
-        update_env_var(tools, "OLDPWD=", old_pwd);
-    update_env_var(tools, "PWD=", current_pwd);
+        update_env_var(tools, "OLDPWD", old_pwd);
+    update_env_var(tools, "PWD", current_pwd);
 }
 
 int builtin_cd(t_tools *tools, char **args)
@@ -78,14 +72,16 @@ int builtin_cd(t_tools *tools, char **args)
     char *expanded_path = NULL;
     int ret;
     char old_pwd[PATH_MAX];
+    int home_idx;
 
     if (!getcwd(old_pwd, PATH_MAX))
         return (1);
     if (!args[1])
     {
-        path = getenv("HOME");
-        if (!path)
+        home_idx = find_env_var(tools->env, "HOME");
+        if (home_idx == -1)
             return (ft_printf("minishell: cd: HOME not set\n"), 1);
+        path = tools->env[home_idx] + 5; // Passe "HOME=" (5 caractères)
         expanded_path = ft_strdup(path);
     }
     else if (ft_strcmp(args[1], "-") == 0)
