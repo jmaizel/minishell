@@ -6,27 +6,26 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 01:30:47 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/26 08:40:13 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/26 11:24:54 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/minishell.h"
 #include "../../includes/builtins.h"
 
-static int	is_valid_identifier(const char *str)
+static int is_valid_identifier(const char *str)
 {
-	int	i;
-
-	if (!str || !*str || ft_isdigit(*str))
-		return (0);
-	i = 0;
-	while (str[i] && str[i] != '=')
-	{
-		if (!ft_isalnum(str[i]) && str[i] != '_')
-			return (0);
-		i++;
-	}
-	return (1);
+    int i;
+    if (!str || !*str || ft_isdigit(*str))
+        return (0);
+    i = 0;
+    while (str[i] && str[i] != '=')
+    {
+        if (!ft_isalnum(str[i]) && str[i] != '_')
+            return (0);
+        i++;
+    }
+    return (1); // Accepte "VAR=" comme valide
 }
 
 static void	print_sorted_env(char **env)
@@ -68,45 +67,41 @@ static void	print_sorted_env(char **env)
 	free(sorted);
 }
 
-int	builtin_export(t_tools *tools, char **argv)
+int builtin_export(t_tools *tools, char **argv)
 {
-	int		i;
-	char	*name;
-	char	*value;
-	int		ret;
+    int i;
+    char *name;
+    char *value;
+    int ret;
 
-	ret = 0;
-	if (!argv[1])
-	{
-		print_sorted_env(tools->env);
-		return (0);
-	}
-	i = 1;
-	while (argv[i])
-	{
-		name = get_env_name(argv[i]);
-		if (!name)
-		{
-			i++;
-			continue ;
-		}
-		if (!is_valid_identifier(name))
-		{
-			ft_printf("minishell: export: '%s': not a valid identifier\n",
-				argv[i]);
-			free(name);
-			ret = 1;
-			i++;
-			continue ;
-		}
-		value = get_env_value(argv[i]);
-		if (value)
-		{
-			tools->env = update_env(tools->env, name, value);
-			free(value);
-		}
-		free(name);
-		i++;
-	}
-	return (ret);
+    ret = 0;
+    if (!argv[1])
+    {
+        print_sorted_env(tools->env);
+        return (0);
+    }
+    i = 1;
+    while (argv[i])
+    {
+        name = get_env_name(argv[i]);
+        if (!name || !is_valid_identifier(name))
+        {
+            ft_printf("minishell: export: '%s': not a valid identifier\n", argv[i]);
+            free(name);
+            ret = 1;
+            i++;
+            continue;
+        }
+        value = get_env_value(argv[i]);
+        char **new_env = update_env(tools->env, name, value ? value : "");
+        if (new_env != tools->env)
+        {
+            free(tools->env);
+            tools->env = new_env;
+        }
+        free(name);
+        free(value);
+        i++;
+    }
+    return (ret);
 }

@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:30 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/24 21:01:54 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/26 11:32:41 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,17 @@
 
 static void execute_cmd(t_pip *cmd, t_exec *exec, char *cmd_path)
 {
-    t_cmd_args  *args;
-    char        *expanded_cmd;
+    t_cmd_args *args;
+    char *expanded_cmd;
 
     setup_child_signals();
     if (cmd->redirection)
     {
         if (setup_redirections(cmd->redirection, &exec->process, exec) == -1)
+        {
+            ft_putstr_fd("minishell: redirection error\n", STDERR_FILENO);
             exit(1);
+        }
     }
     if (cmd->redirection)
         expanded_cmd = expand_str(cmd->redirection->cmd, exec->tools);
@@ -56,6 +59,7 @@ int exec_simple_cmd(t_pip *cmd, t_exec *exec)
     builtin_ret = handle_builtin(cmd, exec);
     if (builtin_ret != -1)
         return (builtin_ret);
+    // Now, expand the command since it's not a builtin
     if (cmd->redirection)
         expanded_cmd = expand_str(cmd->redirection->cmd, exec->tools);
     else
@@ -71,9 +75,13 @@ int exec_simple_cmd(t_pip *cmd, t_exec *exec)
         return (1);
     }
     cmd_path = get_cmd_path(args->argv[0], exec->cmd_paths);
-    free_cmd_args(args);
     if (!cmd_path)
+    {
+        ft_printf("minishell: %s: command not found\n", args->argv[0]);
+        free_cmd_args(args);
         return (127);
+    }
+    free_cmd_args(args);
     exec->process.pid = fork();
     if (exec->process.pid == -1)
         return (free(cmd_path), 1);

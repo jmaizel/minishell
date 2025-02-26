@@ -1,3 +1,6 @@
 export PIPEVAR=test | echo $PIPEVAR
 echo $PIPEVAR
 
+CTRL-C dans dans entrée
+
+echo "mixed" > mix1.txt >> mix2.txt > mix3.txt

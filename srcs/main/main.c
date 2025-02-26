@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:44:53 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/25 20:05:55 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/26 11:29:14 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,15 @@ static int handle_execution(t_tools *tools, char *user_input)
 {
     t_sep *cell;
 
-    if (!user_input || check_invalid_chars(user_input))
+    if (!user_input)
+        return (1);
+    // Vérification des syntaxes invalides (ex. pipe initial)
+    if (user_input[0] == '|' || ft_strchr(user_input, '\n'))
+    {
+        ft_printf("minishell: syntax error near unexpected token '|'\n");
+        return (1);
+    }
+    if (check_invalid_chars(user_input))
     {
         ft_printf("Error: Invalid input\n");
         return (1);
