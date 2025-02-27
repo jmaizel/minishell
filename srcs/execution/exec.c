@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:44:16 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/24 21:01:16 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/27 16:05:06 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,16 +26,16 @@ void    init_exec_struct(t_exec *exec, t_tools *tools)
 int exec_commands(t_sep *cell, t_tools *tools)
 {
     t_exec  exec;
-    int     ret;
+    int     ret = 0;
     char    *expanded_cmd;
     t_pip   *current;
+    int     heredoc_fd = -1;
 
     if (!cell || !cell->pipcell)
         return (1);
     init_exec_struct(&exec, tools);
     exec.pipe_count = count_pipes(cell->pipcell);
 
-    // Parse and expand all pipeline commands
     current = cell->pipcell;
     while (current)
     {
@@ -50,20 +50,48 @@ int exec_commands(t_sep *cell, t_tools *tools)
         current = current->next;
     }
 
+    t_parsed_cmd *redir = cell->pipcell->redirection;
+    if (redir && redir->heredoc_count > 0)
+    {
+        heredoc_fd = handle_heredoc(redir, &exec);
+        if (heredoc_fd == -1)
+            return (1);
+    }
+
     if (exec.pipe_count > 0)
-        ret = exec_pipeline(cell->pipcell, &exec);
+    {
+        ret = exec_pipeline(cell->pipcell, &exec, heredoc_fd);
+        if (heredoc_fd != -1)
+            close(heredoc_fd);
+    }
     else
     {
-        if (cell->pipcell->redirection && cell->pipcell->redirection->cmd)
+        if (redir && redir->cmd && *redir->cmd)
         {
-            expanded_cmd = expand_str(cell->pipcell->redirection->cmd, tools);
+            if (heredoc_fd != -1)
+            {
+                exec.process.stdin_backup = dup(STDIN_FILENO);
+                if (dup2(heredoc_fd, STDIN_FILENO) == -1)
+                {
+                    close(heredoc_fd);
+                    return (1);
+                }
+                close(heredoc_fd);
+            }
+            expanded_cmd = expand_str(redir->cmd, tools);
             if (expanded_cmd)
             {
-                free(cell->pipcell->redirection->cmd);
-                cell->pipcell->redirection->cmd = expanded_cmd;
+                free(redir->cmd);
+                redir->cmd = expanded_cmd;
             }
+            ret = exec_simple_cmd(cell->pipcell, &exec);
+            if (heredoc_fd != -1)
+                restore_redirections(&exec.process);
         }
-        ret = exec_simple_cmd(cell->pipcell, &exec);
+        else if (heredoc_fd != -1)
+        {
+            close(heredoc_fd);
+        }
     }
     if (exec.cmd_paths)
         free_str_array(exec.cmd_paths);

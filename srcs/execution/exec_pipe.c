@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:28 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/24 21:03:16 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/27 16:03:47 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,13 +121,12 @@ static int  fork_and_execute(t_pip *cmd, t_exec *exec, int i, int pipes[][2], in
     return (pid);
 }
 
-int exec_pipeline(t_pip *pipeline, t_exec *exec)
+int exec_pipeline(t_pip *pipeline, t_exec *exec, int heredoc_fd)
 {
     int     pipes[1024][2];
     t_pip   *current;
     pid_t   *pids;
     int     i;
-    int     heredoc_fd = -1;
 
     exec->pipe_count = count_pipes(pipeline);
     if (setup_pipes(pipes, exec->pipe_count) == -1)
@@ -137,17 +136,6 @@ int exec_pipeline(t_pip *pipeline, t_exec *exec)
     {
         close_all_pipes(pipes, exec->pipe_count);
         return (1);
-    }
-    current = pipeline;
-    if (current && current->redirection && current->redirection->heredoc_count > 0)
-    {
-        heredoc_fd = handle_heredoc(current->redirection, exec);
-        if (heredoc_fd == -1)
-        {
-            free(pids);
-            close_all_pipes(pipes, exec->pipe_count);
-            return (1);
-        }
     }
     i = 0;
     current = pipeline;

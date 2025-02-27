@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:30 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/26 11:32:41 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/27 15:58:48 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,25 +15,14 @@
 static void execute_cmd(t_pip *cmd, t_exec *exec, char *cmd_path)
 {
     t_cmd_args *args;
-    char *expanded_cmd;
 
     setup_child_signals();
-    if (cmd->redirection)
+    if (cmd->redirection && cmd->redirection->heredoc_count == 0) // Ne pas refaire pour heredoc
     {
         if (setup_redirections(cmd->redirection, &exec->process, exec) == -1)
-        {
-            ft_putstr_fd("minishell: redirection error\n", STDERR_FILENO);
             exit(1);
-        }
     }
-    if (cmd->redirection)
-        expanded_cmd = expand_str(cmd->redirection->cmd, exec->tools);
-    else
-        expanded_cmd = expand_str(cmd->cmd_pipe, exec->tools);
-    if (!expanded_cmd)
-        exit(1);
-    args = parse_command_args(expanded_cmd);
-    free(expanded_cmd);
+    args = parse_command_args(cmd->redirection ? cmd->redirection->cmd : cmd->cmd_pipe);
     if (!args || !args->argv[0])
     {
         if (args)

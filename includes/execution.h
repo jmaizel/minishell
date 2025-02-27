@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/23 16:24:23 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/27 16:04:04 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ int		exec_commands(t_sep *cell, t_tools *tools);
 int		exec_simple_cmd(t_pip *cmd, t_exec *exec);
 
 /* exec_pipe.c */
-int		exec_pipeline(t_pip *pipeline, t_exec *exec);
+int		exec_pipeline(t_pip *pipeline, t_exec *exec, int heredoc_fd);
 
 /* exec_redir.c */
 int     setup_redirections(t_parsed_cmd *cmd, t_process *process, t_exec *exec);
