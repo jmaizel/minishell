@@ -5,9 +5,11 @@ VERIFIER LES SIGNAUX
 
 echo "mixed" > mix1.txt >> mix2.txt > mix3.txt
 
-export qwerty SANS RIEN que dans export
-avec = dans ;es deux "" export pas dans env 
-
-file > MESSGAE x2
-
 cat | | -> 
+
+| -> message d'erreur 
+cat | 
+
+minishell$ export | grep qwerty
+minishell$ env | grep qwerty
+qwerty=
