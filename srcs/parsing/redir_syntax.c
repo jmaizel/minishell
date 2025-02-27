@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   redir_syntax.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 13:23:51 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/25 16:01:50 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/27 20:54:47 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,6 @@ static int	skip_spaces_and_check_end(char *input, int i)
 		i++;
 	if (!input[i] || input[i] == '<' || input[i] == '>')
 	{
-		ft_putstr_fd("minishell: syntax error near unexpected token \n", 2);
 		return (0);
 	}
 	return (i);
