@@ -1,0 +1,15 @@
+export PIPEVAR=test | echo $PIPEVAR
+echo $PIPEVAR
+
+VERIFIER LES SIGNAUX
+
+echo "mixed" > mix1.txt >> mix2.txt > mix3.txt
+
+cat | | -> 
+
+| -> message d'erreur 
+cat | 
+
+minishell$ export | grep qwerty
+minishell$ env | grep qwerty
+qwerty=
