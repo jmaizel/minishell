@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 11:38:29 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/25 18:01:38 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/27 14:27:57 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ int	extract_arg(char **args, char *cmd_str, int i, int *j)
 	return (start + len);
 }
 
-void	print_cmd_args(t_cmd_args *cmd_args)
+/* void	print_cmd_args(t_cmd_args *cmd_args)
 {
 	int	i;
 
@@ -72,7 +72,7 @@ void	print_cmd_args(t_cmd_args *cmd_args)
 		printf(" %d: [%s]\n", i, cmd_args->argv[i]);
 		i++;
 	}
-}
+} */
 
 void	free_cmd_args(t_cmd_args *cmd_args)
 {

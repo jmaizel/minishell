@@ -6,12 +6,11 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:58:53 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/27 11:10:25 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/27 14:21:25 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/minishell.h"
-#include <signal.h>
+#include "../../includes/minishell.h"
 
 int g_signal_received = 0;
 

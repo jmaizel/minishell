@@ -6,13 +6,13 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 13:30:33 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/25 17:37:56 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/27 14:30:35 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
 
-static void	print_redirect_files(char **files, int count, const char *label)
+/* static void	print_redirect_files(char **files, int count, const char *label)
 {
 	int	i;
 
@@ -26,9 +26,9 @@ static void	print_redirect_files(char **files, int count, const char *label)
 			i++;
 		}
 	}
-}
+} */
 
-static void	print_redirections(t_parsed_cmd *cmd, int type)
+/* static void	print_redirections(t_parsed_cmd *cmd, int type)
 {
 	if (type == 0)
 		print_redirect_files(cmd->input_file, cmd->input_count, "Input File");
@@ -41,9 +41,9 @@ static void	print_redirections(t_parsed_cmd *cmd, int type)
 	else if (type == 3)
 		print_redirect_files(cmd->heredoc_delim, cmd->heredoc_count,
 			"Heredoc Delimiters");
-}
+} */
 
-void	print_parsed_command(t_parsed_cmd *cmd)
+/* void	print_parsed_command(t_parsed_cmd *cmd)
 {
 	printf(" parsing results:\n");
 	printf(" Full command: [%s]\n", cmd->full_cmd);
@@ -51,7 +51,7 @@ void	print_parsed_command(t_parsed_cmd *cmd)
 	print_redirections(cmd, 1);
 	print_redirections(cmd, 2);
 	print_redirections(cmd, 3);
-}
+} */
 
 static void	process_command(t_pip *current)
 {
@@ -61,13 +61,13 @@ static void	process_command(t_pip *current)
 	parsed_cmd = parse_redir(current->cmd_pipe);
 	if (parsed_cmd)
 	{
-		print_parsed_command(parsed_cmd);
+		//print_parsed_command(parsed_cmd);
 		if (parsed_cmd->cmd && *(parsed_cmd->cmd) != '\0')
 		{
 			cmd_args = parse_command_args(parsed_cmd->cmd);
 			if (cmd_args)
 			{
-				print_cmd_args(cmd_args);
+				//print_cmd_args(cmd_args);
 				free_cmd_args(cmd_args);
 			}
 		}

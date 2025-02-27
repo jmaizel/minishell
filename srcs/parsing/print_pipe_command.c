@@ -6,13 +6,13 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 12:52:58 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/02/25 14:12:09 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/02/27 14:29:00 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
 
-static void	print_input_files(t_parsed_cmd *cmd)
+/* static void	print_input_files(t_parsed_cmd *cmd)
 {
 	int	i;
 
@@ -82,4 +82,4 @@ void	print_pipe_command(t_pip *pipe_cmd, int pipe_num)
 	print_output_files(pipe_cmd->redirection);
 	print_heredoc_delims(pipe_cmd->redirection);
 	print_append_files(pipe_cmd->redirection);
-}
+} */
