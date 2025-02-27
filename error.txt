@@ -1,6 +1,13 @@
 export PIPEVAR=test | echo $PIPEVAR
 echo $PIPEVAR
 
-CTRL-C dans dans entrée
+VERIFIER LES SIGNAUX
 
 echo "mixed" > mix1.txt >> mix2.txt > mix3.txt
+
+export qwerty SANS RIEN que dans export
+avec = dans ;es deux "" export pas dans env 
+
+file > MESSGAE x2
+
+cat | | -> 

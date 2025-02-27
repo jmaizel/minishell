@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:30 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/27 15:58:48 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/27 16:38:56 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ static void execute_cmd(t_pip *cmd, t_exec *exec, char *cmd_path)
     t_cmd_args *args;
 
     setup_child_signals();
-    if (cmd->redirection && cmd->redirection->heredoc_count == 0) // Ne pas refaire pour heredoc
+    if (cmd->redirection) // Toujours appliquer les redirections si présentes
     {
         if (setup_redirections(cmd->redirection, &exec->process, exec) == -1)
             exit(1);

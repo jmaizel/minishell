@@ -6,7 +6,7 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:39 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/26 20:14:19 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/27 16:40:39 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,39 +46,31 @@ static int handle_output_redir(char *file, int append)
 
 static int setup_input(t_parsed_cmd *cmd, t_process *process, t_exec *exec)
 {
-	int fd;
+    int fd;
 
-	if (cmd->heredoc_count > 0)
-	{
-		fd = handle_heredoc(cmd, exec);
-		if (fd == -1)
-			return (-1);
-		process->stdin_backup = dup(STDIN_FILENO);
-		if (dup2(fd, STDIN_FILENO) == -1)
-		{
-			close(fd);
-			return (-1);
-		}
-		close(fd);
-	}
-	else if (cmd->input_count > 0)
-	{
-		fd = open(cmd->input_file[cmd->input_count - 1], O_RDONLY);
-		if (fd == -1)
-		{
-			ft_printf("minishell: %s: No such file or directory\n",
-					  cmd->input_file[cmd->input_count - 1]);
-			return (-1);
-		}
-		process->stdin_backup = dup(STDIN_FILENO);
-		if (dup2(fd, STDIN_FILENO) == -1)
-		{
-			close(fd);
-			return (-1);
-		}
-		close(fd);
-	}
-	return (0);
+	
+	(void)exec;
+    // Ne pas refaire une redirection si un heredoc a déjà été configuré
+    if (cmd->heredoc_count > 0)
+        return (0); // Le heredoc est déjà sur STDIN_FILENO via exec_commands
+
+    if (cmd->input_count > 0)
+    {
+        fd = open(cmd->input_file[cmd->input_count - 1], O_RDONLY);
+        if (fd == -1)
+        {
+            ft_printf("minishell: %s: No such file or directory\n", cmd->input_file[cmd->input_count - 1]);
+            return (-1);
+        }
+        process->stdin_backup = dup(STDIN_FILENO);
+        if (dup2(fd, STDIN_FILENO) == -1)
+        {
+            close(fd);
+            return (-1);
+        }
+        close(fd);
+    }
+    return (0);
 }
 
 int setup_redirections(t_parsed_cmd *cmd, t_process *process, t_exec *exec)
