@@ -1,7 +1,7 @@
 NAME = minishell
 CC = gcc
 
-READLINE_PATH = $(shell brew --prefix readline)
+#READLINE_PATH = $(shell brew --prefix readline)
 READLINE_INC = -I$(READLINE_PATH)/include
 READLINE_LIB = -L$(READLINE_PATH)/lib
 

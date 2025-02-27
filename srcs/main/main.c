@@ -3,20 +3,46 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:44:53 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/26 20:33:50 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/27 11:49:38 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../includes/minishell.h"
+#include "../../includes/builtins.h"
 #include "../../includes/execution.h"
+#include "../../includes/minishell.h"
+
+int			g_signal_recieved = 0;
 
 static void	init_minishell(t_tools *tools, char **env)
 {
+	int	i;
+	int	j;
+
 	ft_memset(tools, 0, sizeof(t_tools));
-	tools->env = env;
+	i = 0;
+	while (env[i])
+		i++;
+	tools->env = malloc(sizeof(char *) * (i + 1));
+	if (!tools->env)
+		return ;
+	j = 0;
+	while (j < i)
+	{
+		tools->env[j] = ft_strdup(env[j]);
+		if (!tools->env[j])
+		{
+			while (--j >= 0)
+				free(tools->env[j]);
+			free(tools->env);
+			tools->env = NULL;
+			return ;
+		}
+		j++;
+	}
+	tools->env[i] = NULL;
 	tools->exit_code = 0;
 	tools->tokens = NULL;
 	tools->cmds = NULL;
@@ -24,7 +50,19 @@ static void	init_minishell(t_tools *tools, char **env)
 
 void	cleanup_minishell(t_tools *tools)
 {
-	(void)tools;
+	int	i;
+
+	if (tools->env)
+	{
+		i = 0;
+		while (tools->env[i])
+		{
+			free(tools->env[i]);
+			i++;
+		}
+		free(tools->env);
+		tools->env = NULL;
+	}
 	rl_clear_history();
 }
 
@@ -60,6 +98,7 @@ int	main(int argc, char **argv, char **env)
 	(void)argc;
 	(void)argv;
 	init_minishell(&tools, env);
+	increment_shell_level(&tools);
 	setup_interactive_signals();
 	while (1)
 	{

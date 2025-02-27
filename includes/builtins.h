@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtins.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 15:26:11 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/26 08:17:50 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/02/27 11:40:24 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ char	**update_env(char **env, const char *name, const char *value);
 char	*get_env_name(const char *var);
 char	*get_env_value(const char *var);
 int		count_env_vars(char **env);
-char *ft_strjoin_three(const char *s1, const char *s2, const char *s3);
+char	*ft_strjoin_three(const char *s1, const char *s2, const char *s3);
+void	increment_shell_level(t_tools *tools);
 
 #endif
