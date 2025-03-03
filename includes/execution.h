@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 12:12:33 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/03 14:17:45 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,25 @@ typedef struct s_exec
 	int			pipe_count;
 	char		**cmd_paths;
 }				t_exec;
+
+typedef struct s_exec_params
+{
+	t_pip		*cmd;
+	t_exec		*exec;
+	int			i;
+	int			pipes[1024][2];
+	int			heredoc_fd;
+}				t_exec_params;
+
+typedef struct s_fork_params
+{
+	t_pip		*cmd;
+	t_exec		*exec;
+	int			i;
+	int			pipes[1024][2];
+	int			heredoc_fd;
+	pid_t		*pids;
+}				t_fork_params;
 
 /* exec.c */
 void			init_exec_struct(t_exec *exec, t_tools *tools);

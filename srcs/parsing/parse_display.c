@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 13:30:33 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/27 14:30:35 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/03 14:49:29 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,13 +61,11 @@ static void	process_command(t_pip *current)
 	parsed_cmd = parse_redir(current->cmd_pipe);
 	if (parsed_cmd)
 	{
-		//print_parsed_command(parsed_cmd);
 		if (parsed_cmd->cmd && *(parsed_cmd->cmd) != '\0')
 		{
 			cmd_args = parse_command_args(parsed_cmd->cmd);
 			if (cmd_args)
 			{
-				//print_cmd_args(cmd_args);
 				free_cmd_args(cmd_args);
 			}
 		}

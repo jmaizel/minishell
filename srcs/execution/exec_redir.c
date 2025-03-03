@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:39 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 11:35:16 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/03 14:43:18 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,8 +38,20 @@ static int	handle_output_redir(char *file, int append)
 		close(fd);
 		return (-1);
 	}
-	close(fd);
-	return (0);
+	return (close(fd), 0);
+}
+
+static int	handle_input_redir(char *file)
+{
+	int	fd;
+
+	fd = open(file, O_RDONLY);
+	if (fd == -1)
+	{
+		ft_printf("minishell: %s: No such file or directory\n", file);
+		return (-1);
+	}
+	return (fd);
 }
 
 static int	setup_input(t_parsed_cmd *cmd, t_process *process, t_exec *exec)
@@ -51,13 +63,9 @@ static int	setup_input(t_parsed_cmd *cmd, t_process *process, t_exec *exec)
 		return (0);
 	if (cmd->input_count > 0)
 	{
-		fd = open(cmd->input_file[cmd->input_count - 1], O_RDONLY);
+		fd = handle_input_redir(cmd->input_file[cmd->input_count - 1]);
 		if (fd == -1)
-		{
-			ft_printf("minishell: %s: No such file or directory\n", 
-					cmd->input_file[cmd->input_count - 1]);
 			return (-1);
-		}
 		process->stdin_backup = dup(STDIN_FILENO);
 		if (dup2(fd, STDIN_FILENO) == -1)
 		{
@@ -85,7 +93,7 @@ static int	handle_intermediate_files(t_parsed_cmd *cmd)
 		fd = open(cmd->output_file[i], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if (fd == -1)
 		{
-			ft_printf("minishell: %s: Permission denied\n", 
+			ft_printf("minishell: %s: Permission denied\n",
 				cmd->output_file[i]);
 			return (-1);
 		}
@@ -93,6 +101,42 @@ static int	handle_intermediate_files(t_parsed_cmd *cmd)
 		i++;
 	}
 	return (0);
+}
+
+static int	backup_and_redirect_stdout(void)
+{
+	int	stdout_backup;
+
+	stdout_backup = dup(STDOUT_FILENO);
+	if (stdout_backup == -1)
+	{
+		ft_printf("minishell: dup error\n");
+		return (-1);
+	}
+	return (stdout_backup);
+}
+
+static int	handle_final_output_file(t_parsed_cmd *cmd)
+{
+	if (!cmd->output_file[cmd->output_count - 1])
+	{
+		ft_printf("minishell: invalid final output file\n");
+		return (-1);
+	}
+	return (handle_output_redir(cmd->output_file[cmd->output_count - 1], 0));
+}
+
+static int	setup_output_redir(t_parsed_cmd *cmd, t_process *process)
+{
+	process->stdout_backup = backup_and_redirect_stdout();
+	if (process->stdout_backup == -1)
+	{
+		ft_printf("minishell: dup error\n");
+		return (-1);
+	}
+	if (handle_intermediate_files(cmd) == -1)
+		return (-1);
+	return (handle_final_output_file(cmd));
 }
 
 int	setup_redirections(t_parsed_cmd *cmd, t_process *process, t_exec *exec)
@@ -105,20 +149,7 @@ int	setup_redirections(t_parsed_cmd *cmd, t_process *process, t_exec *exec)
 		return (-1);
 	if (cmd->output_count > 0)
 	{
-		process->stdout_backup = dup(STDOUT_FILENO);
-		if (process->stdout_backup == -1)
-		{
-			ft_printf("minishell: dup error\n");
-			return (-1);
-		}
-		if (handle_intermediate_files(cmd) == -1)
-			return (-1);
-		if (!cmd->output_file[cmd->output_count - 1])
-		{
-			ft_printf("minishell: invalid final output file\n");
-			return (-1);
-		}
-		if (handle_output_redir(cmd->output_file[cmd->output_count - 1], 0) == -1)
+		if (setup_output_redir(cmd, process) == -1)
 			return (-1);
 	}
 	return (0);

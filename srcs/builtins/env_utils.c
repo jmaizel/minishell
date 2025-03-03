@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   env_utils.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 18:51:19 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/27 17:43:39 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/03/03 14:45:53 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,38 +40,39 @@ int	find_env_var(char **env, const char *name)
 	return (-1);
 }
 
-static char *create_env_string(const char *name, const char *value)
+static char	*create_env_string(const char *name, const char *value)
 {
-    char *new_var;
-    size_t name_len;
-    size_t val_len;
-    size_t total_len;
+	char	*new_var;
+	size_t	name_len;
+	size_t	val_len;
+	size_t	total_len;
 
-    if (!name)
-        return (NULL);
-    name_len = ft_strlen(name);
-    if (!value)
-    {
-        new_var = malloc(name_len + 2);
-        if (!new_var)
-            return (NULL);
-        ft_strlcpy(new_var, name, name_len + 1);
-        new_var[name_len] = '=';
-        new_var[name_len + 1] = '\0';
-        return (new_var);
-    }
-    val_len = ft_strlen(value);
-    total_len = name_len + val_len + 2;
-    new_var = malloc(total_len);
-    if (!new_var)
-        return (NULL);
-    ft_strlcpy(new_var, name, name_len + 1);
-    new_var[name_len] = '=';
-    ft_strlcpy(new_var + name_len + 1, value, val_len + 1);
-    return (new_var);
+	if (!name)
+		return (NULL);
+	name_len = ft_strlen(name);
+	if (!value)
+	{
+		new_var = malloc(name_len + 2);
+		if (!new_var)
+			return (NULL);
+		ft_strlcpy(new_var, name, name_len + 1);
+		new_var[name_len] = '=';
+		new_var[name_len + 1] = '\0';
+		return (new_var);
+	}
+	val_len = ft_strlen(value);
+	total_len = name_len + val_len + 2;
+	new_var = malloc(total_len);
+	if (!new_var)
+		return (NULL);
+	ft_strlcpy(new_var, name, name_len + 1);
+	new_var[name_len] = '=';
+	ft_strlcpy(new_var + name_len + 1, value, val_len + 1);
+	return (new_var);
 }
 
-static char	**replace_env_var(char **env, int index, const char *name, const char *value)
+static char	**replace_env_var(char **env, int index, const char *name,
+		const char *value)
 {
 	char	*new_var;
 

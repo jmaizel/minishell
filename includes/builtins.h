@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 15:26:11 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/27 11:40:24 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/03 14:47:50 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 # include "minishell.h"
 
-//#define PATH_MAX 4096
+# define PATH_MAX 4096
 
 /* Builtins */
 int		builtin_env(t_tools *tools, char **argv);

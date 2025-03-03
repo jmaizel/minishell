@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:13 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 11:36:50 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/03 14:03:28 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ static char	*search_in_path_array(char *cmd, char **paths)
 char	*get_cmd_path(char *cmd, char **cmd_paths)
 {
 	char	*cmd_path;
-	char	*default_paths[] = {"/usr/bin", "/bin", NULL};
+	char	**default_paths;
 
 	if (!cmd)
 		return (NULL);
@@ -56,5 +56,6 @@ char	*get_cmd_path(char *cmd, char **cmd_paths)
 	cmd_path = search_in_path_array(cmd, cmd_paths);
 	if (cmd_path)
 		return (cmd_path);
-	return (search_in_path_array(cmd, (char **)default_paths));
+	default_paths = (char *[]){"/usr/bin", "/bin", NULL};
+	return (search_in_path_array(cmd, default_paths));
 }
