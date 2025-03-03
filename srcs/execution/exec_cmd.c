@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:30 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 11:34:56 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/03 11:59:16 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,19 +15,21 @@
 static void	execute_cmd(t_pip *cmd, t_exec *exec, char *cmd_path)
 {
 	t_cmd_args	*args;
+	char		*cmd_str;
 
 	setup_child_signals();
 	if (cmd->redirection)
 	{
 		if (setup_redirections(cmd->redirection, &exec->process, exec) == -1)
 			exit(1);
+		cmd_str = cmd->redirection->cmd;
 	}
-	args = parse_command_args(cmd->redirection ? 
-			cmd->redirection->cmd : cmd->cmd_pipe);
+	else
+		cmd_str = cmd->cmd_pipe;
+	args = parse_command_args(cmd_str);
 	if (!args || !args->argv[0])
 	{
-		if (args)
-			free_cmd_args(args);
+		free_cmd_args(args);
 		exit(1);
 	}
 	execve(cmd_path, args->argv, exec->tools->env);
@@ -77,24 +79,25 @@ static int	fork_and_execute(t_pip *cmd, t_exec *exec, char *cmd_path)
 	return (handle_status(status));
 }
 
-static int	prepare_external_command(t_pip *cmd, t_exec *exec)
+static char	*get_expanded_command(t_pip *cmd, t_exec *exec)
 {
-	char		*expanded_cmd;
+	if (cmd->redirection)
+		return (expand_str(cmd->redirection->cmd, exec->tools));
+	return (expand_str(cmd->cmd_pipe, exec->tools));
+}
+
+static int	prepare_and_execute_command(t_pip *cmd, char *expanded_cmd,
+		t_exec *exec)
+{
 	t_cmd_args	*args;
 	char		*cmd_path;
+	int			ret;
 
-	if (cmd->redirection)
-		expanded_cmd = expand_str(cmd->redirection->cmd, exec->tools);
-	else
-		expanded_cmd = expand_str(cmd->cmd_pipe, exec->tools);
-	if (!expanded_cmd)
-		return (1);
 	args = parse_command_args(expanded_cmd);
 	free(expanded_cmd);
 	if (!args || !args->argv[0])
 	{
-		if (args)
-			free_cmd_args(args);
+		free_cmd_args(args);
 		return (1);
 	}
 	cmd_path = get_cmd_path(args->argv[0], exec->cmd_paths);
@@ -105,7 +108,18 @@ static int	prepare_external_command(t_pip *cmd, t_exec *exec)
 		return (127);
 	}
 	free_cmd_args(args);
-	return (fork_and_execute(cmd, exec, cmd_path));
+	ret = fork_and_execute(cmd, exec, cmd_path);
+	return (ret);
+}
+
+static int	prepare_external_command(t_pip *cmd, t_exec *exec)
+{
+	char	*expanded_cmd;
+
+	expanded_cmd = get_expanded_command(cmd, exec);
+	if (!expanded_cmd)
+		return (1);
+	return (prepare_and_execute_command(cmd, expanded_cmd, exec));
 }
 
 int	exec_simple_cmd(t_pip *cmd, t_exec *exec)

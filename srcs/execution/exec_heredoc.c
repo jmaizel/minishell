@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:45 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 11:42:07 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/03 12:22:21 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,8 +82,8 @@ char	*remove_quotes(char *delimiter)
 
 char	*expand_heredoc_line(char *line, t_tools *tools)
 {
-	char *expanded;
-	char *exit_str;
+	char	*expanded;
+	char	*exit_str;
 
 	if (!ft_strchr(line, '$'))
 		return (ft_strdup(line));

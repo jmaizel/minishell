@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:44:16 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 11:39:20 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/03 12:20:02 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,62 +33,103 @@ static t_parsed_cmd	*find_redir(t_pip *current)
 	return (redir);
 }
 
-static void	expand_commands(t_pip *current, t_tools *tools)
+static void	expand_cmd_and_check_redir(t_pip *current, t_tools *tools)
 {
 	char	*expanded_cmd;
 
+	expanded_cmd = expand_str(current->cmd_pipe, tools);
+	if (expanded_cmd)
+	{
+		free(current->cmd_pipe);
+		current->cmd_pipe = expanded_cmd;
+	}
+	if (!current->redirection)
+		current->redirection = parse_redir(current->cmd_pipe);
+}
+
+static void	expand_commands(t_pip *current, t_tools *tools)
+{
 	while (current)
 	{
-		expanded_cmd = expand_str(current->cmd_pipe, tools);
-		if (expanded_cmd)
-		{
-			free(current->cmd_pipe);
-			current->cmd_pipe = expanded_cmd;
-		}
-		if (!current->redirection)
-			current->redirection = parse_redir(current->cmd_pipe);
+		expand_cmd_and_check_redir(current, tools);
 		current = current->next;
 	}
 }
 
-static int	handle_heredoc_and_expand(t_sep *cell, t_exec *exec, int *heredoc_fd)
+static int	manage_heredoc(t_parsed_cmd *redir, t_exec *exec, int *heredoc_fd)
 {
-	t_parsed_cmd	*redir;
-	char			*expanded_cmd;
-
-	redir = find_redir(cell->pipcell);
 	if (redir && redir->heredoc_count > 0)
 	{
 		*heredoc_fd = handle_heredoc(redir, exec);
 		if (*heredoc_fd == -1)
 			return (0);
 	}
-	if (exec->pipe_count <= 0 && redir && redir->cmd && *redir->cmd)
+	return (1);
+}
+
+static int	prepare_heredoc_fd(t_exec *exec, int *heredoc_fd)
+{
+	if (*heredoc_fd != -1)
 	{
-		if (*heredoc_fd != -1)
+		exec->process.stdin_backup = dup(STDIN_FILENO);
+		if (dup2(*heredoc_fd, STDIN_FILENO) == -1)
 		{
-			exec->process.stdin_backup = dup(STDIN_FILENO);
-			if (dup2(*heredoc_fd, STDIN_FILENO) == -1)
-			{
-				close(*heredoc_fd);
-				return (0);
-			}
 			close(*heredoc_fd);
+			return (0);
 		}
-		expanded_cmd = expand_str(redir->cmd, exec->tools);
-		if (expanded_cmd)
-		{
-			free(redir->cmd);
-			redir->cmd = expanded_cmd;
-		}
+		close(*heredoc_fd);
 	}
 	return (1);
+}
+
+static int	expand_and_check_redirection(t_parsed_cmd *redir, t_exec *exec)
+{
+	char	*expanded_cmd;
+
+	expanded_cmd = expand_str(redir->cmd, exec->tools);
+	if (expanded_cmd)
+	{
+		free(redir->cmd);
+		redir->cmd = expanded_cmd;
+	}
+	return (1);
+}
+
+static int	handle_heredoc_and_expand(t_sep *cell, t_exec *exec,
+		int *heredoc_fd)
+{
+	t_parsed_cmd	*redir;
+
+	redir = find_redir(cell->pipcell);
+	if (!manage_heredoc(redir, exec, heredoc_fd))
+		return (0);
+	if (exec->pipe_count <= 0 && redir && redir->cmd && *redir->cmd)
+	{
+		if (!prepare_heredoc_fd(exec, heredoc_fd))
+			return (0);
+		if (!expand_and_check_redirection(redir, exec))
+			return (0);
+	}
+	return (1);
+}
+
+static void	execute_pipeline(t_sep *cell, t_exec *exec, int heredoc_fd)
+{
+	exec_pipeline(cell->pipcell, exec, heredoc_fd);
+	if (heredoc_fd != -1)
+		close(heredoc_fd);
+}
+
+static void	execute_simple_command(t_sep *cell, t_exec *exec, int heredoc_fd)
+{
+	exec_simple_cmd(cell->pipcell, exec);
+	if (heredoc_fd != -1)
+		restore_redirections(&exec->process);
 }
 
 int	exec_commands(t_sep *cell, t_tools *tools)
 {
 	t_exec	exec;
-	int		ret;
 	int		heredoc_fd;
 
 	if (!cell || !cell->pipcell)
@@ -100,18 +141,10 @@ int	exec_commands(t_sep *cell, t_tools *tools)
 	if (!handle_heredoc_and_expand(cell, &exec, &heredoc_fd))
 		return (1);
 	if (exec.pipe_count > 0)
-	{
-		ret = exec_pipeline(cell->pipcell, &exec, heredoc_fd);
-		if (heredoc_fd != -1)
-			close(heredoc_fd);
-	}
+		execute_pipeline(cell, &exec, heredoc_fd);
 	else
-	{
-		ret = exec_simple_cmd(cell->pipcell, &exec);
-		if (heredoc_fd != -1)
-			restore_redirections(&exec.process);
-	}
+		execute_simple_command(cell, &exec, heredoc_fd);
 	if (exec.cmd_paths)
 		free_str_array(exec.cmd_paths);
-	return (ret);
+	return (0);
 }
