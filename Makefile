@@ -24,7 +24,8 @@ PARSING_FILES = cmd_args_parse.c cmd_args_utils.c count_args.c env.c expansion_c
 				redir_file.c redir_init.c redir_syntax.c sep.c signals.c utils.c process.c
 
 EXECUTION_FILES = exec.c exec_cmd.c exec_pipe.c exec_redir.c exec_utils.c \
-				 exec_signals.c exec_error.c exec_heredoc.c exec_path.c exec_builtins.c
+				 exec_signals.c exec_error.c exec_heredoc.c exec_path.c exec_builtins.c \
+				 exec_heredoc_2.c exec_pipe_2.c exec_redir_2.c
 
 MAIN_FILES = main.c
 

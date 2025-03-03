@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   execution.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/27 16:04:04 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/03/03 11:28:10 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,25 +38,37 @@ typedef struct s_exec
 	int			exit_status;
 	int			pipe_count;
 	char		**cmd_paths;
+	int			pipe_fds[1024][2];
 }	t_exec;
 
 /* exec.c */
 void	init_exec_struct(t_exec *exec, t_tools *tools);
 int		exec_commands(t_sep *cell, t_tools *tools);
+int		exec_with_redirections(t_pip *pip_cell, t_exec *exec, int heredoc_fd);
 
 /* exec_cmd.c */
 int		exec_simple_cmd(t_pip *cmd, t_exec *exec);
 
-/* exec_pipe.c */
+/* exec_pipe.c & exec_pipe_2.c */
 int		exec_pipeline(t_pip *pipeline, t_exec *exec, int heredoc_fd);
+void	close_all_pipes(int pipes[][2], int count);
+int		setup_pipes(int pipes[][2], int count);
+void	execute_command(t_pip *cmd, t_exec *exec, int index);
 
-/* exec_redir.c */
-int     setup_redirections(t_parsed_cmd *cmd, t_process *process, t_exec *exec);
+/* exec_redir.c & exec_redir_2.c */
+int		setup_redirections(t_parsed_cmd *cmd, t_process *process, t_exec *exec);
 void	restore_redirections(t_process *process);
+int		open_intermediate_files(t_parsed_cmd *cmd);
+int		handle_output_redir(char *file, int append);
+int		setup_input(t_parsed_cmd *cmd, t_process *process, t_exec *exec);
 
-/* exec_heredoc.c */
-void	setup_heredoc_signals(void);
+/* exec_heredoc.c & exec_heredoc_2.c */
+void	setup_child_heredoc_signals(void);
+void	setup_parent_heredoc_signals(void);
 int		handle_heredoc(t_parsed_cmd *cmd, t_exec *exec);
+int		is_quoted_delimiter(char *delimiter);
+char	*remove_quotes(char *delimiter);
+char	*expand_heredoc_line(char *line, t_tools *tools);
 
 /* exec_signals.c */
 void	setup_parent_signals(void);
@@ -74,5 +86,12 @@ char	*get_cmd_path(char *cmd, char **cmd_paths);
 int		is_builtin(char *cmd);
 int		handle_builtin(t_pip *cmd, t_exec *exec);
 int		execute_builtin(t_cmd_args *args, t_exec *exec);
+
+/* exec_error.c */
+void	print_error(char *cmd, char *arg, char *message);
+int		handle_cmd_error(char *cmd, char *error);
+int		handle_file_error(char *cmd, char *file, char *error);
+int		handle_pipe_error(void);
+int		handle_fork_error(void);
 
 #endif
