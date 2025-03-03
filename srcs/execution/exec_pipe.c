@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/03 14:06:14 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/03/03 14:36:22 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/03 16:49:39 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,10 +106,31 @@ static void	duplicate_redirect_fd(t_exec_params *params)
 	}
 }
 
+static int	handle_builtin_in_child(t_exec_params *params, t_cmd_args *args)
+{
+	int	ret;
+
+	if (params->cmd->redirection && setup_redirections(params->cmd->redirection,
+			&params->exec->process, params->exec) == -1)
+	{
+		free_cmd_args(args);
+		exit(1);
+	}
+	ret = execute_builtin(args, params->exec);
+	free_cmd_args(args);
+	exit(ret);
+	return (0);
+}
+
 static pid_t	fork_and_execute_child(t_exec_params *params)
 {
+	t_cmd_args	*args;
+
 	duplicate_redirect_fd(params);
 	close_all_pipes(params->pipes, params->exec->pipe_count);
+	args = get_command_args(params->cmd);
+	if (args && args->argv[0] && is_builtin(args->argv[0]))
+		handle_builtin_in_child(params, args);
 	if (params->cmd->redirection
 		&& params->cmd->redirection->heredoc_count == 0)
 	{
@@ -158,6 +179,34 @@ static int	cleanup_and_return(int pipes[][2], t_exec *exec, pid_t *pids)
 	return (exec->exit_status);
 }
 
+static int	init_pids_array(t_exec *exec, pid_t **pids)
+{
+	*pids = malloc(sizeof(pid_t) * (exec->pipe_count + 1));
+	if (!*pids)
+		return (0);
+	return (1);
+}
+
+static void	setup_fork_params(t_fork_params *params, t_pip *current,
+		t_exec *exec, int i)
+{
+	params->cmd = current;
+	params->exec = exec;
+	params->i = i;
+}
+
+static void	copy_pipes_to_params(t_fork_params *params, int pipes[][2])
+{
+	ft_memcpy(params->pipes, pipes, sizeof(int) * 1024 * 2);
+}
+
+static int	clean_fork_resources(pid_t *pids, int pipes[][2], int count)
+{
+	free(pids);
+	close_all_pipes(pipes, count);
+	return (1);
+}
+
 static int	exec_pipeline_pids(t_pip *pipeline, t_exec *exec, int pipes[][2],
 		int heredoc_fd)
 {
@@ -166,28 +215,21 @@ static int	exec_pipeline_pids(t_pip *pipeline, t_exec *exec, int pipes[][2],
 	int				i;
 	t_fork_params	params;
 
-	current = pipeline;
-	pids = malloc(sizeof(pid_t) * (exec->pipe_count + 1));
-	if (!pids)
+	if (!init_pids_array(exec, &pids))
 	{
 		close_all_pipes(pipes, exec->pipe_count);
 		return (1);
 	}
 	i = 0;
+	current = pipeline;
 	while (current)
 	{
-		params.cmd = current;
-		params.exec = exec;
-		params.i = i;
+		setup_fork_params(&params, current, exec, i);
+		copy_pipes_to_params(&params, pipes);
 		params.heredoc_fd = heredoc_fd;
 		params.pids = pids;
-		ft_memcpy(params.pipes, pipes, sizeof(int) * 1024 * 2);
 		if (fork_and_execute_pid(&params))
-		{
-			free(pids);
-			close_all_pipes(pipes, exec->pipe_count);
-			return (1);
-		}
+			return (clean_fork_resources(pids, pipes, exec->pipe_count));
 		current = current->next;
 		i++;
 	}
