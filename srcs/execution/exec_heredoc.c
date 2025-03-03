@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:45 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 11:21:36 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/03 11:42:07 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,8 +57,8 @@ int	is_quoted_delimiter(char *delimiter)
 	len = ft_strlen(delimiter);
 	if (len >= 2)
 	{
-		if ((delimiter[0] == '"' && delimiter[len - 1] == '"') ||
-			(delimiter[0] == '\'' && delimiter[len - 1] == '\''))
+		if ((delimiter[0] == '"' && delimiter[len - 1] == '"')
+			|| (delimiter[0] == '\'' && delimiter[len - 1] == '\''))
 			return (1);
 	}
 	return (0);
@@ -73,9 +73,27 @@ char	*remove_quotes(char *delimiter)
 	len = ft_strlen(delimiter);
 	if (len >= 2)
 	{
-		if ((delimiter[0] == '"' && delimiter[len - 1] == '"') ||
-			(delimiter[0] == '\'' && delimiter[len - 1] == '\''))
+		if ((delimiter[0] == '"' && delimiter[len - 1] == '"')
+			|| (delimiter[0] == '\'' && delimiter[len - 1] == '\''))
 			return (ft_substr(delimiter, 1, len - 2));
 	}
 	return (ft_strdup(delimiter));
+}
+
+char	*expand_heredoc_line(char *line, t_tools *tools)
+{
+	char *expanded;
+	char *exit_str;
+
+	if (!ft_strchr(line, '$'))
+		return (ft_strdup(line));
+	if (ft_strcmp(line, "$?") == 0)
+	{
+		exit_str = ft_itoa(tools->exit_code);
+		return (exit_str);
+	}
+	expanded = expand_str(line, tools);
+	if (!expanded)
+		return (ft_strdup(line));
+	return (expanded);
 }

@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 18:25:25 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 11:21:24 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/03 11:34:43 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,25 +55,6 @@ int	execute_builtin(t_cmd_args *args, t_exec *exec)
 	return (1);
 }
 
-static int	setup_and_execute(t_pip *cmd, t_exec *exec, t_cmd_args *args)
-{
-	int	ret;
-
-	if (cmd->redirection)
-	{
-		if (setup_redirections(cmd->redirection, &exec->process, exec) == -1)
-		{
-			free_cmd_args(args);
-			return (1);
-		}
-	}
-	ret = execute_builtin(args, exec);
-	if (cmd->redirection)
-		restore_redirections(&exec->process);
-	free_cmd_args(args);
-	return (ret);
-}
-
 int	handle_builtin(t_pip *cmd, t_exec *exec)
 {
 	t_cmd_args	*args;
@@ -93,6 +74,17 @@ int	handle_builtin(t_pip *cmd, t_exec *exec)
 		free_cmd_args(args);
 		return (-1);
 	}
-	ret = setup_and_execute(cmd, exec, args);
+	if (cmd->redirection)
+	{
+		if (setup_redirections(cmd->redirection, &exec->process, exec) == -1)
+		{
+			free_cmd_args(args);
+			return (1);
+		}
+	}
+	ret = execute_builtin(args, exec);
+	if (cmd->redirection)
+		restore_redirections(&exec->process);
+	free_cmd_args(args);
 	return (ret);
 }

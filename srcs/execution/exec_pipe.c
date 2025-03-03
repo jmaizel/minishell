@@ -6,13 +6,13 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:28 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 11:22:58 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/03 11:35:04 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/execution.h"
 
-void	close_all_pipes(int pipes[][2], int count)
+static void	close_all_pipes(int pipes[][2], int count)
 {
 	int	i;
 
@@ -27,7 +27,7 @@ void	close_all_pipes(int pipes[][2], int count)
 	}
 }
 
-int	setup_pipes(int pipes[][2], int count)
+static int	setup_pipes(int pipes[][2], int count)
 {
 	int	i;
 
@@ -44,7 +44,7 @@ int	setup_pipes(int pipes[][2], int count)
 	return (0);
 }
 
-void	execute_command(t_pip *cmd, t_exec *exec, int index)
+static void	execute_command(t_pip *cmd, t_exec *exec, int index)
 {
 	t_cmd_args	*args;
 	char		*cmd_path;
@@ -76,4 +76,84 @@ void	execute_command(t_pip *cmd, t_exec *exec, int index)
 	free(cmd_path);
 	free_cmd_args(args);
 	exit(127);
+}
+
+static pid_t	fork_and_execute(t_pip *cmd, t_exec *exec, 
+								int i, int pipes[][2], int heredoc_fd)
+{
+	pid_t	pid;
+
+	pid = fork();
+	if (pid == -1)
+	{
+		if (heredoc_fd != -1)
+			close(heredoc_fd);
+		return (-1);
+	}
+	if (pid == 0)
+	{
+		setup_child_signals();
+		if (heredoc_fd != -1 && i == 0)
+		{
+			if (dup2(heredoc_fd, STDIN_FILENO) == -1)
+				exit(1);
+			close(heredoc_fd);
+		}
+		else if (i > 0)
+		{
+			if (dup2(pipes[i - 1][0], STDIN_FILENO) == -1)
+				exit(1);
+		}
+		if (i < exec->pipe_count)
+		{
+			if (dup2(pipes[i][1], STDOUT_FILENO) == -1)
+				exit(1);
+		}
+		close_all_pipes(pipes, exec->pipe_count);
+		if (cmd->redirection && cmd->redirection->heredoc_count == 0)
+		{
+			if (setup_redirections(cmd->redirection, &exec->process, exec) == -1)
+				exit(1);
+		}
+		execute_command(cmd, exec, i);
+	}
+	if (heredoc_fd != -1 && i == 0)
+		close(heredoc_fd);
+	return (pid);
+}
+
+int	exec_pipeline(t_pip *pipeline, t_exec *exec, int heredoc_fd)
+{
+	int		pipes[1024][2];
+	t_pip	*current;
+	pid_t	*pids;
+	int		i;
+
+	exec->pipe_count = count_pipes(pipeline);
+	if (setup_pipes(pipes, exec->pipe_count) == -1)
+		return (1);
+	pids = malloc(sizeof(pid_t) * (exec->pipe_count + 1));
+	if (!pids)
+	{
+		close_all_pipes(pipes, exec->pipe_count);
+		return (1);
+	}
+	i = 0;
+	current = pipeline;
+	while (current)
+	{
+		pids[i] = fork_and_execute(current, exec, i, pipes, heredoc_fd);
+		if (pids[i] == -1)
+		{
+			free(pids);
+			close_all_pipes(pipes, exec->pipe_count);
+			return (1);
+		}
+		current = current->next;
+		i++;
+	}
+	close_all_pipes(pipes, exec->pipe_count);
+	wait_all_processes(exec, exec->pipe_count + 1);
+	free(pids);
+	return (exec->exit_status);
 }

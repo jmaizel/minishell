@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 11:28:10 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/03 11:37:14 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,29 +38,21 @@ typedef struct s_exec
 	int			exit_status;
 	int			pipe_count;
 	char		**cmd_paths;
-	int			pipe_fds[1024][2];
 }	t_exec;
 
 /* exec.c */
 void	init_exec_struct(t_exec *exec, t_tools *tools);
 int		exec_commands(t_sep *cell, t_tools *tools);
-int		exec_with_redirections(t_pip *pip_cell, t_exec *exec, int heredoc_fd);
 
 /* exec_cmd.c */
 int		exec_simple_cmd(t_pip *cmd, t_exec *exec);
 
-/* exec_pipe.c & exec_pipe_2.c */
+/* exec_pipe.c */
 int		exec_pipeline(t_pip *pipeline, t_exec *exec, int heredoc_fd);
-void	close_all_pipes(int pipes[][2], int count);
-int		setup_pipes(int pipes[][2], int count);
-void	execute_command(t_pip *cmd, t_exec *exec, int index);
 
-/* exec_redir.c & exec_redir_2.c */
+/* exec_redir.c */
 int		setup_redirections(t_parsed_cmd *cmd, t_process *process, t_exec *exec);
 void	restore_redirections(t_process *process);
-int		open_intermediate_files(t_parsed_cmd *cmd);
-int		handle_output_redir(char *file, int append);
-int		setup_input(t_parsed_cmd *cmd, t_process *process, t_exec *exec);
 
 /* exec_heredoc.c & exec_heredoc_2.c */
 void	setup_child_heredoc_signals(void);

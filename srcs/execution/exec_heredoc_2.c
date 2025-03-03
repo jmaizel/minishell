@@ -6,70 +6,40 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:45 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 11:21:48 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/03 11:36:10 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/execution.h"
 
-char	*expand_heredoc_line(char *line, t_tools *tools)
+static int	process_heredoc_line(int fd, t_tools *tools, char *line, int quoted)
 {
 	char	*expanded;
-	char	*exit_str;
 
-	if (!ft_strchr(line, '$'))
-		return (ft_strdup(line));
-	if (ft_strcmp(line, "$?") == 0)
+	if (!quoted && ft_strchr(line, '$'))
 	{
-		exit_str = ft_itoa(tools->exit_code);
-		return (exit_str);
-	}
-	expanded = expand_str(line, tools);
-	if (!expanded)
-		return (ft_strdup(line));
-	return (expanded);
-}
-
-static int	handle_heredoc_readline(int fd, char *delim, t_tools *tools, int q)
-{
-	char	*line;
-	char	*expanded;
-
-	while (!g_signal_received)
-	{
-		line = readline("heredoc> ");
-		if (!line)
-			return (1);
-		if (ft_strcmp(line, delim) == 0)
+		expanded = expand_heredoc_line(line, tools);
+		if (expanded)
 		{
-			free(line);
-			break ;
-		}
-		if (!q && ft_strchr(line, '$'))
-		{
-			expanded = expand_heredoc_line(line, tools);
-			if (expanded)
-			{
-				write(fd, expanded, ft_strlen(expanded));
-				free(expanded);
-			}
-			else
-				write(fd, line, ft_strlen(line));
+			write(fd, expanded, ft_strlen(expanded));
+			free(expanded);
 		}
 		else
 			write(fd, line, ft_strlen(line));
-		write(fd, "\n", 1);
-		free(line);
 	}
-	return (g_signal_received);
+	else
+		write(fd, line, ft_strlen(line));
+	write(fd, "\n", 1);
+	free(line);
+	return (0);
 }
 
 static int	process_heredoc(int fd, char *delimiter, t_tools *tools)
 {
+	char			*line;
 	char			*clean_delim;
 	struct termios	orig_term;
 	int				quoted;
-	int				result;
 
 	tcgetattr(STDIN_FILENO, &orig_term);
 	orig_term.c_lflag &= ~(ECHOCTL);
@@ -78,37 +48,65 @@ static int	process_heredoc(int fd, char *delimiter, t_tools *tools)
 	clean_delim = remove_quotes(delimiter);
 	if (!clean_delim)
 		return (tcsetattr(STDIN_FILENO, TCSANOW, &orig_term), 1);
-	result = handle_heredoc_readline(fd, clean_delim, tools, quoted);
+	while (!g_signal_received)
+	{
+		line = readline("heredoc> ");
+		if (!line)
+		{
+			free(clean_delim);
+			return (tcsetattr(STDIN_FILENO, TCSANOW, &orig_term), 1);
+		}
+		if (ft_strcmp(line, clean_delim) == 0)
+		{
+			free(line);
+			break ;
+		}
+		process_heredoc_line(fd, tools, line, quoted);
+	}
 	free(clean_delim);
 	tcsetattr(STDIN_FILENO, TCSANOW, &orig_term);
-	return (result);
+	return (g_signal_received);
 }
 
 static void	process_intermediate_heredocs(t_parsed_cmd *cmd, t_exec *exec,
-		int *pipe_fd)
+											int pipe_fd[2])
 {
 	int	i;
 	int	temp_fd;
 
-	close(pipe_fd[0]);
-	if (cmd->heredoc_count > 1)
+	if (cmd->heredoc_count <= 1)
+		return ;
+	for (i = 0; i < cmd->heredoc_count - 1 && !g_signal_received; i++)
 	{
-		i = 0;
-		while (i < cmd->heredoc_count - 1 && !g_signal_received)
+		temp_fd = open("/dev/null", O_WRONLY);
+		if (temp_fd == -1)
+			exit(1);
+		if (process_heredoc(temp_fd, cmd->heredoc_delim[i], exec->tools))
 		{
-			temp_fd = open("/dev/null", O_WRONLY);
-			if (temp_fd == -1)
-				exit(1);
-			if (process_heredoc(temp_fd, cmd->heredoc_delim[i], exec->tools))
-			{
-				close(temp_fd);
-				close(pipe_fd[1]);
-				exit(1);
-			}
 			close(temp_fd);
-			i++;
+			close(pipe_fd[1]);
+			exit(1);
+		}
+		close(temp_fd);
+	}
+}
+
+static void	child_heredoc_process(t_parsed_cmd *cmd, t_exec *exec, int pipe_fd[2])
+{
+	setup_child_heredoc_signals();
+	close(pipe_fd[0]);
+	process_intermediate_heredocs(cmd, exec, pipe_fd);
+	if (!g_signal_received)
+	{
+		if (process_heredoc(pipe_fd[1],
+				cmd->heredoc_delim[cmd->heredoc_count - 1], exec->tools))
+		{
+			close(pipe_fd[1]);
+			exit(1);
 		}
 	}
+	close(pipe_fd[1]);
+	exit(0);
 }
 
 int	handle_heredoc(t_parsed_cmd *cmd, t_exec *exec)
@@ -129,15 +127,7 @@ int	handle_heredoc(t_parsed_cmd *cmd, t_exec *exec)
 		return (-1);
 	}
 	if (pid == 0)
-	{
-		setup_child_heredoc_signals();
-		process_intermediate_heredocs(cmd, exec, pipe_fd);
-		if (!g_signal_received && process_heredoc(pipe_fd[1],
-				cmd->heredoc_delim[cmd->heredoc_count - 1], exec->tools))
-			exit(1);
-		close(pipe_fd[1]);
-		exit(0);
-	}
+		child_heredoc_process(cmd, exec, pipe_fd);
 	close(pipe_fd[1]);
 	waitpid(pid, &status, 0);
 	setup_interactive_signals();
