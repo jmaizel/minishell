@@ -6,12 +6,15 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 01:30:47 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 16:55:23 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/04 13:26:58 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/builtins.h"
 #include "../../includes/minishell.h"
+
+char		*g_export_vars[100];
+int			g_export_count = 0;
 
 static int	is_valid_identifier(const char *str)
 {
@@ -68,60 +71,74 @@ static void	print_env_variable(char *env_var)
 	}
 }
 
+static char	**copy_env_and_exports(char **env, int *total_count)
+{
+	char	**all_vars;
+	int		env_count;
+	int		i;
+	int		j;
+
+	env_count = count_env_vars(env);
+	*total_count = env_count + g_export_count;
+	all_vars = malloc(sizeof(char *) * (*total_count + 1));
+	if (!all_vars)
+		return (NULL);
+	i = 0;
+	while (i < env_count)
+	{
+		all_vars[i] = ft_strdup(env[i]);
+		i++;
+	}
+	j = 0;
+	while (j < g_export_count)
+	{
+		all_vars[i + j] = ft_strdup(g_export_vars[j]);
+		j++;
+	}
+	all_vars[*total_count] = NULL;
+	return (all_vars);
+}
+
 static void	print_sorted_env(char **env)
 {
 	int		i;
-	char	**sorted;
-	int		count;
+	char	**all_vars;
+	int		total_count;
 
-	count = count_env_vars(env);
-	sorted = malloc(sizeof(char *) * (count + 1));
-	if (!sorted)
+	all_vars = copy_env_and_exports(env, &total_count);
+	if (!all_vars)
 		return ;
-	i = -1;
-	while (env[++i])
-		sorted[i] = ft_strdup(env[i]);
-	sorted[i] = NULL;
-	sort_env_array(sorted);
-	i = -1;
-	while (sorted[++i])
-	{
-		print_env_variable(sorted[i]);
-		free(sorted[i]);
-	}
-	free(sorted);
-}
-
-static char	**append_export_var(char **env, const char *name)
-{
-	char	**new_env;
-	int		count;
-	int		i;
-
-	count = count_env_vars(env);
-	new_env = malloc(sizeof(char *) * (count + 2));
-	if (!new_env)
-		return (env);
+	sort_env_array(all_vars);
 	i = 0;
-	while (i < count)
+	while (i < total_count)
 	{
-		new_env[i] = env[i];
+		print_env_variable(all_vars[i]);
+		free(all_vars[i]);
 		i++;
 	}
-	new_env[count] = ft_strdup(name);
-	if (!new_env[count])
-	{
-		free(new_env);
-		return (env);
-	}
-	new_env[count + 1] = NULL;
-	free(env);
-	return (new_env);
+	free(all_vars);
 }
 
-static int	process_export_var(t_tools *tools, char *name, char *value,
-		char *arg)
+static int	add_to_export_vars(const char *name)
 {
+	int	i;
+
+	for (i = 0; i < g_export_count; i++)
+	{
+		if (ft_strcmp(g_export_vars[i], name) == 0)
+			return (0);
+	}
+	if (g_export_count < 100)
+	{
+		g_export_vars[g_export_count] = ft_strdup(name);
+		g_export_count++;
+	}
+	return (0);
+}
+
+static int	process_export_var(t_tools *tools, char *name, char *arg)
+{
+	char	*value;
 	char	**new_env;
 
 	if (ft_strchr(arg, '='))
@@ -133,12 +150,7 @@ static int	process_export_var(t_tools *tools, char *name, char *value,
 	}
 	else
 	{
-		if (find_env_var(tools->env, name) == -1)
-		{
-			new_env = append_export_var(tools->env, name);
-			if (new_env)
-				tools->env = new_env;
-		}
+		add_to_export_vars(name);
 	}
 	return (0);
 }
@@ -151,10 +163,7 @@ int	builtin_export(t_tools *tools, char **argv)
 
 	ret = 0;
 	if (!argv[1])
-	{
-		print_sorted_env(tools->env);
-		return (0);
-	}
+		return (print_sorted_env(tools->env), 0);
 	i = 1;
 	while (argv[i])
 	{
@@ -168,7 +177,7 @@ int	builtin_export(t_tools *tools, char **argv)
 			i++;
 			continue ;
 		}
-		process_export_var(tools, name, NULL, argv[i]);
+		process_export_var(tools, name, argv[i]);
 		free(name);
 		i++;
 	}
