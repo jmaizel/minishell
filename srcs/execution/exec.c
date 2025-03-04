@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:44:16 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 12:20:02 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/04 17:14:41 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,10 @@ static t_parsed_cmd	*find_redir(t_pip *current)
 
 static void	expand_cmd_and_check_redir(t_pip *current, t_tools *tools)
 {
-	char	*expanded_cmd;
+	char			*expanded_cmd;
+	t_parsed_cmd	*old_redir;
 
+	old_redir = current->redirection;
 	expanded_cmd = expand_str(current->cmd_pipe, tools);
 	if (expanded_cmd)
 	{
@@ -45,6 +47,8 @@ static void	expand_cmd_and_check_redir(t_pip *current, t_tools *tools)
 	}
 	if (!current->redirection)
 		current->redirection = parse_redir(current->cmd_pipe);
+	else if (old_redir != current->redirection && old_redir)
+		free_parsed_cmd(old_redir);
 }
 
 static void	expand_commands(t_pip *current, t_tools *tools)
@@ -127,6 +131,22 @@ static void	execute_simple_command(t_sep *cell, t_exec *exec, int heredoc_fd)
 		restore_redirections(&exec->process);
 }
 
+static void	cleanup_redirections(t_pip *current)
+{
+	t_pip	*temp;
+
+	temp = current;
+	while (temp)
+	{
+		if (temp->redirection)
+		{
+			free_parsed_cmd(temp->redirection);
+			temp->redirection = NULL;
+		}
+		temp = temp->next;
+	}
+}
+
 int	exec_commands(t_sep *cell, t_tools *tools)
 {
 	t_exec	exec;
@@ -139,11 +159,17 @@ int	exec_commands(t_sep *cell, t_tools *tools)
 	expand_commands(cell->pipcell, tools);
 	heredoc_fd = -1;
 	if (!handle_heredoc_and_expand(cell, &exec, &heredoc_fd))
+	{
+		cleanup_redirections(cell->pipcell);
+		if (exec.cmd_paths)
+			free_str_array(exec.cmd_paths);
 		return (1);
+	}
 	if (exec.pipe_count > 0)
 		execute_pipeline(cell, &exec, heredoc_fd);
 	else
 		execute_simple_command(cell, &exec, heredoc_fd);
+	cleanup_redirections(cell->pipcell);
 	if (exec.cmd_paths)
 		free_str_array(exec.cmd_paths);
 	return (0);

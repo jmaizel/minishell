@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 11:38:29 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/03/04 14:00:15 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/04 17:32:23 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,18 +22,26 @@ static int	skip_spaces(char *cmd_str, int i)
 static t_cmd_args	*init_cmd_args(char *cmd_str, char ***args)
 {
 	t_cmd_args	*cmd_args;
+	int			arg_count;
+	int			i;
 
 	if (!cmd_str)
 		return (NULL);
 	cmd_args = malloc(sizeof(t_cmd_args));
 	if (!cmd_args)
 		return (NULL);
-	*args = malloc(sizeof(char *) * (count_args(cmd_str) + 1));
+	arg_count = count_args(cmd_str);
+	if (arg_count <= 0)
+		arg_count = 1;
+	*args = malloc(sizeof(char *) * (arg_count + 10));
 	if (!*args)
 	{
 		free(cmd_args);
 		return (NULL);
 	}
+	i = 0;
+	while (i < arg_count + 10)
+		(*args)[i++] = NULL;
 	return (cmd_args);
 }
 
@@ -78,7 +86,14 @@ t_cmd_args	*parse_command_args(char *cmd_str)
 		return (NULL);
 	}
 	cmd_args->argv = args;
-	cmd_args->cmd = ft_strdup(args[0]);
+	if (args[0])
+		cmd_args->cmd = ft_strdup(args[0]);
+	else
+		cmd_args->cmd = ft_strdup("");
+	if (!cmd_args->cmd)
+	{
+		return (free_str_array(args), free(cmd_args), NULL);
+	}
 	cmd_args->argc = arg_count;
 	return (cmd_args);
 }

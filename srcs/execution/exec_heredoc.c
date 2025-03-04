@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:45 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 16:12:01 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/04 17:15:11 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,6 +155,7 @@ static int	process_heredoc(int fd, char *delimiter, t_tools *tools)
 	struct termios	orig_term;
 	int				quoted;
 	int				result;
+	int				signal_status;
 
 	if (setup_terminal_and_delimiter(&orig_term, &clean_delim, delimiter,
 			&quoted))
@@ -163,14 +164,18 @@ static int	process_heredoc(int fd, char *delimiter, t_tools *tools)
 	{
 		result = process_heredoc_line(fd, clean_delim, tools, quoted);
 		if (result == 1)
-			return (free(clean_delim), tcsetattr(STDIN_FILENO, TCSANOW,
-					&orig_term), 1);
+		{
+			free(clean_delim);
+			tcsetattr(STDIN_FILENO, TCSANOW, &orig_term);
+			return (1);
+		}
 		if (result == 2)
 			break ;
 	}
+	signal_status = g_signal_received;
 	free(clean_delim);
 	tcsetattr(STDIN_FILENO, TCSANOW, &orig_term);
-	return (g_signal_received);
+	return (signal_status);
 }
 
 static void	process_intermediate_heredocs(t_parsed_cmd *cmd, t_exec *exec,
