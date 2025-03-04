@@ -3,40 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   exec_cmd.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:30 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 11:59:16 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/04 20:56:08 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/execution.h"
-
-static void	execute_cmd(t_pip *cmd, t_exec *exec, char *cmd_path)
-{
-	t_cmd_args	*args;
-	char		*cmd_str;
-
-	setup_child_signals();
-	if (cmd->redirection)
-	{
-		if (setup_redirections(cmd->redirection, &exec->process, exec) == -1)
-			exit(1);
-		cmd_str = cmd->redirection->cmd;
-	}
-	else
-		cmd_str = cmd->cmd_pipe;
-	args = parse_command_args(cmd_str);
-	if (!args || !args->argv[0])
-	{
-		free_cmd_args(args);
-		exit(1);
-	}
-	execve(cmd_path, args->argv, exec->tools->env);
-	ft_printf("minishell: %s: command not found\n", args->argv[0]);
-	free_cmd_args(args);
-	exit(127);
-}
 
 static int	handle_status(int status)
 {
@@ -77,13 +51,6 @@ static int	fork_and_execute(t_pip *cmd, t_exec *exec, char *cmd_path)
 	restore_signals();
 	free(cmd_path);
 	return (handle_status(status));
-}
-
-static char	*get_expanded_command(t_pip *cmd, t_exec *exec)
-{
-	if (cmd->redirection)
-		return (expand_str(cmd->redirection->cmd, exec->tools));
-	return (expand_str(cmd->cmd_pipe, exec->tools));
 }
 
 static int	prepare_and_execute_command(t_pip *cmd, char *expanded_cmd,
