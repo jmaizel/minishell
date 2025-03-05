@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_heredoc_processing.c                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 21:31:42 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/04 21:36:36 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/03/05 13:24:31 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,26 @@ int	setup_terminal_and_delimiter(struct termios *orig_term,
 	if (!*clean_delim)
 		return (tcsetattr(STDIN_FILENO, TCSANOW, orig_term), 1);
 	return (0);
+}
+
+void	write_expanded_line(int fd, char *line, t_tools *tools, int quoted)
+{
+	char	*expanded;
+
+	if (!quoted)
+	{
+		expanded = expand_heredoc_line(line, tools);
+		if (!expanded)
+			return ;
+		write(fd, expanded, ft_strlen(expanded));
+		write(fd, "\n", 1);
+		free(expanded);
+	}
+	else
+	{
+		write(fd, line, ft_strlen(line));
+		write(fd, "\n", 1);
+	}
 }
 
 int	process_heredoc_line(int fd, char *clean_delim, t_tools *tools,

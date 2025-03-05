@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   execution.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/04 21:38:24 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/03/05 13:09:07 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,7 +99,7 @@ void			duplicate_redirect_fd(t_exec_params *params);
 int				handle_builtin_in_child(t_exec_params *params,
 					t_cmd_args *args);
 pid_t			fork_and_execute_child(t_exec_params *params);
-pid_t			fork_and_execute(t_exec_params *params);
+pid_t			fork_and_execute2(t_exec_params *params);
 
 /* exec_pipe_helpers.c */
 t_cmd_args		*get_command_args(t_pip *cmd);

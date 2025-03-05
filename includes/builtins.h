@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/09 15:26:11 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 14:47:50 by jmaizel          ###   ########.fr       */
+/*   Created: 2025/03/05 14:11:17 by jmaizel           #+#    #+#             */
+/*   Updated: 2025/03/05 14:12:15 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,5 +35,16 @@ char	*get_env_value(const char *var);
 int		count_env_vars(char **env);
 char	*ft_strjoin_three(const char *s1, const char *s2, const char *s3);
 void	increment_shell_level(t_tools *tools);
-
+char	*expand_home_path(char *path);
+int		update_env_var(t_tools *tools, const char *name, const char *value);
+int		count_env_vars(char **env);
+int		find_env_var(char **env, const char *name);
+char	*create_env_string_no_value(const char *name, size_t name_len);
+char	*create_env_string(const char *name, const char *value);
+char	**replace_env_var(char **env, int index, const char *name,
+			const char *value);
+int		is_valid_identifier(const char *str);
+void	sort_env_array(char **sorted);
+void	print_env_variable(char *env_var);
+char	**copy_env_and_exports(char **env, int *total_count, t_tools *tools);
 #endif

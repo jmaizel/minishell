@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 12:08:50 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/04 17:04:37 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/05 14:10:34 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,8 @@ typedef struct s_tools
 	int						exit_code;
 	struct s_simple_cmds	*cmds;
 	struct s_tokens			*tokens;
+	char					*export_vars[100];
+	int						export_count;
 }							t_tools;
 
 typedef struct s_sep

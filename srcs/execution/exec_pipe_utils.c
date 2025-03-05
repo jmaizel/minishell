@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_pipe_utils.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 21:14:56 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/04 21:17:54 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/03/05 13:09:29 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ int	cleanup_and_return(int pipes[][2], t_exec *exec, pid_t *pids)
 int	fork_and_execute_pid(t_fork_params *params)
 {
 	ft_memcpy(params->pipes, params->pipes, sizeof(int) * 1024 * 2);
-	params->pids[params->i] = fork_and_execute((t_exec_params *)params);
+	params->pids[params->i] = fork_and_execute2((t_exec_params *)params);
 	if (params->pids[params->i] == -1)
 		return (1);
 	return (0);

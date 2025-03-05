@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*    exec_pipe_exec.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 21:18:26 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/04 21:21:16 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/03/05 13:03:11 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ pid_t	fork_and_execute_child(t_exec_params *params)
 	return (0);
 }
 
-pid_t	fork_and_execute(t_exec_params *params)
+pid_t	fork_and_execute2(t_exec_params *params)
 {
 	pid_t	pid;
 

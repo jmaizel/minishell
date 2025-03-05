@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 21:12:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 14:46:48 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/05 13:43:44 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,10 +48,7 @@ int	builtin_exit(t_tools *tools, char **argv)
 		{
 			exit_status = ft_atoi(argv[1]);
 			if (argv[2])
-			{
-				ft_putendl_fd("exit: too many arguments", 2);
-				return (1);
-			}
+				return (ft_putendl_fd("exit: too many arguments", 2), 1);
 		}
 	}
 	else

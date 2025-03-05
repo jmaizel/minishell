@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:44:53 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/27 11:49:38 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/05 14:09:43 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,29 @@
 
 int			g_signal_recieved = 0;
 
+static int	copy_env_strings(char **dest, char **src, int count)
+{
+	int	j;
+
+	j = 0;
+	while (j < count)
+	{
+		dest[j] = ft_strdup(src[j]);
+		if (!dest[j])
+		{
+			while (--j >= 0)
+				free(dest[j]);
+			free(dest);
+			return (1);
+		}
+		j++;
+	}
+	return (0);
+}
+
 static void	init_minishell(t_tools *tools, char **env)
 {
 	int	i;
-	int	j;
 
 	ft_memset(tools, 0, sizeof(t_tools));
 	i = 0;
@@ -28,22 +47,11 @@ static void	init_minishell(t_tools *tools, char **env)
 	tools->env = malloc(sizeof(char *) * (i + 1));
 	if (!tools->env)
 		return ;
-	j = 0;
-	while (j < i)
-	{
-		tools->env[j] = ft_strdup(env[j]);
-		if (!tools->env[j])
-		{
-			while (--j >= 0)
-				free(tools->env[j]);
-			free(tools->env);
-			tools->env = NULL;
-			return ;
-		}
-		j++;
-	}
+	if (copy_env_strings(tools->env, env, i) != 0)
+		return ;
 	tools->env[i] = NULL;
 	tools->exit_code = 0;
+	tools->export_count = 0;
 	tools->tokens = NULL;
 	tools->cmds = NULL;
 }
