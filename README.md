@@ -28,17 +28,6 @@ Ce projet est une excellente opportunité pour plonger dans le monde fascinant d
 
 ---
 
-## 📚 Liens utiles
-
-Pour mieux comprendre les attentes et trouver des inspirations pour l'implémentation, nous nous appuierons sur les ressources suivantes :
-
-- [42-minishell par Hqndler (GitHub)](https://github.com/Hqndler/42-minishell)
-- ...
-
-Ces projets peuvent servir d'exemples pour explorer différentes approches d'implémentation et structuration du code.
-
----
-
 ## 🚀 Installation et utilisation
 
 ### Prérequis
