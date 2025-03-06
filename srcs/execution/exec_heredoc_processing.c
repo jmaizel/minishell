@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 21:31:42 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/05 13:24:31 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/05 16:02:11 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 int	wait_heredoc_child(pid_t pid, int pipe_fd[2], t_exec *exec)
 {
 	int	status;
+	int	exit_code;
 
 	close(pipe_fd[1]);
 	waitpid(pid, &status, 0);
@@ -24,16 +25,24 @@ int	wait_heredoc_child(pid_t pid, int pipe_fd[2], t_exec *exec)
 		close(pipe_fd[0]);
 		if (WIFSIGNALED(status) && WTERMSIG(status) == SIGINT)
 		{
-			exec->exit_status = 130;
+			exit_code = 130;
+			exec->exit_status = exit_code;
+			exec->tools->exit_code = exit_code;
 			write(STDERR_FILENO, "\n", 1);
+		}
+		else
+		{
+			exit_code = handle_status(status);
+			exec->exit_status = exit_code;
+			exec->tools->exit_code = exit_code;
 		}
 		return (-1);
 	}
-	return (pipe_fd[0]);
+	return (exec->exit_status = 0, exec->tools->exit_code = 0, pipe_fd[0]);
 }
 
-int	setup_terminal_and_delimiter(struct termios *orig_term,
-	char **clean_delim, char *delimiter, int *quoted)
+int	setup_terminal_and_delimiter(struct termios *orig_term, char **clean_delim,
+		char *delimiter, int *quoted)
 {
 	tcgetattr(STDIN_FILENO, orig_term);
 	orig_term->c_lflag &= ~(ECHOCTL);
@@ -65,8 +74,7 @@ void	write_expanded_line(int fd, char *line, t_tools *tools, int quoted)
 	}
 }
 
-int	process_heredoc_line(int fd, char *clean_delim, t_tools *tools,
-	int quoted)
+int	process_heredoc_line(int fd, char *clean_delim, t_tools *tools, int quoted)
 {
 	char	*line;
 

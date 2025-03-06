@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/05 13:09:07 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/05 15:57:49 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,5 +159,6 @@ int				handle_cmd_error(char *cmd, char *error);
 int				handle_file_error(char *cmd, char *file, char *error);
 int				handle_pipe_error(void);
 int				handle_fork_error(void);
+int				handle_status(int status);
 
 #endif

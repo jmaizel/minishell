@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   exec_cmd.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:30 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/04 20:56:08 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/03/05 15:57:21 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/execution.h"
 
-static int	handle_status(int status)
+int	handle_status(int status)
 {
 	if (WIFSIGNALED(status))
 	{
@@ -36,11 +36,13 @@ static int	handle_status(int status)
 static int	fork_and_execute(t_pip *cmd, t_exec *exec, char *cmd_path)
 {
 	int	status;
+	int	exit_code;
 
 	exec->process.pid = fork();
 	if (exec->process.pid == -1)
 	{
 		free(cmd_path);
+		exec->tools->exit_code = 1;
 		return (1);
 	}
 	if (exec->process.pid == 0)
@@ -50,7 +52,10 @@ static int	fork_and_execute(t_pip *cmd, t_exec *exec, char *cmd_path)
 	waitpid(exec->process.pid, &status, 0);
 	restore_signals();
 	free(cmd_path);
-	return (handle_status(status));
+	exit_code = handle_status(status);
+	exec->tools->exit_code = exit_code;
+	exec->exit_status = exit_code;
+	return (exit_code);
 }
 
 static int	prepare_and_execute_command(t_pip *cmd, char *expanded_cmd,

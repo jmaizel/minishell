@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 18:25:25 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 11:56:36 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/05 16:00:52 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,12 +17,9 @@ int	is_builtin(char *cmd)
 {
 	if (!cmd)
 		return (0);
-	if (ft_strcmp(cmd, "env") == 0
-		|| ft_strcmp(cmd, "export") == 0
-		|| ft_strcmp(cmd, "unset") == 0
-		|| ft_strcmp(cmd, "exit") == 0
-		|| ft_strcmp(cmd, "cd") == 0
-		|| ft_strcmp(cmd, "echo") == 0
+	if (ft_strcmp(cmd, "env") == 0 || ft_strcmp(cmd, "export") == 0
+		|| ft_strcmp(cmd, "unset") == 0 || ft_strcmp(cmd, "exit") == 0
+		|| ft_strcmp(cmd, "cd") == 0 || ft_strcmp(cmd, "echo") == 0
 		|| ft_strcmp(cmd, "pwd") == 0)
 		return (1);
 	return (0);
@@ -30,23 +27,29 @@ int	is_builtin(char *cmd)
 
 int	execute_builtin(t_cmd_args *args, t_exec *exec)
 {
+	int	result;
+
 	if (!args || !args->argv[0])
-		return (1);
+		return (exec->tools->exit_code = 1);
 	if (ft_strcmp(args->argv[0], "env") == 0)
-		return (builtin_env(exec->tools, args->argv));
-	if (ft_strcmp(args->argv[0], "export") == 0)
-		return (builtin_export(exec->tools, args->argv));
-	if (ft_strcmp(args->argv[0], "unset") == 0)
-		return (builtin_unset(exec->tools, args->argv));
-	if (ft_strcmp(args->argv[0], "exit") == 0)
-		return (builtin_exit(exec->tools, args->argv));
-	if (ft_strcmp(args->argv[0], "cd") == 0)
-		return (builtin_cd(exec->tools, args->argv));
-	if (ft_strcmp(args->argv[0], "echo") == 0)
-		return (builtin_echo(exec->tools, args->argv));
-	if (ft_strcmp(args->argv[0], "pwd") == 0)
-		return (builtin_pwd(exec->tools, args->argv));
-	return (1);
+		result = builtin_env(exec->tools, args->argv);
+	else if (ft_strcmp(args->argv[0], "export") == 0)
+		result = builtin_export(exec->tools, args->argv);
+	else if (ft_strcmp(args->argv[0], "unset") == 0)
+		result = builtin_unset(exec->tools, args->argv);
+	else if (ft_strcmp(args->argv[0], "exit") == 0)
+		result = builtin_exit(exec->tools, args->argv);
+	else if (ft_strcmp(args->argv[0], "cd") == 0)
+		result = builtin_cd(exec->tools, args->argv);
+	else if (ft_strcmp(args->argv[0], "echo") == 0)
+		result = builtin_echo(exec->tools, args->argv);
+	else if (ft_strcmp(args->argv[0], "pwd") == 0)
+		result = builtin_pwd(exec->tools, args->argv);
+	else
+		result = 1;
+	exec->tools->exit_code = result;
+	exec->exit_status = result;
+	return (result);
 }
 
 t_cmd_args	*get_command_args(t_pip *cmd)
