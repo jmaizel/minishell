@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:44:02 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/03 11:37:05 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/06 13:45:06 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,19 +37,29 @@ void	close_pipe(int pipe_fd[2])
 
 void	wait_all_processes(t_exec *exec, int process_count)
 {
-	int	i;
-	int	status;
+	int		i;
+	int		status;
+	pid_t	pid;
 
 	i = 0;
 	while (i < process_count)
 	{
-		if (wait(&status) == exec->process.pid)
+		pid = wait(&status);
+		if (pid > 0)
 		{
 			if (WIFEXITED(status))
 				exec->exit_status = WEXITSTATUS(status);
 			else if (WIFSIGNALED(status))
-				exec->exit_status = WTERMSIG(status) + 128;
+			{
+				if (WTERMSIG(status) == SIGINT)
+					exec->exit_status = 130;
+				else if (WTERMSIG(status) == SIGQUIT)
+					exec->exit_status = 131;
+				else
+					exec->exit_status = 128 + WTERMSIG(status);
+			}
+			i++;
 		}
-		i++;
 	}
+	restore_signals();
 }

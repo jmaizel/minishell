@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 21:12:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/05 16:01:31 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/06 13:46:35 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,31 +30,49 @@ static int	is_numeric(const char *str)
 	return (1);
 }
 
-int	builtin_exit(t_tools *tools, char **argv)
+static void	print_numeric_error(char *arg)
+{
+	ft_putstr_fd("exit: ", 2);
+	ft_putstr_fd(arg, 2);
+	ft_putendl_fd(": numeric argument required", 2);
+}
+
+static int	handle_too_many_args(t_tools *tools)
+{
+	ft_putendl_fd("exit: too many arguments", 2);
+	tools->exit_code = 1;
+	return (1);
+}
+
+static int	get_exit_status(t_tools *tools, char **argv)
 {
 	int	exit_status;
 
-	ft_putendl_fd("exit", 1);
-	if (argv[1])
+	if (!argv[1])
+		return (tools->exit_code);
+	if (!is_numeric(argv[1]))
 	{
-		if (!is_numeric(argv[1]))
-		{
-			ft_putstr_fd("exit: ", 2);
-			ft_putstr_fd(argv[1], 2);
-			ft_putendl_fd(": numeric argument required", 2);
-			exit_status = 2;
-		}
-		else
-		{
-			exit_status = ft_atoi(argv[1]) & 255;
-			if (argv[2])
-				return (ft_putendl_fd("exit: too many arguments", 2),
-					tools->exit_code = 1, 1);
-		}
+		print_numeric_error(argv[1]);
+		return (2);
 	}
-	else
-		exit_status = tools->exit_code;
-	cleanup_minishell(tools);
-	exit(exit_status);
+	exit_status = ft_atoi(argv[1]) & 255;
+	if (argv[2])
+		return (handle_too_many_args(tools));
+	return (exit_status);
+}
+
+int	builtin_exit(t_tools *tools, char **argv, int in_pipeline)
+{
+	int	exit_status;
+
+	if (!in_pipeline)
+		ft_putendl_fd("exit", 1);
+	exit_status = get_exit_status(tools, argv);
+	tools->exit_code = exit_status;
+	if (!in_pipeline)
+	{
+		cleanup_minishell(tools);
+		exit(exit_status);
+	}
 	return (exit_status);
 }

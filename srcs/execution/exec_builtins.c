@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 18:25:25 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/05 16:00:52 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/06 13:41:08 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,9 @@ int	is_builtin(char *cmd)
 int	execute_builtin(t_cmd_args *args, t_exec *exec)
 {
 	int	result;
+	int	in_pipeline;
 
+	in_pipeline = (exec->pipe_count > 0);
 	if (!args || !args->argv[0])
 		return (exec->tools->exit_code = 1);
 	if (ft_strcmp(args->argv[0], "env") == 0)
@@ -38,7 +40,7 @@ int	execute_builtin(t_cmd_args *args, t_exec *exec)
 	else if (ft_strcmp(args->argv[0], "unset") == 0)
 		result = builtin_unset(exec->tools, args->argv);
 	else if (ft_strcmp(args->argv[0], "exit") == 0)
-		result = builtin_exit(exec->tools, args->argv);
+		result = builtin_exit(exec->tools, args->argv, in_pipeline);
 	else if (ft_strcmp(args->argv[0], "cd") == 0)
 		result = builtin_cd(exec->tools, args->argv);
 	else if (ft_strcmp(args->argv[0], "echo") == 0)

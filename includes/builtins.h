@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:11:17 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/03/05 14:12:15 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/06 13:39:30 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 int		builtin_env(t_tools *tools, char **argv);
 int		builtin_export(t_tools *tools, char **argv);
 int		builtin_unset(t_tools *tools, char **argv);
-int		builtin_exit(t_tools *tools, char **argv);
+int		builtin_exit(t_tools *tools, char **argv, int in_pipeline);
 int		builtin_env(t_tools *tools, char **argv);
 int		builtin_cd(t_tools *tools, char **args);
 int		builtin_echo(t_tools *tools, char **args);

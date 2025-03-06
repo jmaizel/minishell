@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/05 15:57:49 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/06 13:42:35 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,8 +38,8 @@ typedef struct s_exec
 	int			exit_status;
 	int			pipe_count;
 	char		**cmd_paths;
+	pid_t		*pids;
 }				t_exec;
-
 typedef struct s_exec_params
 {
 	t_pip		*cmd;
