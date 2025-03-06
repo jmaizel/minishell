@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 21:12:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/06 13:46:35 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/06 18:02:51 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,11 +65,11 @@ int	builtin_exit(t_tools *tools, char **argv, int in_pipeline)
 {
 	int	exit_status;
 
-	if (!in_pipeline)
+	if (in_pipeline == 0)
 		ft_putendl_fd("exit", 1);
 	exit_status = get_exit_status(tools, argv);
 	tools->exit_code = exit_status;
-	if (!in_pipeline)
+	if (in_pipeline == 0 && exit_status != 1)
 	{
 		cleanup_minishell(tools);
 		exit(exit_status);

@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:44:53 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/05 14:09:43 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/06 18:06:22 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,10 +112,9 @@ int	main(int argc, char **argv, char **env)
 	{
 		g_signal_received = 0;
 		user_input = get_user_input();
-		if (!user_input || !ft_strncmp(user_input, "exit", 5))
+		if (!user_input)
 		{
-			if (user_input)
-				free(user_input);
+			ft_putendl_fd("exit", 1);
 			break ;
 		}
 		if (user_input[0] != '\0')
