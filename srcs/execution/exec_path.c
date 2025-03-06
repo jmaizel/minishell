@@ -3,52 +3,56 @@
 /*                                                        :::      ::::::::   */
 /*   exec_path.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:43:13 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/26 09:00:42 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/03/05 16:13:07 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/execution.h"
 
-char *get_cmd_path(char *cmd, char **cmd_paths)
+static char	*try_direct_path(char *cmd)
 {
-    char *temp;
-    char *cmd_path;
-    int i;
-    char *default_paths[] = {"/usr/bin", "/bin", NULL}; // Chemins de secours
+	if (cmd[0] == '/' || cmd[0] == '.' || cmd[0] == '~')
+	{
+		if (access(cmd, X_OK) == 0)
+			return (ft_strdup(cmd));
+		return (NULL);
+	}
+	return (NULL);
+}
 
-    if (!cmd)
-        return (NULL);
-    if (cmd[0] == '/' || cmd[0] == '.' || cmd[0] == '~')
-    {
-        if (access(cmd, X_OK) == 0)
-            return (ft_strdup(cmd));
-        return (NULL);
-    }
-    i = 0;
-    while (cmd_paths && cmd_paths[i])
-    {
-        temp = ft_strjoin(cmd_paths[i], "/");
-        cmd_path = ft_strjoin(temp, cmd);
-        free(temp);
-        if (access(cmd_path, X_OK) == 0)
-            return (cmd_path);
-        free(cmd_path);
-        i++;
-    }
-    // Recherche dans les chemins par défaut si cmd_paths échoue
-    i = 0;
-    while (default_paths[i])
-    {
-        temp = ft_strjoin(default_paths[i], "/");
-        cmd_path = ft_strjoin(temp, cmd);
-        free(temp);
-        if (access(cmd_path, X_OK) == 0)
-            return (cmd_path);
-        free(cmd_path);
-        i++;
-    }
-    return (NULL);
+static char	*search_in_path_array(char *cmd, char **paths)
+{
+	char	*temp;
+	char	*cmd_path;
+	int		i;
+
+	i = 0;
+	while (paths && paths[i])
+	{
+		temp = ft_strjoin(paths[i], "/");
+		cmd_path = ft_strjoin(temp, cmd);
+		free(temp);
+		if (access(cmd_path, X_OK) == 0)
+			return (cmd_path);
+		free(cmd_path);
+		i++;
+	}
+	return (NULL);
+}
+
+char	*get_cmd_path(char *cmd, char **cmd_paths)
+{
+	char	*cmd_path;
+
+	if (!cmd)
+		return (NULL);
+	cmd_path = try_direct_path(cmd);
+	if (cmd_path)
+		return (cmd_path);
+	if (!cmd_paths || !*cmd_paths)
+		return (NULL);
+	return (search_in_path_array(cmd, cmd_paths));
 }

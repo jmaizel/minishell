@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 12:08:50 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/26 19:34:06 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/03/05 14:10:34 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,11 +18,11 @@
 # include <errno.h>
 # include <fcntl.h>
 # include <limits.h>
-# include <stdio.h>
 # include <readline/history.h>
 # include <readline/readline.h>
 # include <signal.h>
 # include <stdbool.h>
+# include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
 # include <sys/wait.h>
@@ -36,6 +36,8 @@ typedef struct s_tools
 	int						exit_code;
 	struct s_simple_cmds	*cmds;
 	struct s_tokens			*tokens;
+	char					*export_vars[100];
+	int						export_count;
 }							t_tools;
 
 typedef struct s_sep
@@ -175,8 +177,8 @@ char						*handle_variable(const char *str, size_t *i,
 */
 void						process_redirection(char **ptr,
 								t_parsed_cmd *result, char **cmd_ptr);
-void	process_quotes(char **cmd_ptr, char **ptr, int *in_quotes,
-		char *quote_type);
+void						process_quotes(char **cmd_ptr, char **ptr,
+								int *in_quotes, char *quote_type);
 
 /*
 ** main

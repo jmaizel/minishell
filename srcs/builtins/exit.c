@@ -6,57 +6,73 @@
 /*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 21:12:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/25 19:53:07 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/03/06 18:11:03 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/builtins.h"
 
-static int is_numeric(const char *str)
+static int	is_numeric(const char *str)
 {
-    int i;
+	int	i;
 
-    if (!str || !str[0])
-        return (0);
-    i = 0;
-    if (str[i] == '+' || str[i] == '-')
-        i++;
-    while (str[i])
-    {
-        if (!ft_isdigit(str[i]))
-            return (0);
-        i++;
-    }
-    return (1);
+	if (!str || !str[0])
+		return (0);
+	i = 0;
+	if (str[i] == '+' || str[i] == '-')
+		i++;
+	while (str[i])
+	{
+		if (!ft_isdigit(str[i]))
+			return (0);
+		i++;
+	}
+	return (1);
 }
 
-int builtin_exit(t_tools *tools, char **argv)
+static void	print_numeric_error(char *arg)
 {
-    int exit_status;
+	ft_putstr_fd("exit: ", 2);
+	ft_putstr_fd(arg, 2);
+	ft_putendl_fd(": numeric argument required", 2);
+}
 
-    ft_putendl_fd("exit", 1);
-    if (argv[1])
-    {
-        if (!is_numeric(argv[1]))
-        {
-            ft_putstr_fd("exit: ", 2);
-            ft_putstr_fd(argv[1], 2);
-            ft_putendl_fd(": numeric argument required", 2);
-            exit_status = 2;
-        }
-        else
-        {
-            exit_status = ft_atoi(argv[1]);
-            if (argv[2])
-            {
-                ft_putendl_fd("exit: too many arguments", 2);
-                return (1);
-            }
-        }
-    }
-    else
-        exit_status = tools->exit_code;
-    cleanup_minishell(tools);
-    exit(exit_status);
-    return (exit_status); // Inatteignable, mais pour la forme
+static int	handle_too_many_args(t_tools *tools)
+{
+	ft_putendl_fd("exit: too many arguments", 2);
+	tools->exit_code = 1;
+	return (1);
+}
+
+static int	get_exit_status(t_tools *tools, char **argv)
+{
+	int	exit_status;
+
+	if (!argv[1])
+		return (tools->exit_code);
+	if (!is_numeric(argv[1]))
+	{
+		print_numeric_error(argv[1]);
+		return (2);
+	}
+	exit_status = ft_atoi(argv[1]) & 255;
+	if (argv[2])
+		return (handle_too_many_args(tools));
+	return (exit_status);
+}
+
+int	builtin_exit(t_tools *tools, char **argv, int in_pipeline)
+{
+	int	exit_status;
+
+	if (in_pipeline == 0)
+		ft_putendl_fd("exit", 1);
+	exit_status = get_exit_status(tools, argv);
+	tools->exit_code = exit_status;
+	if (in_pipeline == 0 && exit_status != 1)
+	{
+		cleanup_minishell(tools);
+		exit(exit_status);
+	}
+	return (exit_status);
 }

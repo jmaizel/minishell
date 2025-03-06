@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   unset.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 20:18:28 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/02/10 20:31:46 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/03/05 16:13:39 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,8 +41,8 @@ static void	remove_env_var(char **env, int index)
 
 int	builtin_unset(t_tools *tools, char **argv)
 {
-	int		i;
-	int		env_idx;
+	int	i;
+	int	env_idx;
 
 	i = 1;
 	while (argv[i])

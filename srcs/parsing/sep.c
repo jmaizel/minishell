@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   sep.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 15:17:10 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/02/26 19:45:49 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/03/03 14:49:47 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ int	check_invalid_chars(const char *cmd)
 	i = 0;
 	in_quotes = 0;
 	quote_type = 0;
-	while (cmd[i])	
+	while (cmd[i])
 	{
 		if (!in_quotes && (cmd[i] == '\'' || cmd[i] == '"'))
 		{
