@@ -3,15 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 12:08:50 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/05 14:10:34 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/06 20:20:03 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MINISHELL_H
 # define MINISHELL_H
+
+# define _XOPEN_SOURCE 700
+
 # include "../libft/includes/ft_printf.h"
 # include "../libft/includes/libft.h"
 # include <dirent.h>
