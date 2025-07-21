@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 13:47:02 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/02/25 14:26:02 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/11 13:11:45 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,22 +32,7 @@ char	*get_var_value(const char *var_name, char **env)
 
 static char	*convert_exit_status(int exit_code)
 {
-	char	temp[12];
-	int		i;
-
-	i = 0;
-	if (exit_code == 0)
-		temp[i++] = '0';
-	else
-	{
-		while (exit_code > 0)
-		{
-			temp[i++] = (exit_code % 10) + '0';
-			exit_code /= 10;
-		}
-	}
-	temp[i] = '\0';
-	return (ft_strdup(temp));
+	return (ft_itoa(exit_code));
 }
 
 static char	*extract_var_name(const char *str, size_t *i)

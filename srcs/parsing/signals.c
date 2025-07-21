@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 11:58:53 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/03/06 13:32:41 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/11 12:21:14 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,10 +53,7 @@ char	*get_user_input(void)
 	{
 		eof_count++;
 		if (eof_count >= 1)
-		{
-			ft_putstr_fd("exit\n", STDOUT_FILENO);
 			return (NULL);
-		}
 		return (ft_strdup(""));
 	}
 	eof_count = 0;

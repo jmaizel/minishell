@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   echo.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:45:41 by jacobmaizel       #+#    #+#             */
-/*   Updated: 2025/02/16 20:40:14 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/03/13 10:28:48 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,16 +19,16 @@ static int	is_valid_n_option(char *str)
 
 	if (!str || str[0] != '-' || str[1] != 'n')
 		return (0);
-	i = 2;
+	i = 1;
+	while (str[i] == 'n')
+		i++;
+	if (str[i] == '\0')
+		return (1);
 	while (str[i])
 	{
-		while (str[i] == 'n')
-			i++;
-		if (str[i] == 'e')
-		{
-			while (str[i] == 'e')
-				i++;
-		}
+		if (str[i] != 'n' && str[i] != 'e')
+			return (0);
+		i++;
 	}
 	return (1);
 }

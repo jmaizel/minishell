@@ -6,11 +6,12 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:30 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/05 15:57:21 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/11 13:00:23 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/execution.h"
+#include "../../includes/minishell.h"
 
 int	handle_status(int status)
 {
@@ -38,6 +39,8 @@ static int	fork_and_execute(t_pip *cmd, t_exec *exec, char *cmd_path)
 	int	status;
 	int	exit_code;
 
+	setup_parent_signals();
+	g_signal_received = 0;
 	exec->process.pid = fork();
 	if (exec->process.pid == -1)
 	{
@@ -47,8 +50,6 @@ static int	fork_and_execute(t_pip *cmd, t_exec *exec, char *cmd_path)
 	}
 	if (exec->process.pid == 0)
 		execute_cmd(cmd, exec, cmd_path);
-	g_signal_received = 0;
-	setup_parent_signals();
 	waitpid(exec->process.pid, &status, 0);
 	restore_signals();
 	free(cmd_path);
@@ -65,6 +66,7 @@ static int	prepare_and_execute_command(t_pip *cmd, char *expanded_cmd,
 	char		*cmd_path;
 	int			ret;
 
+	exec->tools->exit_code = 0;
 	args = parse_command_args(expanded_cmd);
 	free(expanded_cmd);
 	if (!args || !args->argv[0])
@@ -76,6 +78,7 @@ static int	prepare_and_execute_command(t_pip *cmd, char *expanded_cmd,
 	if (!cmd_path)
 	{
 		ft_printf("minishell: %s: command not found\n", args->argv[0]);
+		exec->tools->exit_code = 127;
 		free_cmd_args(args);
 		return (127);
 	}

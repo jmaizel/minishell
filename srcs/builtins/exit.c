@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exit.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
+/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 21:12:12 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/06 18:11:03 by cdedessu         ###   ########.fr       */
+/*   Updated: 2025/03/13 10:34:32 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ int	builtin_exit(t_tools *tools, char **argv, int in_pipeline)
 		ft_putendl_fd("exit", 1);
 	exit_status = get_exit_status(tools, argv);
 	tools->exit_code = exit_status;
-	if (in_pipeline == 0 && exit_status != 1)
+	if (in_pipeline == 0)
 	{
 		cleanup_minishell(tools);
 		exit(exit_status);

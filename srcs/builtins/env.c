@@ -3,31 +3,53 @@
 /*                                                        :::      ::::::::   */
 /*   env.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 18:20:19 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/05 13:36:16 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/13 11:27:03 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/builtins.h"
 #include "../includes/minishell.h"
 
-int	builtin_env(t_tools *tools, char **argv)
+static void	print_and_free_env(char **sorted_env, int env_count)
 {
 	int	i;
+
+	i = 0;
+	while (i < env_count)
+	{
+		ft_putendl_fd(sorted_env[i], 1);
+		free(sorted_env[i]);
+		i++;
+	}
+	free(sorted_env);
+}
+
+int	builtin_env(t_tools *tools, char **argv)
+{
+	char	**sorted_env;
+	int		env_count;
+	int		i;
 
 	if (argv[1] != NULL)
 	{
 		ft_putstr_fd("env: no options or arguments are supported\n", 2);
 		return (1);
 	}
-	i = 0;
-	while (tools->env && tools->env[i])
+	env_count = copy_and_sort_env(tools, &sorted_env);
+	if (env_count == 0)
 	{
-		ft_putendl_fd(tools->env[i], 1);
-		i++;
+		i = 0;
+		while (tools->env && tools->env[i])
+		{
+			ft_putendl_fd(tools->env[i], 1);
+			i++;
+		}
+		return (0);
 	}
+	print_and_free_env(sorted_env, env_count);
 	return (0);
 }
 

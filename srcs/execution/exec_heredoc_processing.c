@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 21:31:42 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/05 16:02:11 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/10 17:56:01 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,13 +44,11 @@ int	wait_heredoc_child(pid_t pid, int pipe_fd[2], t_exec *exec)
 int	setup_terminal_and_delimiter(struct termios *orig_term, char **clean_delim,
 		char *delimiter, int *quoted)
 {
-	tcgetattr(STDIN_FILENO, orig_term);
-	orig_term->c_lflag &= ~(ECHOCTL);
-	tcsetattr(STDIN_FILENO, TCSANOW, orig_term);
+	(void)orig_term;
 	*quoted = is_quoted_delimiter(delimiter);
 	*clean_delim = remove_quotes(delimiter);
 	if (!*clean_delim)
-		return (tcsetattr(STDIN_FILENO, TCSANOW, orig_term), 1);
+		return (1);
 	return (0);
 }
 
@@ -94,10 +92,10 @@ int	process_heredoc_line(int fd, char *clean_delim, t_tools *tools, int quoted)
 int	process_heredoc(int fd, char *delimiter, t_tools *tools)
 {
 	char			*clean_delim;
-	struct termios	orig_term;
 	int				quoted;
 	int				result;
 	int				signal_status;
+	struct termios	orig_term;
 
 	if (setup_terminal_and_delimiter(&orig_term, &clean_delim, delimiter,
 			&quoted))
@@ -108,7 +106,6 @@ int	process_heredoc(int fd, char *delimiter, t_tools *tools)
 		if (result == 1)
 		{
 			free(clean_delim);
-			tcsetattr(STDIN_FILENO, TCSANOW, &orig_term);
 			return (1);
 		}
 		if (result == 2)
@@ -116,6 +113,5 @@ int	process_heredoc(int fd, char *delimiter, t_tools *tools)
 	}
 	signal_status = g_signal_received;
 	free(clean_delim);
-	tcsetattr(STDIN_FILENO, TCSANOW, &orig_term);
 	return (signal_status);
 }

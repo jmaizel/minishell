@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 17:42:22 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/06 13:42:35 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/12 15:06:57 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,7 @@ int				handle_builtin_in_child(t_exec_params *params,
 					t_cmd_args *args);
 pid_t			fork_and_execute_child(t_exec_params *params);
 pid_t			fork_and_execute2(t_exec_params *params);
+int				cleanup_and_return(int pipes[][2], t_exec *exec, pid_t *pids);
 
 /* exec_pipe_helpers.c */
 t_cmd_args		*get_command_args(t_pip *cmd);
@@ -127,6 +128,7 @@ void			handle_heredoc_signal(int sig);
 int				is_quoted_delimiter(char *delimiter);
 char			*remove_quotes(char *delimiter);
 char			*expand_heredoc_line(char *line, t_tools *tools);
+void			update_exit_status(int status, int *last_exit_status);
 
 /* exec_heredoc_processing.c */
 int				wait_heredoc_child(pid_t pid, int pipe_fd[2], t_exec *exec);

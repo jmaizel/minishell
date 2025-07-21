@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*    exec_pipe_exec.c                                  :+:      :+:    :+:   */
+/*   exec_pipe2.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 21:18:26 by cdedessu          #+#    #+#             */
-/*   Updated: 2025/03/05 13:03:11 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/10 17:10:54 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@ void	execute_command(t_pip *cmd, t_exec *exec)
 	t_cmd_args	*args;
 	char		*cmd_path;
 
+	setup_child_signals();
 	args = get_command_args(cmd);
 	if (!args || !args->argv[0])
 	{
@@ -71,6 +72,7 @@ pid_t	fork_and_execute_child(t_exec_params *params)
 {
 	t_cmd_args	*args;
 
+	setup_child_signals();
 	duplicate_redirect_fd(params);
 	close_all_pipes(params->pipes, params->exec->pipe_count);
 	args = get_command_args(params->cmd);
@@ -91,6 +93,7 @@ pid_t	fork_and_execute2(t_exec_params *params)
 {
 	pid_t	pid;
 
+	setup_parent_signals();
 	pid = fork();
 	if (pid == -1)
 	{

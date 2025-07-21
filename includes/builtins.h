@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtins.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
+/*   By: cdedessu <cdedessu@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:11:17 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/03/06 13:39:30 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/13 11:28:29 by cdedessu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,4 +47,9 @@ int		is_valid_identifier(const char *str);
 void	sort_env_array(char **sorted);
 void	print_env_variable(char *env_var);
 char	**copy_env_and_exports(char **env, int *total_count, t_tools *tools);
+void	increment_shell_level(t_tools *tools);
+int		compare_env_vars(const char *s1, const char *s2);
+int		copy_and_sort_env(t_tools *tools, char ***sorted_env);
+void	sort_env_vars(char **env, int count);
+
 #endif

@@ -27,11 +27,11 @@ EXECUTION_FILES = exec.c exec_cmd.c exec_pipe.c exec_redir.c exec_utils.c \
 				 exec_signals.c exec_error.c exec_heredoc.c exec_path.c exec_builtins.c \
 				 exec_redir_utils.c exec_cmd_utils.c exec_expansion.c exec_helper.c \
 				 exec_pipe_utils.c exec_pipe_helpers.c  exec_heredoc_utils.c \
-				 exec_heredoc_processing.c exec_pipe2.c
+				 exec_heredoc_processing.c exec_pipe2.c exec_utils2.c cleanup_and_return.c
 MAIN_FILES = main.c
 
 BUILTINS_FILES = env.c export.c env_utils.c unset.c exit.c cd.c echo.c pwd.c cd2.c env_utils2.c \
-				 export_utils.c
+				 export_utils.c env_utils3.c 
 
 SRC_FILES = $(addprefix $(MAIN_DIR)/, $(MAIN_FILES)) \
 			$(addprefix $(PARSING_DIR)/, $(PARSING_FILES)) \

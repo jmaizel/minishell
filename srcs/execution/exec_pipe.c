@@ -6,7 +6,7 @@
 /*   By: jmaizel <jmaizel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/03 14:06:14 by jmaizel           #+#    #+#             */
-/*   Updated: 2025/03/06 13:45:22 by jmaizel          ###   ########.fr       */
+/*   Updated: 2025/03/10 17:09:57 by jmaizel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,9 +74,12 @@ static int	exec_pipeline_pids(t_pip *pipeline, t_exec *exec, int pipes[][2],
 int	exec_pipeline(t_pip *pipeline, t_exec *exec, int heredoc_fd)
 {
 	int	pipes[1024][2];
+	int	result;
 
 	exec->pipe_count = count_pipes(pipeline);
 	if (setup_pipes(pipes, exec->pipe_count) == -1)
 		return (1);
-	return (exec_pipeline_pids(pipeline, exec, pipes, heredoc_fd));
+	setup_parent_signals();
+	result = exec_pipeline_pids(pipeline, exec, pipes, heredoc_fd);
+	return (result);
 }

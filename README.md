@@ -1,100 +1,127 @@
-# Minishell - Projet 42
 
-Bienvenue dans le projet **Minishell**, développé par **jmaizel** et **cdedessu** dans le cadre du cursus 42.
+# 🐚 minishell
 
-## 📖 Description
-
-Le projet Minishell consiste à recréer un shell minimaliste inspiré de Bash, offrant une meilleure compréhension des mécanismes sous-jacents des systèmes Unix/Linux. Ce shell devra être conforme à certaines spécifications fournies par le projet tout en implémentant des fonctionnalités essentielles telles que :
-
-- L'exécution de commandes simples.
-- La gestion des variables d'environnement.
-- La gestion des signaux.
-- La prise en charge des redirections (`>`, `<`, `>>`).
-- La gestion des pipes (`|`).
-- Une implémentation simplifiée de certaines commandes intégrées comme `cd`, `echo`, et `exit`.
-
-Ce projet est une excellente opportunité pour plonger dans le monde fascinant des systèmes Unix/Linux et comprendre les interactions entre le shell, le noyau, et les processus.
+> _"As beautiful as a shell."_
 
 ---
 
-## 📋 Fonctionnalités principales
+## 🇫🇷 Version Française
 
-- **Commandes simples** : Exécution de commandes comme `ls`, `pwd`, etc.
-- **Commandes intégrées** : Implémentation de commandes comme `cd`, `echo`, `export`, etc.
-- **Gestion des pipes** : Chaine de commandes utilisant le caractère `|`.
-- **Redirections** : Gestion des redirections d'entrée/sortie (`>`, `<`, `>>`).
-- **Gestion des signaux** : Réactivité aux signaux comme `Ctrl+C`, `Ctrl+D`, et `Ctrl+Z`.
-- **Environnement** : Gestion et modification des variables d'environnement.
+### 🎯 Objectif
 
----
+`minishell` est une implémentation simplifiée d’un shell Unix. L’objectif est de mieux comprendre le fonctionnement d’un shell, la gestion des processus, des redirections et des pipes.
 
-## 🚀 Installation et utilisation
+### 🧱 Fonctionnalités obligatoires
 
-### Prérequis
+- Affichage d’un **prompt interactif**
+- Historique de commandes
+- Résolution des chemins avec la variable **PATH**
+- Exécution de **commandes avec arguments**
+- Redirections :
+  - `<` (entrée)
+  - `>` (sortie)
+  - `<<` (here_doc)
+  - `>>` (append)
+- **Pipes** entre plusieurs commandes
+- Gestion des **variables d’environnement** (`$VAR`, `$?`)
+- Gestion des **quotes** simples `'` et doubles `"`
+- Comportement interactif :
+  - `Ctrl-C` : affiche un nouveau prompt
+  - `Ctrl-D` : quitte le shell
+  - `Ctrl-\` : ignoré
+- Commandes **built-in** :
+  - `echo`, `cd`, `pwd`, `export`, `unset`, `env`, `exit`
 
-Assurez-vous d'avoir les outils suivants installés sur votre machine :
+### 🛠️ Technologies
 
-- Un compilateur C conforme.
-- Make.
-- Un système Unix/Linux.
+- **Langage :** C
+- **Librairie :** readline (autorisé)
+- **Norme :** Norme 42
+- **Compilation :** Makefile (`all`, `clean`, `fclean`, `re`, `bonus`)
 
-### Étapes d'installation
+### ✨ Bonus possibles
 
-1. Clonez ce dépôt :
-   
-   ```bash
-   git clone https://github.com/jmaizel/minishell.git
-   cd minishell
+- Opérateurs `&&`, `||` avec gestion des priorités via parenthèses
+- Expansion des **wildcards `*`** dans le répertoire courant
 
-2. Compilez le projet :
-   
-   ```bash
-   make
+### 📁 Structure du projet
 
-3. Lancez le shell :
-   ```bash
-   ./minishell
-
----
-
-## 📂 Structure du projet
-
-Voici un aperçu de l’organisation des fichiers :
-
-```plaintext
+```
 minishell/
-├── srcs/                # Code source principal
-├── includes/            # Fichiers d'en-tête
-├── libft/               # Librairies externes (le cas échéant)
-├── Makefile             # Fichier de compilation
-└── README.md            # Ce fichier
+├── src/
+├── include/
+├── libft/
+├── Makefile
+└── README.md
 ```
 
----
+### 🧠 Compétences développées
 
-## 🛠️ Fonctionnalités à implémenter
-
-- **Commandes intégrées** :
-  - `cd`
-  - `echo`
-  - `exit`
-  - `env`
-  - `export`
-  - `unset`
-  - `pwd`
-- **Signaux** :
-  - Gestion de `Ctrl+C`, `Ctrl+D`, et `Ctrl+Z`.
-- **Gestion des erreurs** :
-  - Gestion des erreurs dans l’exécution des commandes, le parsing, etc.
- 
-## 📜 Licence
-
-Ce projet est réalisé dans le cadre du cursus 42 et est soumis à sa politique de collaboration. Veuillez respecter les règles d’intégrité académique lors de l’utilisation ou de la modification de ce code.
+- Gestion avancée des **processus** et **pipes**
+- Implémentation d’un interpréteur de commandes
+- Parsing complexe (quotes, variables, redirections)
+- Approfondissement des appels système Unix
+- Écriture robuste et sans fuite mémoire
 
 ---
 
-## 💬 Auteurs
+## 🇬🇧 English Version
 
-- **jmaizel** : https://github.com/jmaizel
-- **cdedessu** : https://github.com/ClementDedessus
-  
+### 🎯 Objective
+
+`minishell` is a simplified implementation of a Unix shell. The goal is to understand how a shell works internally, including process handling, parsing, pipes, and redirections.
+
+### 🧱 Mandatory Features
+
+- Interactive **prompt**
+- Command **history**
+- Path resolution with **PATH**
+- Execution of **commands with arguments**
+- Redirections:
+  - `<` (input)
+  - `>` (output)
+  - `<<` (here_doc)
+  - `>>` (append)
+- **Pipes** between multiple commands
+- Support for **environment variables** (`$VAR`, `$?`)
+- Handling of **quotes**:
+  - `'` prevents all interpretation
+  - `"` allows only `$` expansion
+- Interactive mode behavior:
+  - `Ctrl-C`: shows a new prompt
+  - `Ctrl-D`: exits the shell
+  - `Ctrl-\`: does nothing
+- Built-in commands:
+  - `echo`, `cd`, `pwd`, `export`, `unset`, `env`, `exit`
+
+### 🛠️ Tech Stack
+
+- **Language:** C
+- **Library used:** readline
+- **Coding standard:** 42 Norm
+- **Build system:** Makefile (`all`, `clean`, `fclean`, `re`, `bonus`)
+
+### ✨ Bonus Features
+
+- Logical operators `&&`, `||` with parentheses
+- **Wildcard `*` expansion** in the current directory
+
+### 📁 Project Structure
+
+```
+minishell/
+├── src/
+├── include/
+├── libft/
+├── Makefile
+└── README.md
+```
+
+### 🧠 Skills Gained
+
+- Advanced **process and pipe** management
+- Shell-like **command parser**
+- Handling redirections and quotes
+- Deep understanding of Unix syscalls
+- Writing robust and memory-safe C code
+
